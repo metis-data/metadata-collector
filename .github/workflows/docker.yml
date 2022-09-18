@@ -1,11 +1,11 @@
 name: Build and deploy docker image
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
     paths:
       - client-agent/src/**
   workflow_dispatch:
-    branches: [ "master" ]
+    branches: [ "main" ]
 jobs:
   deploy_docker:
     name: Build and Deploy Docker Image
