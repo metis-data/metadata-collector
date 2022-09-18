@@ -1,0 +1,34 @@
+name: Deploy to Lambda
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - api-lambda/**
+jobs:
+  deploy_zip:
+    name: Deploy Lambda Function
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: ./api-lambda
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: checkout source code
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.6.1
+        with:
+          role-to-assume: arn:aws:iam::357242092635:role/github-action-metis-production-agent
+          aws-region: eu-central-1
+      - name: setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - name: zip
+        run: npm ci && zip -r deployment.zip .
+      - name: deploy
+        run: aws lambda update-function-code --function-name production-md-collector-test --zip-file fileb://deployment.zip

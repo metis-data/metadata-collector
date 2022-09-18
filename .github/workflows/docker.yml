@@ -1,0 +1,48 @@
+name: Build and deploy docker image
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - client-agent/src/**
+  workflow_dispatch:
+    branches: [ "master" ]
+jobs:
+  deploy_docker:
+    name: Build and Deploy Docker Image
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: ./client-agent/src
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: checkout source code
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.6.1
+        with:
+          role-to-assume: arn:aws:iam::357242092635:role/github-action-metis-production-agent
+          aws-region: us-east-1
+      - name: Login to Amazon ECR Public
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@v1.5.1
+        with:
+          registry-type: public
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true  # Ignore the failure of a step and avoid terminating the job.
+      - name: build and deploy
+        env:
+          REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
+          TAG: ${{ github.sha }}
+        run: |
+          ID=$(docker build \
+            --build-arg DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }} \
+            --build-arg SENTRY_DSN=${{ secrets.SENTRY_DSN }} \
+            -q -t $REGISTRY/o2c0x5x8/metis-md-collector .)
+          
+          docker tag $ID $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
+          docker tag $ID $REGISTRY/o2c0x5x8/metis-md-collector:latest
+          
+          docker push $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
+          docker push $REGISTRY/o2c0x5x8/metis-md-collector:latest

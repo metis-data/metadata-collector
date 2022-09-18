@@ -1,0 +1,171 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Metis metadata collector
+Parameters:
+  ClusterName:
+    Type: String
+    Description: The name of the ECS cluster
+    AllowedPattern: "[\\w-]+"
+    MinLength: '1'
+    ConstraintDescription: The name must contain only lowercase letters, numbers, underscores and hyphens.
+    Default: metis-collector
+  SubnetId:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnet(s) where ECS task will run
+    MinLength: '1'
+  SecurityGroupId:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: The security group(s) of the ECS task
+    MinLength: '1'
+  MetisAPIKey:
+    Type: String
+    Description: Your API Key for Metis
+    MinLength: '1'
+  ConnectionStrings:
+    Type: String
+    Description: Connection string(s) to your production DB, separated by semicolon (;)
+    AllowedPattern: "[^ ]+"
+    ConstraintDescription: Connection strings cannot contain spaces.
+    MinLength: '1'
+    NoEcho: true
+Resources:
+  ConnectionStringSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Join ['-', [metis-connection-strings, !Ref ClusterName]]
+      Description: "This secret contains the connection string for Metis Production Metadata Collector (including usernames and passwords)."
+      SecretString: !Ref ConnectionStrings
+  MetisMDCollectorRole: # IAM role for the Fargate task, allowing it to get the docker image and write logs
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: MetisECSTaskExecutionRolePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ecr:GetAuthorizationToken"
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:BatchGetImage"
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
+  ConnectionStringSecretPolicy:  # Based on https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_examples.html
+    Type: AWS::SecretsManager::ResourcePolicy
+    Properties:
+      SecretId: !Ref ConnectionStringSecret
+      ResourcePolicy:
+        Version: '2012-10-17'
+        Statement:
+        - Resource: "*"
+          Action: secretsmanager:GetSecretValue
+          Effect: Allow
+          Principal:
+            AWS: !GetAtt MetisMDCollectorRole.Arn
+  MetisMDCollectorCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+      ClusterName: !Ref ClusterName
+  MetisMDCollector:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Image: public.ecr.aws/o2c0x5x8/metis-md-collector:latest
+          Name: metis-md-collector
+          Environment:
+            - Name: API_GATEWAY_HOST
+              Value: ingest.metisdata.io
+            - Name: API_GATEWAY_PATH
+              Value: /md-collector
+            - Name: API_GATEWAY_PORT
+              Value: '443'
+            - Name: API_KEY
+              Value: !Ref MetisAPIKey
+            - Name: CONNECTION_STRINGS_SECRET
+              Value: !Ref ConnectionStringSecret
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Join ['', ['/ecs/', !Ref ClusterName]]
+              awslogs-region: !Ref "AWS::Region"
+              awslogs-stream-prefix: ecs
+              awslogs-create-group: true
+      Cpu: '256'
+      Memory: '512'
+      # The task definition's name is suffixed with the cluster name, to allow multiple tasks with different parameters (e.g. different VPCs)
+      Family: !Join ['-', [metis-md-collector, !Ref ClusterName]]
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      RuntimePlatform:
+        OperatingSystemFamily: LINUX
+      TaskRoleArn: !GetAtt MetisMDCollectorRole.Arn
+      ExecutionRoleArn: !GetAtt MetisMDCollectorRole.Arn
+  MetisMDCollectorTriggerRole: # IAM role for the event triggering the Fargate task every hour, allowing it to trigger tasks
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+                - ecs-tasks.amazonaws.com
+                - events.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: MetisEventBridgeInvokeECSPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ecs:RunTask"
+                Resource:
+                  - "*"
+              - Effect: Allow
+                Action: "iam:PassRole"
+                Resource:
+                  - "*"
+                Condition:
+                  StringLike:
+                    "iam:PassedToService": "ecs-tasks.amazonaws.com"
+  MetisMDCollectorTrigger:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Triggers Metis metadata collector
+      # The event's name is suffixed with the cluster name, to allow multiple tasks with different parameters (e.g. different VPCs)
+      Name: !Join ['-', [MetisMDTrigger, !Ref ClusterName]]
+      ScheduleExpression: 'rate(1 hour)'
+      State: ENABLED
+      Targets:
+        - Id: '1'
+          Arn: !GetAtt MetisMDCollectorCluster.Arn
+          RoleArn: !GetAtt MetisMDCollectorTriggerRole.Arn
+          EcsParameters:
+            LaunchType: FARGATE
+            TaskDefinitionArn: !Ref MetisMDCollector
+            NetworkConfiguration:
+              AwsVpcConfiguration:
+                AssignPublicIp: ENABLED
+                SecurityGroups: !Ref SecurityGroupId
+                Subnets: !Ref SubnetId
