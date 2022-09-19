@@ -153,6 +153,7 @@ async function setup() {
   Sentry.init({
     dsn: SENTRY_DSN,
     tracesSampleRate: 1.0,
+    environment: process.ENVIRONMENT,
   });
   Sentry.setUser({ id: API_KEY });
 
