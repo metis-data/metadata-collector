@@ -8,9 +8,13 @@
  */
 /* eslint-disable no-console */
 
+const process = require('process');
 const { client, v2 } = require('@datadog/datadog-api-client');
 
-const configuration = client.createConfiguration({ authMethods: { apiKeyAuth: 'd28ebbe2a8ed81f30663e6c5711a70e5', appKeyAuth: '0f67fdaaa099cde9a86df3745b3bf50bf33f04a5', baseServer: 'datadoghq.com' } });
+const { DATADOG_API_KEY, DATADOG_APP_KEY } = process.env;
+const configuration = client.createConfiguration({
+  authMethods: { apiKeyAuth: DATADOG_API_KEY, appKeyAuth: DATADOG_APP_KEY, baseServer: 'datadoghq.com' },
+});
 const apiInstance = new v2.LogsApi(configuration);
 
 async function getDatadogLogs(apiKey, startTimeString, endTimeString) {
