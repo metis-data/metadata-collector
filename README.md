@@ -1,4 +1,4 @@
-# Metis Production Metadata Collector
+# Metis Metadata Collector
 Collects metadata from production databases to enrich Metis insights. Connection credentials to the databases are saved using AWS Secretes Manager.
 
 ## Deployment
