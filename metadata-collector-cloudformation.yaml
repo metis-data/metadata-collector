@@ -89,7 +89,7 @@ Resources:
         - Image: public.ecr.aws/o2c0x5x8/metis-md-collector:latest
           Name: metis-md-collector
           Environment:
-            - Name: ENVIRONMENT
+            - Name: APP_ENV
               Value: production
             - Name: API_GATEWAY_HOST
               Value: ingest.metisdata.io
