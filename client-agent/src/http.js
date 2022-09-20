@@ -42,4 +42,6 @@ function directHttpsSend(data, httpRequestOptions) {
   });
 }
 
-module.exports.directHttpsSend = directHttpsSend;
+module.exports = {
+  directHttpsSend,
+};

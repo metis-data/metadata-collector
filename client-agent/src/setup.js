@@ -48,4 +48,6 @@ async function setup() {
   return true;
 }
 
-module.exports.setup = setup;
+module.exports = {
+  setup,
+};

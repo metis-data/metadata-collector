@@ -41,4 +41,6 @@ async function processResults(queries, dbConfig, results) {
   );
 }
 
-module.exports.processResults = processResults;
+module.exports = {
+  processResults,
+};

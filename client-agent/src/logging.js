@@ -124,6 +124,8 @@ function loggerExit(msg) {
   winstonLogger.end();
 }
 
-module.exports.logger = logger;
-module.exports.loggingSetup = loggingSetup;
-module.exports.loggerExit = loggerExit;
+module.exports = {
+  logger,
+  loggingSetup,
+  loggerExit,
+};

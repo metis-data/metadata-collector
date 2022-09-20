@@ -15,4 +15,6 @@ async function getConnectionStrings() {
   return data.SecretString;
 }
 
-module.exports.getConnectionStrings = getConnectionStrings;
+module.exports = {
+  getConnectionStrings,
+};
