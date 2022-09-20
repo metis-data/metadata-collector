@@ -11,7 +11,7 @@ cd $COLLECTOR_DIRECTORY
 for api_key in $API_KEYS; do
     echo Running with API Key $api_key
     API_KEY="$api_key" API_GATEWAY_HOST="https://ingest.metisdata.io" \
-    API_GATEWAY_PORT="443" API_GATEWAY_PATH="/md-collector" MOCK=true node metrix.js &
+    API_GATEWAY_PORT="443" API_GATEWAY_PATH="/md-collector" node mock.js &
 done
 
 echo Waiting for everything to complete ...
