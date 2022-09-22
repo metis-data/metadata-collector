@@ -5,6 +5,7 @@
   "main": "metrix.js",
   "scripts": {
     "start": "node metrix.js",
+    "simulator": "node simulator.js 30",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
