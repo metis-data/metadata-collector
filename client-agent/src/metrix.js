@@ -70,6 +70,8 @@ function getQueries(fakeHoursDelta) {
   return qs;
 }
 
+const results = {};
+
 async function collect(fakeHoursDelta) {
   const dbConfigs = await getDBConfigs();
   if (dbConfigs.length === 0) {
@@ -87,16 +89,19 @@ async function collect(fakeHoursDelta) {
       async (dbConfig) => {
         let client = null;
         try {
-          client = new pg.Client(dbConfig);
-          logger.info(`Trying to connect to ${dbConfig.database} ...`);
-          await client.connect();
-          logger.info(`Connected to ${dbConfig.database}`);
-          const res = await client.query(bigQuery);
-          logger.info('Obtained query results. Processing results ...');
-          const results = theQueries.length === 1 ? [res] : res;
+          const dbConfigKey = JSON.stringify(dbConfig) + bigQuery;
+          if (!(dbConfigKey in results)) {
+            client = new pg.Client(dbConfig);
+            logger.info(`Trying to connect to ${dbConfig.database} ...`);
+            await client.connect();
+            logger.info(`Connected to ${dbConfig.database}`);
+            const res = await client.query(bigQuery);
+            logger.info('Obtained query results. Processing results ...');
+            results[dbConfigKey] = theQueries.length === 1 ? [res] : res;
+          }
           const now = new Date();
           now.setHours(now.getHours() - fakeHoursDelta);
-          await processResults(dbConfig, results, now.getTime(), fakeHoursDelta !== 0);
+          await processResults(dbConfig, results[dbConfigKey], now.getTime(), fakeHoursDelta !== 0);
           logger.info('Processing results done.');
         } catch (err) {
           logger.error(err.message, false, err.context);
@@ -107,10 +112,10 @@ async function collect(fakeHoursDelta) {
         }
       },
     ),
-  ).then((results) => {
-    const allOK = results.every((result) => result.status === 'fulfilled');
+  ).then((returnedResults) => {
+    const allOK = returnedResults.every((result) => result.status === 'fulfilled');
     if (!allOK) {
-      logger.error(`Some of the DBs did not get back fine. dbConfigs is: ${dbConfigs} and the results are ${results}`);
+      logger.error(`Some of the DBs did not get back fine. dbConfigs is: ${dbConfigs} and the results are ${returnedResults}`);
     }
   }).catch((err) => {
     logger.err(`Error "${err}" catched in collect.`);
@@ -131,7 +136,7 @@ async function run(fakeHoursDelta = 0, runSetup = true) {
     process.exit(1);
   }
 
-  collect(fakeHoursDelta);
+  await collect(fakeHoursDelta);
 }
 
 run().then(() => {}).catch((err) => { logger.error(err.message); });
