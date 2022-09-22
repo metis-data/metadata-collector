@@ -4,7 +4,7 @@ const { logger } = require('./logging');
 const { directHttpsSend } = require('./http');
 const { COLLECTOR_VERSION, TAGS, HTTPS_REQUEST_OPTIONS } = require('./consts');
 
-async function processRows(dbConfig, rows) {
+async function processRows(dbConfig, rows, timestamp) {
   const metricsData = [];
   const now = Date.now().toString();
   rows.forEach((row) => {
@@ -12,7 +12,7 @@ async function processRows(dbConfig, rows) {
     valueNames.forEach((valueName) => {
       const r = {};
       r.id = randomUUID();
-      r.timestamp = now;
+      r.timestamp = timestamp.toString();
       r.metricName = valueName;
       r.value = parseFloat(row[valueName]);
       TAGS.forEach((tag) => { if (row[tag]) r[tag] = row[tag]; });
@@ -27,17 +27,9 @@ async function processRows(dbConfig, rows) {
   logger.debug(`Metrics data is ${JSON.stringify(metricsData)}`);
 }
 
-async function processResults(queries, dbConfig, results) {
-  if (queries.length === 0 || !results) {
-    logger.info(queries.length === 0 ? 'No queries are scheduled for this hour.' : 'Queries returned no results');
-    return;
-  }
-  if (queries.length === 1) {
-    await processRows(dbConfig, results.rows);
-    return;
-  }
+async function processResults(dbConfig, results, timestamp) {
   await Promise.all(
-    results.map(async (r) => { await processRows(dbConfig, r.rows); }),
+    results.map(async (result) => { await processRows(dbConfig, result.rows, timestamp); }),
   );
 }
 

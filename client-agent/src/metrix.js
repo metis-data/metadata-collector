@@ -58,10 +58,10 @@ function getQueries() {
   if (process.argv.length === 2) {
     return Object.keys(QUERIES)
       .filter((key) => relevant(QUERIES[key].times_a_day, currentHour, currentMinutes))
-      .map((key) => QUERIES[key].query);
+      .map((key) => QUERIES[key]);
   }
   const qs = [];
-  process.argv.slice(2).forEach((q) => { if (q in QUERIES) { qs.push(QUERIES[q].query); } });
+  process.argv.slice(2).forEach((q) => { if (q in QUERIES) { qs.push(QUERIES[q]); } });
   if (qs.length < process.argv.length - 2) {
     const nonEligableQueries = process.argv.slice(2).filter((q) => !(q in QUERIES));
     throw Error(`Error running the CLI. The following are not eligible queries: ${nonEligableQueries}`);
@@ -80,7 +80,7 @@ async function collect() {
     logger.info('There are no queries to run for this hour.');
     return;
   }
-  const bigQuery = theQueries.join('; ');
+  const bigQuery = theQueries.map((q) => q.query).join('; ');
   await Promise.allSettled(
     dbConfigs.map(
       async (dbConfig) => {
@@ -92,7 +92,9 @@ async function collect() {
           logger.info(`Connected to ${dbConfig.database}`);
           const res = await client.query(bigQuery);
           logger.info('Obtained query results. Processing results ...');
-          await processResults(theQueries, dbConfig, res);
+          const results = theQueries.length === 1 ? [res] : res;
+          const timestamp = Date.now();
+          await processResults(dbConfig, results, timestamp);
           logger.info('Processing results done.');
         } catch (err) {
           logger.error(err.message, false, err.context);
