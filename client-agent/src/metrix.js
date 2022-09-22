@@ -16,7 +16,8 @@ const DB_CONNECT_TIMEOUT = 5000;
 
 const queriesFileContents = fs.readFileSync(QUERIES_FILE, 'utf8');
 const QUERIES = yaml.load(queriesFileContents);
-const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
+const FAKE_HOURS_DELTA = parseInt(process.env.FAKE_HOURS_DELTA || 0, 10);
+const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true' || FAKE_HOURS_DELTA !== 0;
 
 let DB_CONNECTION_STRINGS = null;
 
@@ -93,8 +94,9 @@ async function collect() {
           const res = await client.query(bigQuery);
           logger.info('Obtained query results. Processing results ...');
           const results = theQueries.length === 1 ? [res] : res;
-          const timestamp = Date.now();
-          await processResults(dbConfig, results, timestamp);
+          const now = new Date();
+          now.setHours(now.getHours() - FAKE_HOURS_DELTA);
+          await processResults(dbConfig, results, now.getTime(), FAKE_HOURS_DELTA !== 0);
           logger.info('Processing results done.');
         } catch (err) {
           logger.error(err.message, false, err.context);
