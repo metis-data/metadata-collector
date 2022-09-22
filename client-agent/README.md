@@ -14,7 +14,7 @@ Developing locally
 Simulator
 ==================
 - The collector also can be run in a mode that "simulates" data. For example, in order to fake data of that last 30 days run
-  * `node simulate.js 30`
+  * `npm run simulator`
 
 Env params
 ==================
