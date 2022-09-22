@@ -43,7 +43,7 @@ async function mockCollect() {
     logger.info('Getting Mock results');
     const results = generateMockResults(queriesNumParams);
     logger.info('Got Mock results. Sending the results ...');
-    await processResults({ database: `Database:${API_KEY.split(4, 10)}`, host: 'mock.host.com' }, results, new Date(), 0);
+    await processResults({ database: `Database:${API_KEY.split(4, 10)}`, host: 'mock.host.com' }, results, new Date().getTime(), 0);
     logger.info('Sending result done.');
   } catch (err) {
     logger.error(err.message, false, err.context);
