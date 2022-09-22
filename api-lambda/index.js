@@ -16,11 +16,17 @@ exports.handler = Sentry.AWSLambda.wrapHandler(async (event, context, callback) 
   logger.info(`Incoming data: ${event.body}`);
   const { requestTimeEpoch } = event.requestContext;
   const apiKey = event.headers['x-api-key'];
-  const timestamp = requestTimeEpoch ? new Date(requestTimeEpoch) : new Date();
+  const reqTimestamp = requestTimeEpoch ? new Date(requestTimeEpoch) : new Date();
   const writeApi = new Influx.InfluxDB({ url, token }).getWriteApi(org, bucket, 'ns', writeOptions);
   writeApi.useDefaultTags({ apiKey });
   const points = JSON.parse(event.body).reduce((arr, data) => {
-    const { metricName, value, ...rest } = data;
+    const {
+      metricName,
+      value,
+      timestamp,
+      ...rest
+    } = data;
+    const pointTs = timestamp === undefined ? reqTimestamp : new Date(timestamp);
     if (typeof metricName !== 'string') {
       logger.error(`Metric ignored because name is not a string. data: ${JSON.stringify(data)}`);
       return arr;
@@ -31,7 +37,7 @@ exports.handler = Sentry.AWSLambda.wrapHandler(async (event, context, callback) 
     }
     let point = new Influx.Point(metricName)
       .floatField('value', value)
-      .timestamp(timestamp);
+      .timestamp(pointTs);
     point = Object.entries(rest).reduce(
       (pnt, [k, v]) => {
         if (typeof v !== 'string') {

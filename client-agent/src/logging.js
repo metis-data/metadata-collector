@@ -24,7 +24,7 @@ const voidFunc = () => {};
 
 const httpTransport = new transports.Http(httpTransportOptions);
 
-const winstonConsoleLogger = IGNORE_WINSTON_CONSOLE === 'true' ? null : createLogger({
+let winstonConsoleLogger = IGNORE_WINSTON_CONSOLE === 'true' ? null : createLogger({
   level: 'debug',
   exitOnError: false,
   format: format.json(),
@@ -125,8 +125,14 @@ function loggerExit(msg) {
   winstonLogger.end();
 }
 
+function setErrorOnlyLogging() {
+  winstonLogger.level = 'error';
+  winstonConsoleLogger = null;
+}
+
 module.exports = {
   logger,
   loggingSetup,
   loggerExit,
+  setErrorOnlyLogging,
 };

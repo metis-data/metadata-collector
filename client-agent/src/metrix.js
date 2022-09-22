@@ -16,8 +16,7 @@ const DB_CONNECT_TIMEOUT = 5000;
 
 const queriesFileContents = fs.readFileSync(QUERIES_FILE, 'utf8');
 const QUERIES = yaml.load(queriesFileContents);
-const FAKE_HOURS_DELTA = parseInt(process.env.FAKE_HOURS_DELTA || 0, 10);
-const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true' || FAKE_HOURS_DELTA !== 0;
+const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 
 let DB_CONNECTION_STRINGS = null;
 
@@ -52,10 +51,11 @@ function relevant(timesADay, hour, minutes) {
   return hour % every === 0 || (minutes === 0 && ((hour + 23) % 24) % every === 0);
 }
 
-function getQueries() {
+function getQueries(fakeHoursDelta) {
   const now = new Date();
+  now.setHours(now.getHours() - fakeHoursDelta);
   const currentMinutes = now.getMinutes();
-  const currentHour = IGNORE_CURRENT_TIME ? 0 : new Date().getHours();
+  const currentHour = IGNORE_CURRENT_TIME ? 0 : now.getHours();
   if (process.argv.length === 2) {
     return Object.keys(QUERIES)
       .filter((key) => relevant(QUERIES[key].times_a_day, currentHour, currentMinutes))
@@ -70,13 +70,13 @@ function getQueries() {
   return qs;
 }
 
-async function collect() {
+async function collect(fakeHoursDelta) {
   const dbConfigs = await getDBConfigs();
   if (dbConfigs.length === 0) {
     logger.error('No connection strings could be parsed');
     return;
   }
-  const theQueries = getQueries();
+  const theQueries = getQueries(fakeHoursDelta);
   if (theQueries.length === 0) {
     logger.info('There are no queries to run for this hour.');
     return;
@@ -95,8 +95,8 @@ async function collect() {
           logger.info('Obtained query results. Processing results ...');
           const results = theQueries.length === 1 ? [res] : res;
           const now = new Date();
-          now.setHours(now.getHours() - FAKE_HOURS_DELTA);
-          await processResults(dbConfig, results, now.getTime(), FAKE_HOURS_DELTA !== 0);
+          now.setHours(now.getHours() - fakeHoursDelta);
+          await processResults(dbConfig, results, now.getTime(), fakeHoursDelta !== 0);
           logger.info('Processing results done.');
         } catch (err) {
           logger.error(err.message, false, err.context);
@@ -118,8 +118,8 @@ async function collect() {
   logger.info('Collection is done.');
 }
 
-async function run() {
-  const ok = await setup();
+async function run(fakeHoursDelta = 0, runSetup = true) {
+  const ok = !runSetup || await setup();
   if (!ok) {
     return;
   }
@@ -131,7 +131,9 @@ async function run() {
     process.exit(1);
   }
 
-  collect();
+  collect(fakeHoursDelta);
 }
 
 run().then(() => {}).catch((err) => { logger.error(err.message); });
+
+module.exports.run = run;

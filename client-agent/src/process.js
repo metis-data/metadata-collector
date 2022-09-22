@@ -11,7 +11,7 @@ async function processRows(dbConfig, rows, timestamp, fake) {
     valueNames.forEach((valueName) => {
       const r = {};
       r.id = randomUUID();
-      r.timestamp = timestamp.toString();
+      r.timestamp = timestamp;
       r.metricName = valueName;
       r.value = parseFloat(row[valueName]);
       if (fake) {
