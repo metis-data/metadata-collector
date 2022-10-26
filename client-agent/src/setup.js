@@ -20,7 +20,7 @@ async function setup() {
     } catch (err) {
       /* If logger is failing too, there is nothing we would like to do */
     }
-    exit('Exiting ...', 1);
+    exit('Uncaught Exception Exiting ...', 1);
   });
 
   process.on('SIGINT', () => {
@@ -31,8 +31,8 @@ async function setup() {
     exit('SIGTERM signal received, exiting ...', 1);
   });
 
-  process.on('exit', () => {
-    exit('Exiting ...');
+  process.on('exit', (code) => {
+    exit(`Process Exiting code: ${code}...`);
   });
 
   const requiredEnvironmentVariables = [
