@@ -18,13 +18,13 @@ Simulator
 
 Env params
 ==================
-- DATADOG_API_KEY
-- SENTRY_DSN
-- API_KEY
-- API_GATEWAY_HOST
-- API_GATEWAY_PORT
-- API_GATEWAY_PATH
-- DB_CONNECTION_STRINGS
-- QUERIES_FILE
-- IGNORE_CURRENT_TIME
-- IGNORE_WINSTON_CONSOLE
+- DATADOG_API_KEY - Logs are sent to Datadog logs service. Key can be seen or created here https://app.datadoghq.com/organization-settings/api-keys
+- SENTRY_DSN - The Senty URI
+- API_KEY - Metis AWS API Gateway key
+- API_GATEWAY_HOST - The AWS Host URL
+- API_GATEWAY_PORT - The port number (default 443)
+- API_GATEWAY_PATH - The AWS API Gateway path
+- DB_CONNECTION_STRINGS - Connection strings of the database seperated by ";" between databases.
+- QUERIES_FILE - The YAML file that describes the queries to be run (default [queries.yaml](src/queries.yaml)).
+- IGNORE_CURRENT_TIME - If "true" (in lower case!) ignore the "times_a_day" field of the queries in `QUERIES_FILE` and run all the queries in this run.
+- IGNORE_WINSTON_CONSOLE - If "true" ignore Winston console logger. Log to stdout in a readable non-JSON format.
