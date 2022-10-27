@@ -1,15 +1,15 @@
+const http = require('http');
 const https = require('https');
 const retry = require('retry');
 
 const { logger } = require('./logging');
 
-const NUM_HTTPS_RETRIES = 3;
-
-function directHttpsSend(data, httpRequestOptions) {
-  const op = retry.operation({ retries: NUM_HTTPS_RETRIES });
+function directHttpsSend(data, httpRequestOptions, numRetries = 3) {
+  const provider = httpRequestOptions.port === 443 ? https : http;
+  const op = retry.operation({ retries: numRetries });
   return new Promise((resolve, reject) => {
     op.attempt(() => {
-      const req = https.request(httpRequestOptions, (res) => {
+      const req = provider.request(httpRequestOptions, (res) => {
         logger.debug(`STATUS: ${res.statusCode}`);
         res.setEncoding('utf8');
         res.on('data', (chunk) => {
@@ -18,7 +18,10 @@ function directHttpsSend(data, httpRequestOptions) {
         if (res.statusCode >= 400) {
           const err = new Error(`Problem with HTTPS request, status code is ${res.statusCode}`);
           if (!op.retry(err)) {
-            err.context = { requestId: res.headers['x-amzn-requestid'], traceId: res.headers['x-amzn-trace-id'] };
+            err.context = {
+              requestId: res.headers['x-amzn-requestid'] || res.headers['x-ray-id'], // When used for our backend api
+              traceId: res.headers['x-amzn-trace-id'], // When used for API Gateway
+            };
             reject(err);
           }
         } else {
@@ -34,6 +37,7 @@ function directHttpsSend(data, httpRequestOptions) {
         req.destroy();
         reject(new Error('Reached timeout!'));
       });
+      req.setHeader('Content-Type', 'application/json');
       const message = JSON.stringify(data);
       // write data to request body
       req.write(message);
