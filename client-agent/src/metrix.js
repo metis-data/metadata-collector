@@ -1,22 +1,20 @@
 const pg = require('pg');
 const process = require('process');
 const connectionParser = require('connection-string-parser');
-const fs = require('fs');
-const yaml = require('js-yaml');
-
-require('dotenv').config();
+const {
+  app: {
+    queryTimeoutInMilliseconds: DB_CONNECT_TIMEOUT,
+    ignoreWinstonConsole,
+  },
+  queries: QUERIES,
+} = require('config');
 
 const { setup } = require('./setup');
-const { QUERIES_FILE } = require('./consts');
 const { logger } = require('./logging');
 const { processResults } = require('./process');
 const { getConnectionStrings } = require('./secret');
 
-const DB_CONNECT_TIMEOUT = 5000;
-
-const queriesFileContents = fs.readFileSync(QUERIES_FILE, 'utf8');
-const QUERIES = yaml.load(queriesFileContents);
-const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
+const IGNORE_CURRENT_TIME = ignoreWinstonConsole === 'true';
 
 let DB_CONNECTION_STRINGS = null;
 

@@ -1,0 +1,10 @@
+app:
+  api_key: 'FHUSw6ytOXa6wIiV3JSFT6Ntt8f5kCsv6pEgJwS8'
+  api_gateway_host: 'ingest.metisdata.io'
+  sentry_dsn: 'https://XXXX'
+  datadog_api_key: 'XXXX'
+
+actions:
+  db_schema:
+    times_a_day: 2
+

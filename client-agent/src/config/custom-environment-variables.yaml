@@ -1,0 +1,11 @@
+app:
+  api_key: API_KEY
+  aws_region: AWS_REGION
+
+queries:
+  index_usage:
+    times_a_day: INDEX_USAGE_TIMES_A_DAY
+
+actions:
+  db_schema:
+    times_a_day: ACTIONS_DB_SCHEMA_TIMES_A_DAY

@@ -1,0 +1,11 @@
+app:
+  api_key: 'mj1Vde9QC664608cJ24CV3Zf2Y9tdgzt20P8quOm'
+  db_connection_strings: 'postgresql://postgres:Trustno1@3.69.95.41/wide_world_importers_pg;'
+  sentry_dsn: 'https://51701d0b4836486eaa874b522dc2fecb@o1173646.ingest.sentry.io/6515773'
+  datadog_api_key: 'pubdd790745e9883748e503f312d8cc7197'
+  ignore_current_time: false
+  IGNORE_WINSTON_CONSOLE: false
+
+actions:
+  db_schema:
+    times_a_day: 2

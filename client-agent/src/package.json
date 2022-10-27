@@ -5,7 +5,7 @@
   "main": "metrix.js",
   "scripts": {
     "start": "node metrix.js",
-    "simulator": "node simulator.js 30",
+    "simulator": "node simulator.js 30 OX75oeRBqeazq13fbBut5a3WDXlufTGZ81PRbgsD",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -14,6 +14,7 @@
     "@aws-sdk/client-secrets-manager": "^3.169.0",
     "@sentry/node": "^7.2.0",
     "@types/amqplib": "^0.8.2",
+    "config": "^3.3.8",
     "connection-string-parser": "^1.0.4",
     "dotenv": "^16.0.1",
     "js-yaml": "^4.1.0",
