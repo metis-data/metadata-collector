@@ -111,7 +111,7 @@ async function loggingSetup() {
   Sentry.init({
     dsn: SENTRY_DSN,
     tracesSampleRate: 1.0,
-    environment: process.env.APP_ENV,
+    environment: process.env.APP_ENV || process.env.NODE_ENV,
   });
   Sentry.setUser({ id: API_KEY });
 }
