@@ -43,7 +43,7 @@ async function run(fakeHoursDelta = 0) {
   }
   const dbConfigs = await getDBConfigs();
 
-  // await collectQueries(fakeHoursDelta, dbConfigs);
+  await collectQueries(fakeHoursDelta, dbConfigs);
   await collectActions(fakeHoursDelta, dbConfigs);
 }
 
