@@ -34,12 +34,7 @@ async function getDBConfigs() {
   return configs;
 }
 
-async function run(fakeHoursDelta = 0, runSetup = true) {
-  const ok = !runSetup || await setup();
-  if (!ok) {
-    return;
-  }
-
+async function run(fakeHoursDelta = 0) {
   try {
     DB_CONNECTION_STRINGS = await getConnectionStrings();
   } catch (err) {
@@ -52,6 +47,13 @@ async function run(fakeHoursDelta = 0, runSetup = true) {
   await collectActions(fakeHoursDelta, dbConfigs);
 }
 
-run().then(() => {}).catch((err) => { logger.error(err.message); });
-
+(async function main() {
+  await setup();
+  await run()
+    .then(() => {
+    })
+    .catch((err) => {
+      logger.error(err.message);
+    });
+}());
 module.exports.run = run;

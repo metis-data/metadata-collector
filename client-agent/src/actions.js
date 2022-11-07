@@ -68,9 +68,19 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
         ...schemaResult,
         errors,
       };
-    }, { apiKeyId: API_KEY, dbName: dbConfig.database, dbHost: dbConfig.host })),
+    }, {
+      apiKeyId: API_KEY,
+      dbName: dbConfig.database,
+      dbHost: dbConfig.host,
+    })),
   );
-  await directHttpsSend(actionsData, WEB_APP_REQUEST_OPTIONS, 1);
+
+  try {
+    await directHttpsSend(actionsData, WEB_APP_REQUEST_OPTIONS, 1);
+  } catch (err) {
+    logger.error(err.message, false, err.context);
+  }
+
   logger.info('Sent actions results.');
   logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
 }

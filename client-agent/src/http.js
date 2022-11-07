@@ -16,7 +16,14 @@ function directHttpsSend(data, httpRequestOptions, numRetries = 3) {
           logger.debug(`BODY: ${JSON.stringify(chunk)}`);
         });
         if (res.statusCode >= 400) {
-          const err = new Error(`Problem with HTTPS request, status code is ${res.statusCode}`);
+          const err = new Error(`Problem with HTTPS request, status code is ${
+            JSON.stringify({
+              status: res.statusCode,
+              requestId: res.headers['x-amzn-requestid'] || res.headers['x-ray-id'], // When used for our backend api
+              traceId: res.headers['x-amzn-trace-id'],
+            }, null, 2)
+          }`);
+
           if (!op.retry(err)) {
             err.context = {
               requestId: res.headers['x-amzn-requestid'] || res.headers['x-ray-id'], // When used for our backend api
