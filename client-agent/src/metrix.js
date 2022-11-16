@@ -55,6 +55,4 @@ async function run(fakeHoursDelta = 0) {
   await Promise.all(collectingActionPromises);
 }
 
-run().then(() => {}).catch(logger.error);
-
 module.exports.run = run;
