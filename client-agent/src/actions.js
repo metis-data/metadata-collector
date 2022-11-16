@@ -61,12 +61,12 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
             error: err.stack,
           },
         };
-        logger.error('Action failed to run', err);
+        logger.error(`Action '${action.name}' failed to run`, err);
       }
       return {
         ...(await result),
         ...schemaResult,
-        errors
+        errors,
       };
     }, {
       apiKeyId: API_KEY,
