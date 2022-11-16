@@ -4,14 +4,54 @@ const COLLECTOR_VERSION = '0.63';
 const TAGS = new Set(['schema', 'table', 'index']);
 
 const {
-  API_KEY, API_GATEWAY_HOST, API_GATEWAY_PATH, WEB_APP_HOST, WEB_APP_PATH,
+  API_KEY,
+  API_GATEWAY_HOST,
+  API_GATEWAY_PATH,
+  WEB_APP_HOST,
+  WEB_APP_PATH,
+  APP_ENV,
+  NODE_ENV,
 } = process.env;
+
+let LOG_LEVEL = process.env.LOG_LEVEL || 'INFO';
+
+const LogLevelEnum = {
+  DEUBG: 'debug',
+  ERROR: 'error',
+  INFO: 'info',
+  WARN: 'warn',
+};
+
+if (LOG_LEVEL) {
+  LOG_LEVEL = LOG_LEVEL.toUpperCase();
+  const logLevelsKeys = Object.keys(LogLevelEnum);
+  if (!logLevelsKeys.includes(LOG_LEVEL)) {
+    throw new Error(`LOG_LEVEL isn't match to ${JSON.stringify(logLevelsKeys).replaceAll(',', '/')}.`);
+  }
+}
+
 const API_GATEWAY_PORT = parseInt(process.env.API_GATEWAY_PORT || 443, 10);
 const WEB_APP_PORT = parseInt(process.env.WEB_APP_PORT || 6000, 10);
 const QUERIES_FILE = process.env.QUERIES_FILE || path.join(__dirname, 'queries.yaml');
 const ACTIONS_FILE = process.env.ACTIONS || path.join(__dirname, 'actions.yaml');
 
 const HTTPS_TIMEOUT = 30000;
+
+let ENVIRONMENT = APP_ENV || NODE_ENV;
+
+const EnvironmentsEnum = {
+  DEVELOPMENT: 'development',
+  STAGING: 'staging',
+  PRODUCTION: 'production',
+};
+
+if (ENVIRONMENT) {
+  ENVIRONMENT = ENVIRONMENT.toUpperCase();
+  const optionalKeys = Object.keys(EnvironmentsEnum);
+  if (!optionalKeys.includes(ENVIRONMENT)) {
+    throw new Error(`APP_ENV or NODE_ENV doesn't match to ${JSON.stringify(optionalKeys).replaceAll(',', '/')}.`);
+  }
+}
 
 const HTTPS_REQUEST_OPTIONS = {
   host: API_GATEWAY_HOST,
@@ -42,4 +82,8 @@ module.exports = {
   ACTIONS_FILE,
   TAGS,
   WEB_APP_REQUEST_OPTIONS,
+  LOG_LEVEL,
+  LogLevelEnum,
+  ENVIRONMENT,
+  EnvironmentsEnum,
 };

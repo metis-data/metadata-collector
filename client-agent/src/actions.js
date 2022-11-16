@@ -54,13 +54,13 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
         schemaResult = {
           [action.name]: actionResult,
         };
-      } catch (e) {
+      } catch (err) {
         schemaResult = {
           [action.name]: {
-            error: e.stack,
+            error: err.stack,
           },
         };
-        logger.error(`Action failed to run: ${JSON.stringify(e)}`);
+        logger.error('Action failed to run', err);
       }
       return {
         ...(await result),
@@ -68,6 +68,7 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
       };
     }, { apiKeyId: API_KEY, dbName: dbConfig.database, dbHost: dbConfig.host })),
   );
+
   await directHttpsSend(actionsData, WEB_APP_REQUEST_OPTIONS, 1);
   logger.info('Sent actions results.');
   logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);

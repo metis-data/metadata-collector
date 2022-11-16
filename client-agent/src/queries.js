@@ -64,7 +64,8 @@ async function collectQueries(fakeHoursDelta, dbConfigs) {
           await processResults(dbConfig, results[dbConfigKey], now.getTime(), fakeHoursDelta !== 0);
           logger.info('Processing results done.');
         } catch (err) {
-          logger.error(err.message, false, err.context);
+          logger.error('Couldn\'t run queries', err, dbConfigs);
+          throw err;
         } finally {
           if (client) {
             client.end();
@@ -72,14 +73,8 @@ async function collectQueries(fakeHoursDelta, dbConfigs) {
         }
       },
     ),
-  ).then((returnedResults) => {
-    const allOK = returnedResults.every((result) => result.status === 'fulfilled');
-    if (!allOK) {
-      logger.error(`Some of the DBs did not get back fine. dbConfigs is: ${dbConfigs} and the results are ${returnedResults}`);
-    }
-  }).catch((err) => {
-    logger.err(`Error "${err}" catched in collect.`);
-  });
+  );
+
   logger.info('Collection is done.');
 }
 

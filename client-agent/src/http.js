@@ -13,7 +13,7 @@ function directHttpsSend(data, httpRequestOptions, numRetries = 3) {
         logger.debug(`STATUS: ${res.statusCode}`);
         res.setEncoding('utf8');
         res.on('data', (chunk) => {
-          logger.debug(`BODY: ${JSON.stringify(chunk)}`);
+          logger.debug(`BODY: ${JSON.stringify(chunk)}`, httpRequestOptions);
         });
         if (res.statusCode >= 400) {
           const err = new Error(`Problem with HTTPS request, status code is ${res.statusCode}`);
