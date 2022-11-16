@@ -49,13 +49,14 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
     dbConfigs.map((dbConfig) => theActions.reduce(async (result, action) => {
       logger.info(`Running action ${action.name}`);
       let schemaResult = {};
+      let errors;
       try {
         const actionResult = await action(dbConfig);
         schemaResult = {
           [action.name]: actionResult,
         };
       } catch (err) {
-        schemaResult = {
+        errors = {
           [action.name]: {
             error: err.stack,
           },
@@ -65,8 +66,13 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
       return {
         ...(await result),
         ...schemaResult,
+        errors
       };
-    }, { apiKeyId: API_KEY, dbName: dbConfig.database, dbHost: dbConfig.host })),
+    }, {
+      apiKeyId: API_KEY,
+      dbName: dbConfig.database,
+      dbHost: dbConfig.host,
+    })),
   );
 
   await directHttpsSend(actionsData, WEB_APP_REQUEST_OPTIONS, 1);

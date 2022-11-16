@@ -2,6 +2,9 @@ const { loggingSetup, logger, loggerExit } = require('./logging');
 
 const {
   API_KEY, API_GATEWAY_HOST, API_GATEWAY_PORT, API_GATEWAY_PATH,
+  WEB_APP_PATH,
+  WEB_APP_HOST,
+  WEB_APP_PORT,
 } = require('./consts');
 
 function exit(msg, code) {
@@ -38,14 +41,13 @@ async function setup() {
   const requiredEnvironmentVariables = [
     [API_KEY, 'API Key'], [API_GATEWAY_HOST, 'API Gateway Host'], [API_GATEWAY_PORT, 'API Gateway Port'],
     [API_GATEWAY_PATH, 'API Gateway Path'],
+    [WEB_APP_PATH, 'Web app api path'], [WEB_APP_HOST, 'Web app api Host'], [WEB_APP_PORT, 'Web app api port'],
   ];
   const wrong = requiredEnvironmentVariables.find((x) => !x[0]);
   if (wrong) {
     logger.error(`${wrong[1]} is not defined. Exiting ...`);
-    return false;
+    throw new Error(`Could not setup PMC as expected, ${wrong[1]} is not defined.`);
   }
-
-  return true;
 }
 
 module.exports = {

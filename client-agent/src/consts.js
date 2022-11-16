@@ -31,7 +31,7 @@ if (LOG_LEVEL) {
 }
 
 const API_GATEWAY_PORT = parseInt(process.env.API_GATEWAY_PORT || 443, 10);
-const WEB_APP_PORT = parseInt(process.env.WEB_APP_PORT || 6000, 10);
+const WEB_APP_PORT = parseInt(process.env.WEB_APP_PORT || 443, 10);
 const QUERIES_FILE = process.env.QUERIES_FILE || path.join(__dirname, 'queries.yaml');
 const ACTIONS_FILE = process.env.ACTIONS || path.join(__dirname, 'actions.yaml');
 
@@ -82,6 +82,9 @@ module.exports = {
   ACTIONS_FILE,
   TAGS,
   WEB_APP_REQUEST_OPTIONS,
+  WEB_APP_HOST,
+  WEB_APP_PORT,
+  WEB_APP_PATH,
   LOG_LEVEL,
   LogLevelEnum,
   ENVIRONMENT,

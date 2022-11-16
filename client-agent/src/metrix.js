@@ -41,12 +41,7 @@ async function getDBConfigs() {
     });
 }
 
-async function run(fakeHoursDelta = 0, runSetup = true) {
-  const ok = !runSetup || await setup();
-  if (!ok) {
-    return;
-  }
-
+async function run(fakeHoursDelta = 0) {
   try {
     DB_CONNECTION_STRINGS = await getConnectionStrings();
   } catch (err) {
