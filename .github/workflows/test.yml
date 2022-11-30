@@ -27,7 +27,7 @@ jobs:
         if: ${{ github.ref != 'refs/heads/main'}}
         env:
           APP_ENV: ${{ (github.ref == 'refs/heads/develop' && 'staging') || (github.ref == 'refs/heads/main' && 'production') || 'development' }}
-          INGEST_URL: ${{ (github.ref != 'refs/heads/main' && 'ingest-stg.metisdata.io')) || 'ingest.metisdata.io' }}
+          INGEST_URL: ${{ (github.ref != 'refs/heads/main' && 'ingest-stg.metisdata.io') || 'ingest.metisdata.io' }}
         run: |
           echo "APP_ENV: $APP_ENV"
           echo "INGEST_URL: INGEST_URL"
