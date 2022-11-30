@@ -27,12 +27,14 @@ jobs:
         if: ${{ github.ref != 'refs/heads/main'}}
         env:
           APP_ENV: ${{ (github.ref == 'refs/heads/develop' && 'staging') || (github.ref == 'refs/heads/main' && 'production') || 'development' }}
-          INGEST_URL: ${{ (github.ref != 'refs/heads/main' && 'ingest-stg.metisdata.io') || 'ingest.metisdata.io' }}
+          INGEST_URL: ${{ inputs.ingest_url || (github.ref != 'refs/heads/main' && 'ingest-stg.metisdata.io') || 'ingest.metisdata.io' }}
         run: |
           echo "APP_ENV: $APP_ENV"
-          echo "INGEST_URL: INGEST_URL"
+          echo "INGEST_URL: $INGEST_URL"
           
-          cat ../../metadata-collector-cloudformation.yaml | sed -e 's/ingest.metisdata.io/ingest-stg.metisdata.io/g' -e 's/Value: production/Value: staging"g' -e "s+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:latest+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:$TAG+g" > ../../metadata-collector-cloudformation-stg.yaml 
+          TAG={{ inputs.docker_image_tag || $GITHUB_SHA }}
+          
+          cat ../../metadata-collector-cloudformation.yaml | sed -e 's/ingest.metisdata.io/ingest-stg.metisdata.io/g' -e 's/Value: production/Value: staging/g' -e "s+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:latest+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:$TAG+g" > ../../metadata-collector-cloudformation-stg.yaml 
           cp ../../metadata-collector-cloudformation*.yaml .
 
       - name: Extract branch name
