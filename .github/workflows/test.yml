@@ -28,11 +28,12 @@ jobs:
         env:
           APP_ENV: ${{ (github.ref == 'refs/heads/develop' && 'staging') || (github.ref == 'refs/heads/main' && 'production') || 'development' }}
           INGEST_URL: ${{ inputs.ingest_url || (github.ref != 'refs/heads/main' && 'ingest-stg.metisdata.io') || 'ingest.metisdata.io' }}
+          TAG: ${{ inputs.docker_image_tag || $GITHUB_SHA }}
         run: |
           echo "APP_ENV: $APP_ENV"
           echo "INGEST_URL: $INGEST_URL"
-          
-          TAG={{ github.event.inputs.docker_image_tag || $GITHUB_SHA }}
+          echo "TAG: $TAG"
+  
           
           cat ../../metadata-collector-cloudformation.yaml | sed -e 's/ingest.metisdata.io/ingest-stg.metisdata.io/g' -e 's/Value: production/Value: staging/g' -e "s+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:latest+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:$TAG+g" > ../../metadata-collector-cloudformation-stg.yaml 
           cp ../../metadata-collector-cloudformation*.yaml .
