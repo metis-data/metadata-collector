@@ -8,6 +8,9 @@ on:
       ingest_url:
         type: string
         description: default ingest.metisdata.io
+      is_latest:
+        type: boolean
+        default: true
 jobs:
   deploy_docker:
     name: Build and Deploy Docker Image
