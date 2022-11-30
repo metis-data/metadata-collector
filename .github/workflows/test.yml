@@ -35,7 +35,8 @@ jobs:
         run: |
           echo "APP_ENV: $APP_ENV"
           echo "INGEST_URL: $INGEST_URL"
-          echo "TAG: ${TAG:=$GITHUB_SHA}"
+          MD5_TAG=$(md5sum package.json)
+          echo "TAG: ${TAG:=$MD5_TAG}"
           
           cat ../../metadata-collector-cloudformation.yaml | sed -e "s/ingest.metisdata.io/$INGEST_URL/g" -e 's/Value: production/Value: staging/g' -e "s+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:latest+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:$TAG+g" > ../../metadata-collector-cloudformation-stg.yaml 
           cp ../../metadata-collector-cloudformation*.yaml .
