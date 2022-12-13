@@ -3,10 +3,19 @@ import pg from 'pg';
 import { logger } from '../common/logging';
 import { processResults } from '../common/process';
 import { relevant } from '../common/utils';
-
+require('dotenv').config();
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 
-const configT = [{ user: 'postgres', password: 'Trustno1', host: 'database-2.cofhrj7zmyn4.eu-central-1.rds.amazonaws.com', database: 'platform-v2', port: 5432, connectionTimeoutMillis: 5000 }];
+const configT = [
+  {
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT,
+    connectionTimeoutMillis: process.env.DB_CONNECTION_TIMEOUT_MILLIS,
+  },
+];
 
 const QUERIES: any = {
   tables_size: {
@@ -92,7 +101,7 @@ const collectQueries = async (fakeHoursDelta, dbConfigs) => {
             logger.info('Obtained query results. Processing results ...');
             results[dbConfigKey] = theQueries.length === 1 ? [res] : res;
           }
-          const now = new Date();
+          const now: Date = new Date();
           now.setHours(now.getHours() - fakeHoursDelta);
           await processResults(dbConfig, results[dbConfigKey], now.getTime(), fakeHoursDelta !== 0);
           logger.info('Processing results done.');

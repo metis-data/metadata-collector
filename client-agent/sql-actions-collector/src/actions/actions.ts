@@ -1,20 +1,23 @@
-import fs from 'fs';
-import yaml from 'js-yaml';
 import process from 'process';
 import { dbDetailsFactory } from '@metis-data/db-details';
 import { logger } from '../common/logging';
 import { relevant } from '../common/utils';
 import directHttpsSend from '../common/http';
 import { API_KEY, WEB_APP_REQUEST_OPTIONS } from '../common/consts';
-
+require('dotenv').config();
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 
 const ACTIONS_DEF = { schemas: { times_a_day: 1 } };
-
+const DB_CONFIG = {
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+};
 const ACTIONS = {
   schemas: (dbConfig) => {
     const schemaDetailsObject = dbDetailsFactory('postgres');
-    return schemaDetailsObject.getDbDetails(dbConfig);
+    return schemaDetailsObject.getDbDetails(DB_CONFIG);
   },
 };
 
@@ -25,9 +28,10 @@ const getActions = (fakeHoursDelta) => {
     const currentMinutes = now.getMinutes();
     const currentHour = IGNORE_CURRENT_TIME ? 0 : now.getHours();
     if (process.argv.length === 2) {
-      return Object.keys(ACTIONS_DEF)
-        .filter((key) => relevant(ACTIONS_DEF[key].times_a_day, currentHour, currentMinutes))
+      const aa = Object.keys(ACTIONS_DEF)
+        .filter((key) => relevant(ACTIONS_DEF[key].times_a_day, currentHour, currentMinutes, true))
         .map((key) => ACTIONS[key]);
+      return aa;
     }
     const actions = [];
     process.argv.slice(2).forEach((q) => {
@@ -48,9 +52,12 @@ const getActions = (fakeHoursDelta) => {
 const collectActions = async (fakeHoursDelta, dbConfigs) => {
   try {
     const theActions = getActions(fakeHoursDelta);
-    if (!theActions.length) return;
+    if (!theActions.length) {
+      console.warn('No action was insert to actions array, check your action configuration');
+      return;
+    }
     const actionsData = await Promise.all(
-      dbConfigs.map((dbConfig) =>
+      [DB_CONFIG].map((dbConfig) =>
         theActions.reduce(
           async (result, action) => {
             logger.info(`Running action ${action.name}`);
