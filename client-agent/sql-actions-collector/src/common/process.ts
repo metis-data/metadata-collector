@@ -9,26 +9,32 @@ const processRows = async (dbConfig, rows, timestamp, fake) => {
     const metricsData = [];
     rows.forEach((row) => {
       const valueNames = Object.keys(row).filter((key) => !TAGS.has(key));
-      valueNames.forEach((valueName) => {
-        const r: any = {};
-        r.id = randomUUID();
-        r.timestamp = timestamp;
-        r.metricName = valueName;
-        r.value = parseFloat(row[valueName]);
+      valueNames.forEach((valueName: string) => {
+        let metricValue;
+        let tagValue;
+        metricValue = parseFloat(row[valueName]);
         if (fake) {
-          const isInt = Number.isInteger(r.value);
-          r.value *= 0.6 * Math.random() + 0.7;
+          const isInt = Number.isInteger(metricValue);
+          metricValue *= 0.6 * Math.random() + 0.7;
           if (isInt) {
-            r.value = Math.round(r.value);
+            metricValue = Math.round(metricValue);
           }
         }
         TAGS.forEach((tag) => {
-          if (row[tag]) r[tag] = row[tag];
+          if (row[tag]) {
+            tagValue = row[tag];
+          }
         });
-        r.db = dbConfig.database;
-        r.host = dbConfig.host;
-        r.version = COLLECTOR_VERSION;
-        metricsData.push(r);
+        metricsData.push({
+          id: randomUUID(),
+          timestamp: timestamp,
+          metricName: valueName,
+          value: metricValue,
+          tag: tagValue,
+          db: dbConfig.database,
+          host: dbConfig.host,
+          version: COLLECTOR_VERSION,
+        });
       });
     });
     await directHttpsSend(metricsData, HTTPS_REQUEST_OPTIONS);
