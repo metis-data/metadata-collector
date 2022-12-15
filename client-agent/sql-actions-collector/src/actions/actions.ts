@@ -9,16 +9,11 @@ const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 
 const ACTIONS_DEF = { schemas: { times_a_day: 1 } };
 
-const DB_CONFIG = {
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-};
+
 const ACTIONS = {
   schemas: (dbConfig) => {
     const schemaDetailsObject = dbDetailsFactory('postgres');
-    return schemaDetailsObject.getDbDetails(DB_CONFIG);
+    return schemaDetailsObject.getDbDetails(dbConfig);
   },
 };
 
@@ -59,7 +54,7 @@ const collectActions = async (fakeHoursDelta, dbConfigs) => {
       return;
     }
     const actionsData = await Promise.all(
-      [DB_CONFIG].map((dbConfig) =>
+      dbConfigs.map((dbConfig) =>
         theActions.reduce(
           async (result, action) => {
             logger.info(`Running action ${action.name}`);
@@ -94,7 +89,7 @@ const collectActions = async (fakeHoursDelta, dbConfigs) => {
     );
     await directHttpsSend(actionsData, WEB_APP_REQUEST_OPTIONS, 1);
     logger.info('Sent actions results.');
-    logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
+    // logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
   } catch (err: any) {
     logger.error(err.message);
   }

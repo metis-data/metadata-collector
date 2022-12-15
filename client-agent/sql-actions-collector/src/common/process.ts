@@ -33,7 +33,7 @@ const processRows = async (dbConfig, rows, timestamp, fake) => {
     });
     await directHttpsSend(metricsData, HTTPS_REQUEST_OPTIONS);
     logger.info('Sent query results.');
-    logger.debug(`Metrics data is ${JSON.stringify(metricsData)}`);
+    // logger.debug(`Metrics data is ${JSON.stringify(metricsData)}`);
   } catch (error) {
     console.log(error);
   }

@@ -6,16 +6,16 @@ import { relevant } from '../common/utils';
 require('dotenv').config();
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 
-const configT = [
-  {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT,
-    connectionTimeoutMillis: process.env.DB_CONNECTION_TIMEOUT_MILLIS,
-  },
-];
+// const configT = [
+//   {
+//     user: process.env.DB_USER,
+//     password: process.env.DB_PASSWORD,
+//     host: process.env.DB_HOST,
+//     database: process.env.DB_NAME,
+//     port: process.env.DB_PORT,
+//     connectionTimeoutMillis: process.env.DB_CONNECTION_TIMEOUT_MILLIS,
+//   },
+// ];
 
 const QUERIES: any = {
   tables_size: {
@@ -53,7 +53,7 @@ const getQueries = (fakeHoursDelta) => {
     const currentHour = IGNORE_CURRENT_TIME ? 0 : now.getHours();
     if (process.argv.length === 2) {
       return Object.keys(QUERIES)
-        .filter((key) => relevant(QUERIES[key].times_a_day, currentHour, currentMinutes))
+        .filter((key) => relevant(QUERIES[key].times_a_day, currentHour, currentMinutes, true))
         .map((key) => QUERIES[key]);
     }
     const qs = [];
@@ -76,7 +76,6 @@ const results = {};
 
 const collectQueries = async (fakeHoursDelta, dbConfigs) => {
   try {
-    dbConfigs = configT;
     if (dbConfigs.length === 0) {
       logger.error('No connection strings could be parsed');
       return;
