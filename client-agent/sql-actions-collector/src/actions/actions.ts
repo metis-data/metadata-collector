@@ -8,6 +8,7 @@ require('dotenv').config();
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 
 const ACTIONS_DEF = { schemas: { times_a_day: 1 } };
+
 const DB_CONFIG = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
@@ -20,6 +21,7 @@ const ACTIONS = {
     return schemaDetailsObject.getDbDetails(DB_CONFIG);
   },
 };
+
 
 const getActions = (fakeHoursDelta) => {
   try {
