@@ -4,19 +4,19 @@ const retry = require('retry');
 
 const { logger } = require('./logging');
 
-function directHttpsSend(data, httpRequestOptions, numRetries = 3) {
+const directHttpsSend = (data, httpRequestOptions, numRetries = 3) => {
   const provider = httpRequestOptions.port === 443 ? https : http;
   const op = retry.operation({ retries: numRetries });
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve: any, reject: any) => {
     op.attempt(() => {
-      const req = provider.request(httpRequestOptions, (res) => {
+      const req: any = provider.request(httpRequestOptions, (res) => {
         logger.debug(`STATUS: ${res.statusCode}`);
         res.setEncoding('utf8');
         res.on('data', (chunk) => {
           logger.debug(`BODY: ${JSON.stringify(chunk)}`);
         });
         if (res.statusCode >= 400) {
-          const err = new Error(`Problem with HTTPS request, status code is ${
+          const err: any = new Error(`Problem with HTTPS request, status code is ${
             JSON.stringify({
               status: res.statusCode,
               requestId: res.headers['x-amzn-requestid'] || res.headers['x-ray-id'], // When used for our backend api
@@ -53,6 +53,4 @@ function directHttpsSend(data, httpRequestOptions, numRetries = 3) {
   });
 }
 
-module.exports = {
-  directHttpsSend,
-};
+export default directHttpsSend
