@@ -98,7 +98,7 @@ Resources:
             - Name: API_GATEWAY_PORT
               Value: '443'
             - Name: WEB_APP_HOST
-              Value: https://app.metisdata.io/
+              Value: app.metisdata.io/
             - Name: WEB_APP_PATH
               Value: /api/db-details
             - Name: WEB_APP_PORT
