@@ -12,8 +12,10 @@ ENV SENTRY_DSN=$SENTRY_DSN
 
 WORKDIR /app/
 COPY package*.json /app/
+COPY .npmrc /app/
 RUN npm install --production
 
+RUN rm /app/.npmrc
 COPY . /app
 
 ENTRYPOINT [ "npm" ]
