@@ -97,6 +97,12 @@ Resources:
               Value: /md-collector
             - Name: API_GATEWAY_PORT
               Value: '443'
+            - Name: WEB_APP_HOST
+              Value: app.metisdata.io
+            - Name: WEB_APP_PORT
+              Value: 443
+            - Name: WEB_APP_PATH
+              Value: /api/db-details
             - Name: API_KEY
               Value: !Ref MetisAPIKey
             - Name: CONNECTION_STRINGS_SECRET
