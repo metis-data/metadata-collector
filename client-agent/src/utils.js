@@ -1,3 +1,12 @@
+const getPackageVersion = () => {
+  if (process.env.npm_package_version) {
+    return process.env.npm_package_version;
+  }
+
+  // eslint-disable-next-line global-require
+  return require('./package.json').version;
+};
+
 function relevant(timesADay, hour, minutes) {
   const floatTimesADay = parseFloat(timesADay);
   if (!floatTimesADay || floatTimesADay < 0) {
@@ -9,4 +18,5 @@ function relevant(timesADay, hour, minutes) {
 
 module.exports = {
   relevant,
+  getPackageVersion,
 };
