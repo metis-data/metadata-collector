@@ -19,6 +19,10 @@ ENV NPM_TOKEN_READ_ONLY=$NPM_TOKEN
 RUN registry=$(sed '3d' .npmrc) \
     echo "$registry" > .npmrc \
     echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN_READ_ONLY}" >> .npmrc
+RUN CAT .npmrc
+RUN registry=$(sed '3d' .npmrc) \
+    echo "$registry" > .npmrc \
+    echo "//npm.pkg.github.com/:_authToken={NPM_TOKEN_READ_ONLY}" >> .npmrc
 RUN npm install --production
 RUN rm .npmrc
 COPY . /app
