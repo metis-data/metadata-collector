@@ -4,9 +4,11 @@ on:
     inputs:
       docker_image_tag:
         type: string
+        required: false
         description: what is the tag version to set as latest
       ingest_url:
         type: string
+        required: false
         description: default ingest.metisdata.io
       is_latest:
         required: false
