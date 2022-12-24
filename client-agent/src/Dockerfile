@@ -16,11 +16,13 @@ WORKDIR /app/
 COPY package*.json /app/
 COPY .npmrc /app/.npmrc
 ENV NPM_TOKEN_READ_ONLY=$NPM_TOKEN
+RUN export NPM_TOKEN_READ_ONLY=$NPM_TOKEN
 RUN registry=$(sed '3d' .npmrc) \
     echo "$registry" > .npmrc \
     echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN_READ_ONLY}" >> .npmrc
 RUN echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN_READ_ONLY}"
 RUN npm install --production
+RUN unset NPM_TOKEN_READ_ONLY
 RUN rm .npmrc
 COPY . /app
 
