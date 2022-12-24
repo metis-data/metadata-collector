@@ -19,7 +19,7 @@ async function setup() {
 
   process.on('uncaughtException', (error, source) => {
     try {
-      logger.error(`uncaghtException: error is "${error}" and source is "${source}"`);
+      logger.error('uncaughtException', error, source);
     } catch (err) {
       /* If logger is failing too, there is nothing we would like to do */
     }

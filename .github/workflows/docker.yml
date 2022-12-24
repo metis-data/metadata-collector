@@ -48,7 +48,7 @@ jobs:
       - name: create cloud formation
         if: ${{ github.ref != 'refs/heads/main' }}
         run: |
-          cat ../../metadata-collector-cloudformation.yaml | sed -e 's/ingest.metisdata.io/ingest-stg.metisdata.io/g' -e 's/Value: production/Value: staging/g' > ../../metadata-collector-cloudformation-stg.yaml
+          cat ../../metadata-collector-cloudformation.yaml | sed -e 's/ingest.metisdata.io/ingest-stg.metisdata.io/g' -e 's/app.metisdata.io/dev.metisdata.io/g' -e 's/Value: production/Value: staging/g' > ../../metadata-collector-cloudformation-stg.yaml
           cp ../../metadata-collector-cloudformation-stg.yaml .
       - name: upload artifact
         if: ${{ github.ref != 'refs/heads/main' }}
