@@ -58,12 +58,15 @@ jobs:
             --build-arg SENTRY_DSN=${{ secrets.SENTRY_DSN }} \
             -q -t $REGISTRY/o2c0x5x8/metis-md-collector .)
           
-          TAG={{ $docker_image_tag || $GITHUB_SHA }}
+          
+          MD5_TAG=$(md5sum package.json)
+          echo "MD5_TAG: $MD5_TAG"
           echo "docker_image_tag: $docker_image_tag"
-          echo "GITHUB_SHA: $GITHUB_SHA"
-          echo "TAG: $TAG"
-          docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
-          docker push $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
+          DOCKER_TAG=${docker_image_tag:=$MD5_TAG}
+          echo "new DOCKER_TAG: $DOCKER_TAG"
+          
+          docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:$DOCKER_TAG
+          docker push $REGISTRY/o2c0x5x8/metis-md-collector:$DOCKER_TAG
 
           echo "IS_LATEST: $IS_LATEST"
           if [ $IS_LATEST == "true" ]
