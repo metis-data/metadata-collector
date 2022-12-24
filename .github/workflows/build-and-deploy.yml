@@ -8,6 +8,10 @@ on:
       ingest_url:
         type: string
         description: default ingest.metisdata.io
+      is_latest:
+        required: false
+        type: boolean
+        default: false
 jobs:
   deploy_docker:
     name: Build and Deploy Docker Image
@@ -44,6 +48,7 @@ jobs:
       - name: build and deploy
         env:
           REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
+          IS_LATEST: ${{ inputs.is_latest || 'false' }}
         run: |
           npm install --production
           
@@ -54,11 +59,14 @@ jobs:
             -q -t $REGISTRY/o2c0x5x8/metis-md-collector .)
           
           TAG={{ $docker_image_tag || $GITHUB_SHA }}
+          echo "docker_image_tag: $docker_image_tag"
+          echo "GITHUB_SHA: $GITHUB_SHA"
           echo "TAG: $TAG"
           docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
           docker push $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
 
-          if (( inputs.is_latest  ))
+          echo "IS_LATEST: $IS_LATEST"
+          if [ $IS_LATEST == "true" ]
           then
             docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
             docker push $REGISTRY/o2c0x5x8/metis-md-collector:latest
