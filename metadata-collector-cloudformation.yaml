@@ -62,6 +62,7 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
+                  - "ec2:DescribeSubnets"
                 Resource: "*"
   ConnectionStringSecretPolicy:  # Based on https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_examples.html
     Type: AWS::SecretsManager::ResourcePolicy
