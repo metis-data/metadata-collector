@@ -75,7 +75,7 @@ jobs:
           echo "IS_LATEST: $IS_LATEST"
           if [ $IS_LATEST == "true" ]
           then
-            docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
+            docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:latest
             docker push $REGISTRY/o2c0x5x8/metis-md-collector:latest
           fi
 
