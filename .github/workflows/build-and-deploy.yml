@@ -52,8 +52,6 @@ jobs:
           REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
           IS_LATEST: ${{ inputs.is_latest || 'false' }}
         run: |
-          npm install --production
-          
           DOCKER_ID=$(docker build \
             --build-arg NPM_TOKEN_READ_ONLY={{ $NPM_TOKEN_READ_ONLY }} \
             --build-arg DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }} \
