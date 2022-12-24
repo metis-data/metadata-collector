@@ -8,6 +8,9 @@ on:
       ingest_url:
         type: string
         description: default ingest.metisdata.io
+      is_latest:
+        type: boolean
+        default: true
 jobs:
   deploy_docker:
     name: Build and Deploy Docker Image
@@ -27,12 +30,18 @@ jobs:
         if: ${{ github.ref != 'refs/heads/main'}}
         env:
           APP_ENV: ${{ (github.ref == 'refs/heads/develop' && 'staging') || (github.ref == 'refs/heads/main' && 'production') || 'development' }}
-          INGEST_URL: ${{ inputs.ingest_url || (github.ref != 'refs/heads/main' && 'ingest-stg.metisdata.io')) || 'ingest.metisdata.io' }}
+          INGEST_URL: ${{ inputs.ingest_url || (github.ref != 'refs/heads/main' && 'ingest-stg.metisdata.io') || 'ingest.metisdata.io' }}
+          TAG: ${{ inputs.docker_image_tag }}
         run: |
           echo "APP_ENV: $APP_ENV"
-          echo "INGEST_URL: INGEST_URL"
+          echo "INGEST_URL: $INGEST_URL"
+          MD5_TAG=$(md5sum package.json)
+          echo "TAG: $TAG"
+          echo "MD5_TAG: $MD5_TAG"
+          TAG=${TAG:=$MD5_TAG}
+          echo "new TAG: $TAG"
           
-          cat ../../metadata-collector-cloudformation.yaml | sed -e 's/ingest.metisdata.io/ingest-stg.metisdata.io/g' -e 's/Value: production/Value: staging"g' -e "s+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:latest+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:$TAG+g" > ../../metadata-collector-cloudformation-stg.yaml 
+          cat ../../metadata-collector-cloudformation.yaml | sed -e "s/ingest.metisdata.io/$INGEST_URL/g" -e 's/Value: production/Value: staging/g' -e "s+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:latest+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:$TAG+g" > ../../metadata-collector-cloudformation-stg.yaml 
           cp ../../metadata-collector-cloudformation*.yaml .
 
       - name: Extract branch name
@@ -43,7 +52,7 @@ jobs:
         if: ${{ github.ref != 'refs/heads/main' }}
         uses: actions/upload-artifact@v3
         with:
-          name: cloudformation-${{ steps.extract_branch.outputs.branch }}.yaml
+          name: cloudformation-${{ steps.extract_branch.outputs.branch }}
           path: metadata-collector-cloudformation*.yaml
           if-no-files-found: error
 
