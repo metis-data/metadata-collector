@@ -52,9 +52,8 @@ jobs:
           REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
           IS_LATEST: ${{ inputs.is_latest || 'false' }}
         run: |
-          echo "NPM_TOKEN_READ_ONLY: $NPM_TOKEN_READ_ONLY"
           DOCKER_ID=$(docker build \
-            --build-arg NPM_TOKEN_READ_ONLY={{ $NPM_TOKEN_READ_ONLY }} \
+            --build-arg NPM_TOKEN_READ_ONLY=${{ NPM_TOKEN_READ_ONLY }} \
             --build-arg DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }} \
             --build-arg SENTRY_DSN=${{ secrets.SENTRY_DSN }} \
             -q -t $REGISTRY/o2c0x5x8/metis-md-collector .)
