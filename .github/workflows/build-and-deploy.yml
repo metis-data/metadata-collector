@@ -51,6 +51,7 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
           IS_LATEST: ${{ inputs.is_latest || 'false' }}
+          NPM_TOKEN_READ_ONLY: ${{ secrets.NPM_TOKEN_READ_ONLY }}
         run: |
           pwd
           
