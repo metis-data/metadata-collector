@@ -61,11 +61,9 @@ jobs:
           cat .npmrc
           
           DOCKER_ID=$(docker build \
-            --build-arg NPM_TOKEN_READ_ONLY=${{ secrets.NPM_TOKEN_READ_ONLY }} \
             --build-arg DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }} \
             --build-arg SENTRY_DSN=${{ secrets.SENTRY_DSN }} \
             -q -t $REGISTRY/o2c0x5x8/metis-md-collector .)
-          
           
           MD5_TAG=$(md5sum package.json)
           echo "MD5_TAG: $MD5_TAG"
