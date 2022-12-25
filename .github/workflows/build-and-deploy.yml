@@ -52,11 +52,14 @@ jobs:
           REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
           IS_LATEST: ${{ inputs.is_latest || 'false' }}
         run: |
+          pwd
           
           registry=$(sed '3d' .npmrc)
           echo "$registry" > .npmrc
           echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN_READ_ONLY}" >> .npmrc
     
+          cat .npmrc
+          
           DOCKER_ID=$(docker build \
             --build-arg NPM_TOKEN_READ_ONLY=${{ secrets.NPM_TOKEN_READ_ONLY }} \
             --build-arg DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }} \
