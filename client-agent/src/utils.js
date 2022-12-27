@@ -4,7 +4,7 @@ const getPackageVersion = () => {
   }
 
   // eslint-disable-next-line global-require
-  return require('./package.json').version;
+  return require('../package.json').version;
 };
 
 function relevant(timesADay, hour, minutes) {
