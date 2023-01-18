@@ -4,7 +4,7 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "ts-node ./src/index.ts",
+    "start": "npx ts-node ./src/index.ts",
     "build": "ts-node -p ./src/index.ts",
     "simulator": "node simulator.js 30",
     "test": "echo \"Error: no test specified\" && exit 1"
