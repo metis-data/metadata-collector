@@ -1,13 +1,14 @@
-const { setup } = require('./setup');
-const { logger } = require('./logging');
-const { processResults } = require('./process');
-
-const { API_KEY } = require('./consts');
-
+import { setup } from './setup';
+import { logger } from './logging';
+import { processResults } from './process';
+import { API_KEY } from './consts';
 const MAX_NUMBER_OF_MOCK_TABLES = 100;
 
 function sumAscii(s) {
-  return s.split('').map((c) => c.charCodeAt(0)).reduce((a, b) => a + b, 0);
+  return s
+    .split('')
+    .map((c) => c.charCodeAt(0))
+    .reduce((a, b) => a + b, 0);
 }
 
 function randomNatural(n) {
@@ -24,7 +25,8 @@ function generateMockResults(queriesNumParams) {
     const rows = [];
     for (let j = 0; j < numTables; j += 1) {
       const row = {
-        schema: schemaName, table: `Table:${userID.substring(8, 16)}#${j}`,
+        schema: schemaName,
+        table: `Table:${userID.substring(8, 16)}#${j}`,
       };
       for (let k = 0; k < queriesNumParams[i]; k += 1) {
         const n = randomNatural(20);
@@ -43,21 +45,28 @@ async function mockCollect() {
     logger.info('Getting Mock results.');
     const results = generateMockResults(queriesNumParams);
     logger.info('Got Mock results. Sending the results ...');
-    await processResults({ database: `Database:${API_KEY.split(4, 10)}`, host: 'mock.host.com' }, results, new Date().getTime(), 0);
+    await processResults(
+      { database: `Database:${(API_KEY as any).split(4, 10)}`, host: 'mock.host.com' },
+      results,
+      new Date().getTime(),
+      0
+    );
     logger.info('Sending result done.');
-  } catch (err) {
-    logger.error('Couldn\'t generate mock data.', err);
+  } catch (err: any) {
+    logger.error("Couldn't generate mock data.", err);
   }
   logger.info(' Collection is done.');
 }
 
-async function run() {
-  const ok = await setup();
+const runMock = async () => {
+  const ok: any = await setup();
   if (!ok) {
     return;
   }
 
   await mockCollect();
-}
+};
 
-run().then(() => {}).catch(logger.error);
+runMock()
+  .then(() => {})
+  .catch(logger.error);

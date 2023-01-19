@@ -1,11 +1,8 @@
-const { loggingSetup, logger, loggerExit } = require('./logging');
+import { loggingSetup, logger, loggerExit } from './logging';
 
-const {
-  API_KEY, API_GATEWAY_HOST, API_GATEWAY_PORT, API_GATEWAY_PATH,
-  WEB_APP_PATH,
-  WEB_APP_HOST,
-  WEB_APP_PORT,
-} = require('./consts');
+const { API_KEY, API_GATEWAY_HOST, API_GATEWAY_PATH, WEB_APP_HOST, WEB_APP_PATH } = process.env;
+const API_GATEWAY_PORT: any = parseInt((process.env.API_GATEWAY_PORT as any) || 443, 10);
+const WEB_APP_PORT: any = parseInt((process.env.WEB_APP_PORT as any) || 443, 10);
 
 function exit(msg, code) {
   loggerExit(msg);
@@ -14,7 +11,7 @@ function exit(msg, code) {
   }
 }
 
-async function setup() {
+const setup = async () => {
   await loggingSetup();
 
   process.on('uncaughtException', (error, source) => {
@@ -35,21 +32,23 @@ async function setup() {
   });
 
   process.on('exit', (code) => {
-    exit(`Process Exiting code: ${code}...`);
+    exit(`Process Exiting code: ${code}...`, 1);
   });
 
   const requiredEnvironmentVariables = [
-    [API_KEY, 'API Key'], [API_GATEWAY_HOST, 'API Gateway Host'], [API_GATEWAY_PORT, 'API Gateway Port'],
+    [API_KEY, 'API Key'],
+    [API_GATEWAY_HOST, 'API Gateway Host'],
+    [API_GATEWAY_PORT, 'API Gateway Port'],
     [API_GATEWAY_PATH, 'API Gateway Path'],
-    [WEB_APP_PATH, 'Web app api path'], [WEB_APP_HOST, 'Web app api Host'], [WEB_APP_PORT, 'Web app api port'],
+    [WEB_APP_PATH, 'Web app api path'],
+    [WEB_APP_HOST, 'Web app api Host'],
+    [WEB_APP_PORT, 'Web app api port'],
   ];
   const wrong = requiredEnvironmentVariables.find((x) => !x[0]);
   if (wrong) {
     logger.error(`${wrong[1]} is not defined. Exiting ...`);
     throw new Error(`Could not setup PMC as expected, ${wrong[1]} is not defined.`);
   }
-}
-
-module.exports = {
-  setup,
 };
+
+export { setup };

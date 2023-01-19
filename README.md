@@ -48,4 +48,4 @@ The collector sends to Metis Data only logs that describes the running of the co
 * Indexes size.
 * Index usage per index.
 
-The full list of queries can be seen in the [queries.yaml file](../master/client-agent/src/queries.yaml).
+
