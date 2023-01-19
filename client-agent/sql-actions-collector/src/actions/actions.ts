@@ -9,14 +9,12 @@ const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 
 const ACTIONS_DEF = { schemas: { times_a_day: 1 } };
 
-
 const ACTIONS = {
   schemas: (dbConfig) => {
     const schemaDetailsObject = dbDetailsFactory('postgres');
     return schemaDetailsObject.getDbDetails(dbConfig);
   },
 };
-
 
 const getActions = (fakeHoursDelta) => {
   try {
@@ -65,13 +63,13 @@ const collectActions = async (fakeHoursDelta, dbConfigs) => {
               schemaResult = {
                 [action.name]: actionResult,
               };
-            } catch (e) {
+            } catch (err) {
               errors = {
                 [action.name]: {
-                  error: e.stack,
+                  error: err.stack,
                 },
               };
-              logger.error(`Action failed to run: ${JSON.stringify(e)}`);
+              logger.error(`Action '${action.name}' failed to run`, err);
             }
             return {
               ...(await result),
@@ -91,7 +89,7 @@ const collectActions = async (fakeHoursDelta, dbConfigs) => {
     logger.info('Sent actions results.');
     // logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
   } catch (err: any) {
-    logger.error(err.message);
+    logger.error(err.message, err);
   }
 };
 

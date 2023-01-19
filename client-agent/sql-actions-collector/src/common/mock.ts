@@ -1,4 +1,3 @@
-
 import { setup } from './setup';
 import { logger } from './logging';
 import { processResults } from './process';
@@ -6,7 +5,10 @@ import { API_KEY } from './consts';
 const MAX_NUMBER_OF_MOCK_TABLES = 100;
 
 function sumAscii(s) {
-  return s.split('').map((c) => c.charCodeAt(0)).reduce((a, b) => a + b, 0);
+  return s
+    .split('')
+    .map((c) => c.charCodeAt(0))
+    .reduce((a, b) => a + b, 0);
 }
 
 function randomNatural(n) {
@@ -23,7 +25,8 @@ function generateMockResults(queriesNumParams) {
     const rows = [];
     for (let j = 0; j < numTables; j += 1) {
       const row = {
-        schema: schemaName, table: `Table:${userID.substring(8, 16)}#${j}`,
+        schema: schemaName,
+        table: `Table:${userID.substring(8, 16)}#${j}`,
       };
       for (let k = 0; k < queriesNumParams[i]; k += 1) {
         const n = randomNatural(20);
@@ -39,13 +42,18 @@ function generateMockResults(queriesNumParams) {
 async function mockCollect() {
   try {
     const queriesNumParams = [4, 6];
-    logger.info('Getting Mock results');
+    logger.info('Getting Mock results.');
     const results = generateMockResults(queriesNumParams);
     logger.info('Got Mock results. Sending the results ...');
-    await processResults({ database: `Database:${(API_KEY as any).split(4, 10)}`, host: 'mock.host.com' }, results, new Date().getTime(), 0);
+    await processResults(
+      { database: `Database:${(API_KEY as any).split(4, 10)}`, host: 'mock.host.com' },
+      results,
+      new Date().getTime(),
+      0
+    );
     logger.info('Sending result done.');
   } catch (err: any) {
-    logger.error(err.message);
+    logger.error("Couldn't generate mock data.", err);
   }
   logger.info(' Collection is done.');
 }
@@ -56,7 +64,9 @@ const runMock = async () => {
     return;
   }
 
-  mockCollect();
-}
+  await mockCollect();
+};
 
-runMock().then(() => {}).catch((err) => { logger.error(err.message); });
+runMock()
+  .then(() => {})
+  .catch(logger.error);

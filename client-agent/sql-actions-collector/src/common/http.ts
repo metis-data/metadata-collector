@@ -13,16 +13,20 @@ const directHttpsSend = (data, httpRequestOptions, numRetries = 3) => {
         logger.debug(`STATUS: ${res.statusCode}`);
         res.setEncoding('utf8');
         res.on('data', (chunk) => {
-          logger.debug(`BODY: ${JSON.stringify(chunk)}`);
+          logger.debug(`BODY: ${JSON.stringify(chunk)}`, httpRequestOptions);
         });
         if (res.statusCode >= 400) {
-          const err: any = new Error(`Problem with HTTPS request, status code is ${
-            JSON.stringify({
-              status: res.statusCode,
-              requestId: res.headers['x-amzn-requestid'] || res.headers['x-ray-id'], // When used for our backend api
-              traceId: res.headers['x-amzn-trace-id'],
-            }, null, 2)
-          }`);
+          const err: any = new Error(
+            `Problem with HTTPS request, status code is ${JSON.stringify(
+              {
+                status: res.statusCode,
+                requestId: res.headers['x-amzn-requestid'] || res.headers['x-ray-id'], // When used for our backend api
+                traceId: res.headers['x-amzn-trace-id'],
+              },
+              null,
+              2
+            )}`
+          );
 
           if (!op.retry(err)) {
             err.context = {
@@ -51,6 +55,6 @@ const directHttpsSend = (data, httpRequestOptions, numRetries = 3) => {
       req.end();
     });
   });
-}
+};
 
-export default directHttpsSend
+export default directHttpsSend;
