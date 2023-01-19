@@ -1,4 +1,5 @@
 const fs = require('fs');
+const pg = require('pg');
 const yaml = require('js-yaml');
 const process = require('process');
 const { dbDetailsFactory } = require('@metis-data/db-details');
@@ -17,6 +18,21 @@ const ACTIONS = {
     const schemaDetailsObject = dbDetailsFactory('postgres');
     return schemaDetailsObject.getDbDetails(dbConfig);
   },
+  stat_statements: async (dbConfig) => {
+    try {
+      const client = new pg.Client(dbConfig);
+      logger.info(`Trying to connect to ${dbConfig.database} ...`);
+      await client.connect();
+      logger.info(`Connected to ${dbConfig.database}`);
+      const query = `SELECT st.blk_read_time, st.blk_write_time,st.calls,st.dbid,st.local_blks_dirtied,st.local_blks_hit,st.local_blks_read,st.local_blks_written,st.max_exec_time,st.max_plan_time,st.mean_exec_time,st.mean_plan_time,st.min_exec_time,st.min_plan_time,st.plans,st.query,st.queryid,st.rows,st.shared_blks_dirtied,st.shared_blks_hit,st.shared_blks_read,st.shared_blks_written,st.stddev_exec_time,st.stddev_plan_time,st.temp_blks_read,st.temp_blks_written,st.total_exec_time,st.total_plan_time,st.userid,st.wal_bytes,st.wal_fpi,st.wal_records,d.datacl,d.datallowconn,d.datcollate,d.datconnlimit,d.datctype,d.datdba,d.datfrozenxid,d.datistemplate,d.datlastsysoid,d.datminmxid,d.datname,d.dattablespace,d.encoding,d.oid FROM pg_stat_statements as st join pg_database as d on st.dbid = d.oid order by st.calls DESC LIMIT 5000;`;
+      const { rows } = await client.query(query);
+      return rows;
+    }
+    catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
 };
 
 function getActions(fakeHoursDelta) {

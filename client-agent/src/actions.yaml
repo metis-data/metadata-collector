@@ -1,3 +1,6 @@
 schemas:
   times_a_day:
     1
+stat_statements:
+  times_a_day:
+   24
