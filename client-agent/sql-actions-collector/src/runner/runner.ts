@@ -10,9 +10,9 @@ const dbConfigs: any[] = dbConnectionStringParser(process.env.DB_CONNECTION_STRI
 export const runMain = async (fakeHoursDelta = 24) => {
   try {
     await collectQueries(fakeHoursDelta, dbConfigs);
-    console.log('collectQueries Done');
+    console.log('collectQueries Done!');
     await collectActions(fakeHoursDelta, dbConfigs);
-    console.log('collectActions Done');
+    console.log('collectActions Done!');
   } catch (err) {
     logger.error('No connection strings found. Exiting...');
     // process.exit(1);
