@@ -28,8 +28,11 @@ const ACTIONS = {
 pgss.queryid as query_id,
 pgss.query,
 pgss.calls,
+pgss.rows,
+pgss.total_exec_time,
 pgss.mean_exec_time,
 pgss.dbid as db_id,
+blk_read_time + blk_write_time as disk_io_time,
 json_build_object(
 'jit_emission_time', pgss.jit_emission_time,
 'toplevel', pgss.toplevel,
@@ -40,11 +43,9 @@ json_build_object(
 'max_plan_time', pgss.max_plan_time,
 'mean_plan_time', pgss.mean_plan_time,
 'stddev_plan_time', pgss.stddev_plan_time,
-'total_exec_time', pgss.total_exec_time,
 'min_exec_time', pgss.min_exec_time,
 'max_exec_time', pgss.max_exec_time,
 'stddev_exec_time', pgss.stddev_exec_time,
-'rows', pgss.rows,
 'shared_blks_hit', pgss.shared_blks_hit,
 'shared_blks_read', pgss.shared_blks_read,
 'shared_blks_dirtied', pgss.shared_blks_dirtied,
@@ -80,16 +81,16 @@ json_build_object(
 'datlocprovider', d.datlocprovider,
 'datistemplate', d.datistemplate,
 'datallowconn', d.datallowconn,
-'datname', d.datname
---'datcollversion', d.datcollversion,
---'datcollate', d.datcollate,
+'datname', d.datname,
+'datcollversion', d.datcollversion,
+'datcollate', d.datcollate
 --'datctype', d.datctype,
 --'daticulocale', d.daticulocale
 ) as metadata
 from pg_stat_statements as pgss
-join pg_database as d  on pgss.dbid = d.oid order by pgss.calls DESC LIMIT 5000;
-;`;
-      const { rows } = await client.query(query);
+join pg_database as d  on pgss.dbid = d.oid
+ order by pgss.calls DESC LIMIT 5000;`;
+      const {rows} = await client.query(query);
       return rows;
     }
     catch (e) {
@@ -154,8 +155,8 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
       dbHost: dbConfig.host,
     })),
   );
-
-  await directHttpsSend(actionsData, WEB_APP_REQUEST_OPTIONS, 1);
+  const [{ stat_statements, ...rest}] = actionsData;
+  await Promise.all([directHttpsSend(rest, WEB_APP_REQUEST_OPTIONS, 1), directHttpsSend(stat_statements, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/query-statistics'})]);
   logger.info('Sent actions results.');
   logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
 }
