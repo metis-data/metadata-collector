@@ -156,7 +156,7 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
     })),
   );
   const [{ stat_statements, ...rest}] = actionsData;
-  await Promise.all([directHttpsSend(rest, WEB_APP_REQUEST_OPTIONS, 1), directHttpsSend(stat_statements, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/query-statistics'})]);
+  await Promise.all([directHttpsSend(rest, WEB_APP_REQUEST_OPTIONS, 1), directHttpsSend(stat_statements, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/statistics/query'})]);
   logger.info('Sent actions results.');
   logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
 }
