@@ -72,7 +72,7 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
         errors,
       };
     }, {
-      apiKeyId: API_KEY,
+      apiKey: API_KEY,
       dbName: dbConfig.database,
       dbHost: dbConfig.host,
     })),
