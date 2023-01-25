@@ -2,8 +2,9 @@ const pg = require('pg');
 const { logger } = require('../logging');
 
 const stat_statements = async (dbConfig) => {
+    let client;
     try {
-        const client = new pg.Client(dbConfig);
+        client = new pg.Client(dbConfig);
         logger.info(`Trying to connect to ${dbConfig.database} ...`);
         await client.connect();
         logger.info(`Connected to ${dbConfig.database}`);
@@ -79,6 +80,15 @@ join pg_database as d  on pgss.dbid = d.oid
     catch (e) {
         console.error(e);
         throw e;
+    }
+    finally {
+        try {
+            await client.end();
+            logger.info(`connection has been closed.`);
+        }
+        catch (e) {
+            logger.error(`connection could not be closed: `, e);
+        }
     }
 }
 
