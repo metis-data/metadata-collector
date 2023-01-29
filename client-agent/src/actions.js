@@ -1,7 +1,9 @@
 const fs = require('fs');
+const pg = require('pg');
 const yaml = require('js-yaml');
 const process = require('process');
 const { dbDetailsFactory } = require('@metis-data/db-details');
+const stat_statements = require('./actions/stat_statments');
 
 const { logger } = require('./logging');
 const { relevant } = require('./utils');
@@ -17,6 +19,7 @@ const ACTIONS = {
     const schemaDetailsObject = dbDetailsFactory('postgres');
     return schemaDetailsObject.getDbDetails(dbConfig);
   },
+  stat_statements,
 };
 
 function getActions(fakeHoursDelta) {
@@ -69,13 +72,13 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
         errors,
       };
     }, {
-      apiKeyId: API_KEY,
+      apiKey: API_KEY,
       dbName: dbConfig.database,
       dbHost: dbConfig.host,
     })),
   );
-
-  await directHttpsSend(actionsData, WEB_APP_REQUEST_OPTIONS, 1);
+  const [{ stat_statements, ...rest }] = actionsData;
+  await Promise.all([directHttpsSend(rest, WEB_APP_REQUEST_OPTIONS, 1), directHttpsSend(stat_statements, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/pmc/statistics/query' })]);
   logger.info('Sent actions results.');
   logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
 }
