@@ -18,11 +18,6 @@ pgss.mean_exec_time,
 pgss.dbid as db_id,
 blk_read_time + blk_write_time as disk_io_time,
 json_build_object(
-<<<<<<< HEAD
-=======
-'jit_emission_time', pgss.jit_emission_time,
-'toplevel', pgss.toplevel,
->>>>>>> 72d7e27fcf94f63cee958e82c5c7a85feb07eebd
 'userid', pgss.userid,
 'plans', pgss.plans,
 'total_plan_time', pgss.total_plan_time,
