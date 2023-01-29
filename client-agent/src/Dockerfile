@@ -16,7 +16,7 @@ WORKDIR /app/
 COPY package*.json /app/
 COPY .npmrc /app/.npmrc
 RUN npm install --production
-RUN rm .npmrc
+RUN rm .npmrc && unset NPM_TOKEN
 COPY . /app
 
 ENTRYPOINT [ "npm" ]
