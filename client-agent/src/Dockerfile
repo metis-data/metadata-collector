@@ -4,6 +4,7 @@ ARG DATADOG_API_KEY
 ARG SENTRY_DSN
 ARG NPM_TOKEN
 ENV NPM_TOKEN_READ_ONLY=$NPM_TOKEN
+ENV NPM_TOKEN=$NPM_TOKEN
 #checks required args is defined
 RUN ["/bin/sh", "-c", ": ${NPM_TOKEN_READ_ONLY:?Build argument needs to be set and not null.}"]
 RUN ["/bin/sh", "-c", ": ${DATADOG_API_KEY:?Build argument needs to be set and not null.}"]
