@@ -18,8 +18,6 @@ pgss.mean_exec_time,
 pgss.dbid as db_id,
 blk_read_time + blk_write_time as disk_io_time,
 json_build_object(
-'jit_emission_time', pgss.jit_emission_time,
-'toplevel', pgss.toplevel,
 'userid', pgss.userid,
 'plans', pgss.plans,
 'total_plan_time', pgss.total_plan_time,
@@ -42,18 +40,9 @@ json_build_object(
 'temp_blks_written', pgss.temp_blks_written,
 'blk_read_time', pgss.blk_read_time,
 'blk_write_time', pgss.blk_write_time,
-'temp_blk_read_time', pgss.temp_blk_read_time,
-'temp_blk_write_time', pgss.temp_blk_write_time,
 'wal_records', pgss.wal_records,
 'wal_fpi', pgss.wal_fpi,
 'wal_bytes', pgss.wal_bytes,
-'jit_functions', pgss.jit_functions,
-'jit_generation_time', pgss.jit_generation_time,
-'jit_inlining_count', pgss.jit_inlining_count,
-'jit_inlining_time', pgss.jit_inlining_time,
-'jit_optimization_count', pgss.jit_optimization_count,
-'jit_optimization_time', pgss.jit_optimization_time,
-'jit_emission_count', pgss.jit_emission_count,
 'datacl', d.datacl,
 'datconnlimit', d.datconnlimit,
 'datfrozenxid', d.datfrozenxid,
@@ -62,14 +51,11 @@ json_build_object(
 'oid', d.oid,
 'datdba', d.datdba,
 'encoding', d.encoding,
-'datlocprovider', d.datlocprovider,
 'datistemplate', d.datistemplate,
 'datallowconn', d.datallowconn,
 'datname', d.datname,
-'datcollversion', d.datcollversion,
-'datcollate', d.datcollate
---'datctype', d.datctype,
---'daticulocale', d.daticulocale
+'datcollate', d.datcollate,
+'datctype', d.datctype
 ) as metadata
 from pg_stat_statements as pgss
 join pg_database as d  on pgss.dbid = d.oid
