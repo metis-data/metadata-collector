@@ -16,7 +16,7 @@ const {
 let LOG_LEVEL = process.env.LOG_LEVEL || 'INFO';
 
 const LogLevelEnum = {
-  DEUBG: 'debug',
+  DEBUG: 'debug',
   ERROR: 'error',
   INFO: 'info',
   WARN: 'warn',
