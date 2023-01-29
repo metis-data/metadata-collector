@@ -77,10 +77,15 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
       dbHost: dbConfig.host,
     })),
   );
-  const [{ stat_statements, ...rest }] = actionsData;
-  await Promise.all([directHttpsSend(rest, WEB_APP_REQUEST_OPTIONS, 1), directHttpsSend(stat_statements, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/pmc/statistics/query' })]);
-  logger.info('Sent actions results.');
-  logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
+  try {
+    const [{ stat_statements, ...rest }] = actionsData;
+    await Promise.all([directHttpsSend(rest, WEB_APP_REQUEST_OPTIONS, 1), directHttpsSend(stat_statements, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/pmc/statistics/query' })]);
+    logger.info('Sent actions results.');
+    logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
+  }
+  catch (e) {
+    console.error(e);
+  }
 }
 
 module.exports = {
