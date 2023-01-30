@@ -1,5 +1,4 @@
 const fs = require('fs');
-const pg = require('pg');
 const yaml = require('js-yaml');
 const process = require('process');
 const { dbDetailsFactory } = require('@metis-data/db-details');
@@ -77,10 +76,19 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
       dbHost: dbConfig.host,
     })),
   );
-  const [{ stat_statements, ...rest }] = actionsData;
-  await Promise.all([directHttpsSend(rest, WEB_APP_REQUEST_OPTIONS, 1), directHttpsSend(stat_statements, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/pmc/statistics/query' })]);
-  logger.info('Sent actions results.');
-  logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
+  try {
+    const [{ stat_statements, ...rest }] = actionsData;
+    await Promise.allSettled(
+      [
+        directHttpsSend(rest, WEB_APP_REQUEST_OPTIONS, 1),
+        directHttpsSend(stat_statements, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/pmc/statistics/query' }, 1)
+      ]);
+    logger.info('Sent actions results.');
+    logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
+  }
+  catch (e) {
+    logger.error(e);
+  }
 }
 
 module.exports = {
