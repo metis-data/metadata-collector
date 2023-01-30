@@ -29,7 +29,6 @@ limit 5000;`;
     }
     catch (e) {
         logger.error(e);
-        throw e;
     }
     finally {
         try {
