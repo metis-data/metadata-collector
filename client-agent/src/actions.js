@@ -87,7 +87,7 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
     logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
   }
   catch (e) {
-    console.error(e);
+    logger.error(e);
   }
 }
 

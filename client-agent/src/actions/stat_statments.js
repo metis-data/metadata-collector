@@ -28,7 +28,7 @@ limit 5000;`;
         return rows;
     }
     catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
     finally {
