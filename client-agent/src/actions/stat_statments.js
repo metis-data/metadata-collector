@@ -1,10 +1,10 @@
 const pg = require('pg');
+const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
 
 const stat_statements = async (dbConfig) => {
     let client;
     try {
-        const { PG_STAT_STATEMENTS_ROWS_LIMIT = 3000 } = process.env;
         client = new pg.Client(dbConfig);
         logger.info(`Trying to connect to ${dbConfig.database} ...`);
         await client.connect();
