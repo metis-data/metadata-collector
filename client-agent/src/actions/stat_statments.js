@@ -4,6 +4,7 @@ const { logger } = require('../logging');
 const stat_statements = async (dbConfig) => {
     let client;
     try {
+        const { PG_STAT_STATEMENTS_ROWS_LIMIT = 3000 } = process.env;
         client = new pg.Client(dbConfig);
         logger.info(`Trying to connect to ${dbConfig.database} ...`);
         await client.connect();
@@ -23,7 +24,7 @@ pg_stat_statements as pgss
 join pg_database as d  on pgss.dbid = d.oid
 where rows > 0 and total_exec_time > 0
 order by queryid desc
-limit 5000;`;
+limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};`;
         const { rows } = await client.query(query);
         return rows;
     }
