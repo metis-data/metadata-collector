@@ -11,7 +11,7 @@ const {
   WEB_APP_PATH,
   APP_ENV,
   NODE_ENV,
-  PG_STAT_STATEMENTS_ROWS_LIMIT = 3000,
+  PG_STAT_STATEMENTS_ROWS_LIMIT = 300,
 } = process.env;
 
 let LOG_LEVEL = process.env.LOG_LEVEL || 'INFO';
