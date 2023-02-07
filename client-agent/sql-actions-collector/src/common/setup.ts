@@ -1,6 +1,8 @@
 import { loggingSetup, logger, loggerExit } from './logging';
 
-import { API_KEY, API_GATEWAY_HOST, API_GATEWAY_PORT, API_GATEWAY_PATH, WEB_APP_PATH, WEB_APP_HOST, WEB_APP_PORT } from './consts';
+const { API_KEY, API_GATEWAY_HOST, API_GATEWAY_PATH, WEB_APP_HOST, WEB_APP_PATH } = process.env;
+const API_GATEWAY_PORT: any = parseInt((process.env.API_GATEWAY_PORT as any) || 443, 10);
+const WEB_APP_PORT: any = parseInt((process.env.WEB_APP_PORT as any) || 443, 10);
 
 function exit(msg, code) {
   loggerExit(msg);
@@ -14,7 +16,7 @@ const setup = async () => {
 
   process.on('uncaughtException', (error, source) => {
     try {
-      logger.error(`uncaghtException: error is "${error}" and source is "${source}"`);
+      logger.error('uncaughtException', error, source);
     } catch (err) {
       /* If logger is failing too, there is nothing we would like to do */
     }

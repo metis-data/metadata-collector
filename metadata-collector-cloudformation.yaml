@@ -62,6 +62,7 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
+                  - "ec2:DescribeSubnets"
                 Resource: "*"
   ConnectionStringSecretPolicy:  # Based on https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_examples.html
     Type: AWS::SecretsManager::ResourcePolicy
@@ -96,7 +97,13 @@ Resources:
             - Name: API_GATEWAY_PATH
               Value: /md-collector
             - Name: API_GATEWAY_PORT
-              Value: '443'
+              Value: 443
+            - Name: WEB_APP_HOST
+              Value: app.metisdata.io
+            - Name: WEB_APP_PATH
+              Value: /api/db-details
+            - Name: WEB_APP_PORT
+              Value: 443
             - Name: API_KEY
               Value: !Ref MetisAPIKey
             - Name: CONNECTION_STRINGS_SECRET
