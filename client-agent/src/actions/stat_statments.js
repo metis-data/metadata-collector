@@ -1,4 +1,5 @@
 const pg = require('pg');
+const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
 
 const stat_statements = async (dbConfig) => {
@@ -23,7 +24,7 @@ pg_stat_statements as pgss
 join pg_database as d  on pgss.dbid = d.oid
 where rows > 0 and total_exec_time > 0
 order by queryid desc
-limit 5000;`;
+limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};`;
         const { rows } = await client.query(query);
         return rows;
     }
