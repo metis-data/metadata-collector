@@ -29,20 +29,21 @@ function directHttpsSend(data, httpRequestOptions, numRetries = 3) {
               requestId: res.headers['x-amzn-requestid'] || res.headers['x-ray-id'], // When used for our backend api
               traceId: res.headers['x-amzn-trace-id'], // When used for API Gateway
             };
-            reject(err);
+            return reject({ err, httpRequestOptions });
           }
         } else {
-          resolve();
+          const { statusCode } = res;
+          return resolve({ statusCode, httpRequestOptions });
         }
       });
       req.on('error', (e) => {
         if (!op.retry(e)) {
-          reject(new Error(`Problem with HTTPS request: ${e.message}`));
+          return reject({ err: new Error(`Problem with HTTPS request: ${e.message}`), httpRequestOptions });
         }
       });
       req.on('timeout', () => {
         req.destroy();
-        reject(new Error('Reached timeout!'));
+        return reject({ err: new Error('Reached timeout!'), httpRequestOptions });
       });
       req.setHeader('Content-Type', 'application/json');
       const message = JSON.stringify(data);

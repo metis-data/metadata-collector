@@ -13,13 +13,14 @@ const QUERIES = yaml.load(queriesFileContents);
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 
 function getQueries(fakeHoursDelta) {
+  const isDevelopment = process?.env?.APP_ENV === 'development';
   const now = new Date();
   now.setHours(now.getHours() - fakeHoursDelta);
   const currentMinutes = now.getMinutes();
   const currentHour = IGNORE_CURRENT_TIME ? 0 : now.getHours();
   if (process.argv.length === 2) {
     return Object.keys(QUERIES)
-      .filter((key) => relevant(QUERIES[key].times_a_day, currentHour, currentMinutes))
+      .filter((key) => isDevelopment ? true : relevant(QUERIES[key].times_a_day, currentHour, currentMinutes))
       .map((key) => QUERIES[key]);
   }
   const qs = [];
