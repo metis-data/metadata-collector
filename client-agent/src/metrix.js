@@ -53,8 +53,7 @@ async function run(fakeHoursDelta = 0) {
   const dbConfigs = await getDBConfigs();
 
   // eslint-disable-next-line max-len
-  // const collectingActionPromises = [collectQueries, collectActions].map(collectRunner(fakeHoursDelta, dbConfigs));
-  const collectingActionPromises = [collectActions].map(collectRunner(fakeHoursDelta, dbConfigs));
+  const collectingActionPromises = [collectQueries, collectActions].map(collectRunner(fakeHoursDelta, dbConfigs));
   await Promise.allSettled(collectingActionPromises);
 }
 
