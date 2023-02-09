@@ -6,7 +6,7 @@ require('dotenv').config();
 const { setup } = require('./setup');
 const { logger } = require('./logging');
 const { getConnectionStrings } = require('./secret');
-const { collectActions } = require('./actions');
+const { collectActions } = require('./actions/actions');
 const { collectQueries } = require('./queries');
 
 const DB_CONNECT_TIMEOUT = 5000;
@@ -14,7 +14,9 @@ let DB_CONNECTION_STRINGS = null;
 
 // eslint-disable-next-line max-len
 const collectRunner = (fakeHoursDelta, dbConfigs) => (collectFn) => collectFn(fakeHoursDelta, dbConfigs)
-  .catch((e) => logger.error('Couldn\'t run collect runner.', e));
+  .catch((error) => {
+    logger.error('Couldn\'t run collect runner.', { error })
+  });
 
 async function getDBConfigs() {
   const connectionStringParser = new connectionParser.ConnectionStringParser({
@@ -51,8 +53,9 @@ async function run(fakeHoursDelta = 0) {
   const dbConfigs = await getDBConfigs();
 
   // eslint-disable-next-line max-len
-  const collectingActionPromises = [collectQueries, collectActions].map(collectRunner(fakeHoursDelta, dbConfigs));
-  await Promise.all(collectingActionPromises);
+  // const collectingActionPromises = [collectQueries, collectActions].map(collectRunner(fakeHoursDelta, dbConfigs));
+  const collectingActionPromises = [collectActions].map(collectRunner(fakeHoursDelta, dbConfigs));
+  await Promise.allSettled(collectingActionPromises);
 }
 
 module.exports.run = run;

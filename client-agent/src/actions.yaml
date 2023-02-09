@@ -1,6 +1,12 @@
 schemas:
+  export:
+    provider: app
+    url: '/api/db-details'
   times_a_day:
     1
 stat_statements:
+  export:
+    provider: app
+    url: '/api/pmc/statistics/query'
   times_a_day:
    24

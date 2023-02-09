@@ -176,8 +176,54 @@ function loggerExit(msg) {
   winstonLogger.end();
 }
 
+
+const createSubLogger = (componentName, logLevel=LogLevelEnum.INFO) => { 
+  const winstonLogger = createLogger({
+    level: LOG_LEVEL || logLevel,
+    defaultMeta: { component: componentName },
+    exitOnError: false,
+    format: format.combine(...logFormat),
+    transports: [
+      httpTransport,
+      ...winstonConsoleTransporter,
+    ],
+    exceptionHandlers: [
+      httpTransport,
+      consoleTransporter,
+    ],
+    rejectionHandlers: [
+      httpTransport,
+      consoleTransporter,
+    ],
+  });
+  
+  return {
+    debug: (msg, ...meta) => {
+      winstonLogger.debug(msg, ...meta);
+    },
+    info: (msg, ...meta) => {
+      winstonLogger.info(msg, ...meta);
+    },
+    warn: (msg, ...meta) => {
+      winstonLogger.warn(msg, ...meta);
+    },
+    error: (msg, ...meta) => {
+      const error = getError(msg, meta);
+  
+      if (!error) {
+        Sentry.captureMessage(msg, 'error');
+      } else {
+        Sentry.captureException(error);
+      }
+  
+      winstonLogger.error(msg, ...meta);
+    },
+  };
+}
+
 module.exports = {
-  logger,
+  logger: createSubLogger('app'),
+  createSubLogger,
   winstonLogger,
   loggingSetup,
   loggerExit,

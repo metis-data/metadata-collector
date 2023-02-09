@@ -7,7 +7,7 @@ const {
   WEB_APP_PORT,
 } = require('./consts');
 
-function exit(msg, code) {
+function exit({msg, code}) {
   loggerExit(msg);
   if (code) {
     process.exit(code);
@@ -17,25 +17,27 @@ function exit(msg, code) {
 async function setup() {
   await loggingSetup();
 
-  process.on('uncaughtException', (error, source) => {
+  process.on('uncaughtException', (error) => {
     try {
-      logger.error('uncaughtException', error, source);
+      logger.error('uncaughtException', { error });
     } catch (err) {
       /* If logger is failing too, there is nothing we would like to do */
     }
-    exit('Uncaught Exception Exiting ...', 1);
+    exit({ code: 1 });
   });
 
   process.on('SIGINT', () => {
-    exit('SIGINT signal received, exiting ...', 1);
+    logger.info('SIGINT signal received, exiting ...');
+    exit({ code: 1 });
   });
 
   process.on('SIGTERM', () => {
-    exit('SIGTERM signal received, exiting ...', 1);
+    logger.info('SIGTERM signal received, exiting ...');
+    exit({ code: 1 });
   });
 
   process.on('exit', (code) => {
-    exit(`Process Exiting code: ${code}...`);
+    logger.info(`Process Exiting code: ${code}...`);
   });
 
   const requiredEnvironmentVariables = [
