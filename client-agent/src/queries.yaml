@@ -1,17 +1,25 @@
 # The extracted name of the schema and table MUST be "schema" and "table", respectively.
 tables_size:
       query:
-            SELECT 
-                  n.nspname AS schema, c.relname AS table, relpages AS pages, reltuples AS rows,
-                  pg_relation_size(c.oid) / 1024 AS relation_size, pg_table_size(c.oid) / 1024 AS table_size, 
-                  pg_indexes_size(c.oid) / 1024 AS indexes_size, 
-                  (pg_total_relation_size(c.oid) - pg_relation_size(c.oid) - pg_indexes_size(c.oid)) / 1024 AS toast_size
-            FROM pg_class AS c
-                  LEFT JOIN pg_namespace AS n
-                        ON (N.oid = c.relnamespace)
-            WHERE relkind='r'
-            AND n.nspname NOT IN ('pg_catalog', 'information_schema') 
-            ORDER BY 1, 2;
+            SELECT
+                  n.nspname AS schema,
+                  c.relname AS table,
+                  relpages AS pages,
+                  reltuples AS table_size,
+                  pg_relation_size(c.oid) / 1024 AS relation_size,
+                  pg_table_size(c.oid) / 1024 AS table_size,
+                  pg_size_pretty(pg_table_size(c.oid)) AS table_size_pretty,
+                  pg_indexes_size(c.oid) / 1024 AS indexes_size,
+                  pg_size_pretty(pg_indexes_size(c.oid)) AS indexes_size_pretty,
+                  (pg_total_relation_size(c.oid) - pg_relation_size(c.oid) - pg_indexes_size(c.oid)) / 1024 AS toast_size,
+                  pg_size_pretty(pg_total_relation_size(c.oid) - pg_relation_size(c.oid) - pg_indexes_size(c.oid)) as toast_size_pretty,
+                  pg_stat_get_dead_tuples(c.oid) AS dead_rows_tuples
+            FROM
+                  pg_class AS c
+                  LEFT JOIN pg_namespace AS n ON (N.oid = c.relnamespace)
+            WHERE
+                  relkind = 'r'
+                  AND n.nspname NOT IN ('pg_catalog', 'information_schema');
       times_a_day:
             1
 index_usage:

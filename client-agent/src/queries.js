@@ -3,7 +3,7 @@ const process = require('process');
 const pg = require('pg');
 const yaml = require('js-yaml');
 
-const { logger } = require('./logging');
+const { createSubLogger } = require('./logging');
 const { processResults } = require('./process');
 const { relevant } = require('./utils');
 const { QUERIES_FILE } = require('./consts');
@@ -11,6 +11,7 @@ const { QUERIES_FILE } = require('./consts');
 const queriesFileContents = fs.readFileSync(QUERIES_FILE, 'utf8');
 const QUERIES = yaml.load(queriesFileContents);
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
+const logger = createSubLogger("queries");
 
 function getQueries(fakeHoursDelta) {
   const isDevelopment = process?.env?.APP_ENV === 'development';
@@ -65,7 +66,7 @@ async function collectQueries(fakeHoursDelta, dbConfigs) {
           await processResults(dbConfig, results[dbConfigKey], now.getTime(), fakeHoursDelta !== 0);
           logger.info('Processing results done.');
         } catch (err) {
-          logger.error('Couldn\'t run queries', err, dbConfigs);
+          logger.error('Couldn\'t run queries', { err, dbConfigs });
           throw err;
         } finally {
           if (client) {

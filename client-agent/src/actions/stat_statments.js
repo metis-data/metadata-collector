@@ -1,6 +1,7 @@
 const pg = require('pg');
 const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
-const { logger } = require('../logging');
+const { createSubLogger } = require('../logging');
+const logger = createSubLogger('stat_statements');
 
 const stat_statements = async (dbConfig) => {
     let client;
@@ -23,13 +24,12 @@ to_jsonb(pgss) - 'userId' - 'dbid' - 'mean_exec_time' - 'total_exec_time' - 'row
 pg_stat_statements as pgss
 join pg_database as d  on pgss.dbid = d.oid
 where rows > 0 and total_exec_time > 0
+${dbConfig.database ? `and d.datname = ${dbConfig.database}` : ''}
 order by queryid desc
 limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};`;
+
         const { rows } = await client.query(query);
         return rows;
-    }
-    catch (e) {
-        logger.error(e);
     }
     finally {
         try {
@@ -37,7 +37,7 @@ limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};`;
             logger.info(`connection has been closed.`);
         }
         catch (e) {
-            logger.error(`connection could not be closed: `, e);
+            logger.error(`connection could not be closed`, {error});
         }
     }
 }

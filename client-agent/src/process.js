@@ -33,8 +33,8 @@ async function processRows(dbConfig, rows, timestamp, fake) {
     logger.debug(`${HTTPS_REQUEST_OPTIONS.method}ing ${metricsData.length} records to: `, HTTPS_REQUEST_OPTIONS);
     return directHttpsSend(metricsData, HTTPS_REQUEST_OPTIONS);
   }
-  catch (e) {
-    logger.error(e);
+  catch (error) {
+    logger.error("processRows throw an error", {error});
   }
 }
 
@@ -45,23 +45,22 @@ async function processResults(dbConfig, results, timestamp, fake) {
       .map((result) => processRows(dbConfig, result.rows, timestamp, fake))
     const res = await Promise.allSettled(data);
     res.map(el => {
-      const { value, status } = el;
-      const statusCode = value?.statusCode;
-      const httpRequestOptions = value?.httpRequestOptions;
-      const error = status !== 'fulfilled' || isError(statusCode);
+      const {reason} = el.reason;
+      const statusCode = reason?.statusCode;
+      const httpRequestOptions = reason?.httpRequestOptions;
+      const error = el.status === 'rejected' || isError(statusCode);
 
       if (error) {
-        const err = value?.err;
-        logger.error({ success: false, err, ...httpRequestOptions });
+        logger.error("processResults throw an error", { success: false, httpRequestOptions, ...(reason || {}) });
       }
       else {
-        logger.info({ success: true, ...httpRequestOptions });
+        logger.debug("Finished to processResults", { success: true, httpRequestOptions });
       }
     });
     return;
   }
   catch (e) {
-    logger.error(e);
+    logger.error("processResults throw an error", e);
   }
 }
 
