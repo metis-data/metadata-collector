@@ -24,6 +24,7 @@ to_jsonb(pgss) - 'userId' - 'dbid' - 'mean_exec_time' - 'total_exec_time' - 'row
 pg_stat_statements as pgss
 join pg_database as d  on pgss.dbid = d.oid
 where rows > 0 and total_exec_time > 0
+${dbConfig.database ? `and d.datname = ${dbConfig.database}` : ''}
 order by queryid desc
 limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};`;
 
