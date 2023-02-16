@@ -1,15 +1,16 @@
 const pg = require('pg');
 const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
+const { directHttpsSend } = require('../http');
 
-const stat_statements = async (dbConfig) => {
-    let client;
-    try {
-        client = new pg.Client(dbConfig);
-        logger.info(`Trying to connect to ${dbConfig.database} ...`);
-        await client.connect();
-        logger.info(`Connected to ${dbConfig.database}`);
-        const query = `
+const action = async (dbConfig) => {
+  let client;
+  try {
+    client = new pg.Client(dbConfig);
+    logger.info(`Trying to connect to ${dbConfig.database} ...`);
+    await client.connect();
+    logger.info(`Connected to ${dbConfig.database}`);
+    const query = `
         select distinct on (queryid ) queryid as query_id,
 pgss.calls as calls,
 pgss.query,
@@ -25,21 +26,25 @@ join pg_database as d  on pgss.dbid = d.oid
 where rows > 0 and total_exec_time > 0
 order by queryid desc
 limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};`;
-        const { rows } = await client.query(query);
-        return rows;
+    const { rows } = await client.query(query);
+    return rows;
+  } finally {
+    try {
+      await client.end();
+      logger.info('connection has been closed.');
+    } catch (e) {
+      logger.error('connection could not be closed: ', e);
     }
-    catch (e) {
-        logger.error(e);
-    }
-    finally {
-        try {
-            await client.end();
-            logger.info(`connection has been closed.`);
-        }
-        catch (e) {
-            logger.error(`connection could not be closed: `, e);
-        }
-    }
-}
+  }
+};
 
-module.exports = stat_statements;
+const sendResults = async ({ payload, options }) => directHttpsSend(payload, options, 0);
+
+module.exports = {
+  statStatmentsAction: {
+    fn: action,
+    exporter: {
+      sendResults,
+    },
+  },
+};

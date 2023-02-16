@@ -1,25 +1,26 @@
 const fs = require('fs');
+const pg = require('pg');
 const yaml = require('js-yaml');
 const process = require('process');
-const { dbDetailsFactory } = require('@metis-data/db-details');
-const stat_statements = require('./actions/stat_statments');
 
 const { logger } = require('./logging');
-const { relevant } = require('./utils');
+const { relevant, mergeDeep } = require('./utils');
 const { directHttpsSend } = require('./http');
+const { statStatmentsAction } = require('./actions/stat_statments');
+const { schemaAction } = require('./actions/schema');
+
 const { API_KEY, ACTIONS_FILE, WEB_APP_REQUEST_OPTIONS } = require('./consts');
 
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 const actionsFileContents = fs.readFileSync(ACTIONS_FILE, 'utf8');
-const ACTIONS_DEF = yaml.load(actionsFileContents);
+const ACTIONS_YAML = yaml.load(actionsFileContents);
 
-const ACTIONS = {
-  schemas: (dbConfig) => {
-    const schemaDetailsObject = dbDetailsFactory('postgres');
-    return schemaDetailsObject.getDbDetails(dbConfig);
-  },
-  stat_statements,
+const ACTIONS_FUNCS = {
+  schemas: schemaAction,
+  stat_statements: statStatmentsAction,
 };
+
+const ACTIONS_DEF = mergeDeep(ACTIONS_YAML, ACTIONS_FUNCS);
 
 function getActions(fakeHoursDelta) {
   const now = new Date();
@@ -29,17 +30,19 @@ function getActions(fakeHoursDelta) {
   if (process.argv.length === 2) {
     return Object.keys(ACTIONS_DEF)
       .filter((key) => relevant(ACTIONS_DEF[key].times_a_day, currentHour, currentMinutes))
-      .map((key) => ACTIONS[key]);
+      .map((key) => ACTIONS_DEF[key]);
   }
   const actions = [];
-  process.argv.slice(2).forEach((q) => {
-    if (q in ACTIONS) {
-      actions.push(ACTIONS[q]);
+  process.argv.slice(2).forEach((action) => {
+    if (action in ACTIONS_DEF) {
+      actions.push(ACTIONS_DEF[action]);
     }
   });
   if (actions.length < process.argv.length - 2) {
-    const nonEligableActions = process.argv.slice(2).filter((q) => !(q in ACTIONS));
-    throw Error(`Error running the CLI. The following are not eligible Actions: ${nonEligableActions}`);
+    const nonEligableActions = process.argv.slice(2).filter((action) => !(action in ACTIONS_DEF));
+    throw Error(
+      `Error running the CLI. The following are not eligible Actions: ${nonEligableActions}`,
+    );
   }
   return actions;
 }
@@ -48,47 +51,113 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
   const theActions = getActions(fakeHoursDelta);
   if (!theActions.length) return;
   const actionsData = await Promise.all(
-    dbConfigs.map((dbConfig) => theActions.reduce(async (result, action) => {
-      logger.info(`Running action ${action.name}`);
-      let schemaResult = {};
-      let errors;
-      try {
-        const actionResult = await action(dbConfig);
-        schemaResult = {
-          [action.name]: actionResult,
+    dbConfigs.map((dbConfig) => theActions.reduce(
+      async (result, action) => {
+        logger.info(`Running action ${action.name}`);
+        const schemaResult = {
+          exporter: action.exporter,
+          success: true,
+          data: undefined,
+          error: undefined,
         };
-      } catch (err) {
-        errors = {
-          [action.name]: {
-            error: err.stack,
+        try {
+          const actionResult = await action.fn(dbConfig);
+          schemaResult.data = actionResult;
+        } catch (err) {
+          schemaResult.success = false;
+          schemaResult.error = err;
+          logger.error(`Action '${action.name}' failed to run`, err);
+        }
+        const acc = await result;
+        return {
+          ...acc,
+          actions: {
+            ...acc.actions,
+            ...{
+              [action.name]: schemaResult,
+            },
+          },
+          errors: {
+            ...acc.errors,
+            ...(schemaResult.error && {
+              [action.name]: schemaResult.error,
+            }),
           },
         };
-        logger.error(`Action '${action.name}' failed to run`, err);
-      }
-      return {
-        ...(await result),
-        ...schemaResult,
-        errors,
-      };
-    }, {
-      apiKey: API_KEY,
-      dbName: dbConfig.database,
-      dbHost: dbConfig.host,
-    })),
+      },
+      {
+        apiKeyId: API_KEY,
+        dbName: dbConfig.database,
+        dbHost: dbConfig.host,
+        dbPort: dbConfig.port,
+      },
+    )),
   );
-  try {
-    const [{ stat_statements, ...rest }] = actionsData;
-    await Promise.allSettled(
-      [
-        directHttpsSend(rest, WEB_APP_REQUEST_OPTIONS, 1),
-        directHttpsSend(stat_statements, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/pmc/statistics/query' }, 1)
-      ]);
-    logger.info('Sent actions results.');
-    logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
-  }
-  catch (e) {
-    logger.error(e);
-  }
+
+  //   {
+  //     "apiKeyId":"XXX",
+  //     "dbName":"XXX",
+  //     "dbHost":"XX.XX.XX.XX",
+  //     "dbPort": 5432,
+  //     "actions":{
+  //        "schemas":{
+  //           "exporter":{
+  //              "provider":"app",
+  //              "url":"/api/db-details"
+  //           },
+  //           "success":true,
+  //           "data":[{...}
+  //           ]
+  //        },
+  //        "stat_statements":{
+  //           "exporter":{
+  //              "provider":"app",
+  //              "url":"/api/pmc/statistics/query"
+  //           },
+  //           "success":false,
+  //           "error":{..}
+  //        }
+  //     },
+  //     "errors":{
+  //        "stat_statements":{...},
+  //        "failed_action_name":{...}
+  //     }
+  //  }
+
+  // TODO: send errors per PMC
+  const requestResults = await Promise.all(
+    actionsData.map(
+      async ({
+        actions, dbHost, dbName, dbPort, errors,
+      }) => await Promise.allSettled(
+        Object.values(actions).map(async ({
+          exporter, data, success, error,
+        }) => {
+          if (!success) {
+            return error;
+          }
+
+          if (exporter.provider === 'app') {
+            return exporter.sendResults({
+              payload: {
+                dbHost,
+                dbName,
+                dbPort,
+                data,
+                error,
+              },
+              success,
+              options: { ...WEB_APP_REQUEST_OPTIONS, path: exporter.url },
+            });
+          }
+        }),
+      ),
+    ),
+  );
+
+  console.log(requestResults);
+  logger.info('Sent actions results.');
+  logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
 }
 
 module.exports = {

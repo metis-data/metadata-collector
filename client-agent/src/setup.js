@@ -1,8 +1,10 @@
 const { loggingSetup, logger, loggerExit } = require('./logging');
 
 const {
-  API_KEY, API_GATEWAY_HOST, API_GATEWAY_PORT, API_GATEWAY_PATH,
-  WEB_APP_PATH,
+  API_KEY,
+  API_GATEWAY_HOST,
+  API_GATEWAY_PORT,
+  API_GATEWAY_PATH,
   WEB_APP_HOST,
   WEB_APP_PORT,
 } = require('./consts');
@@ -19,7 +21,7 @@ async function setup() {
 
   process.on('uncaughtException', (error, source) => {
     try {
-      logger.error('uncaughtException', error, source);
+      logger.error('uncaughtException', { error, source });
     } catch (err) {
       /* If logger is failing too, there is nothing we would like to do */
     }
@@ -39,9 +41,12 @@ async function setup() {
   });
 
   const requiredEnvironmentVariables = [
-    [API_KEY, 'API Key'], [API_GATEWAY_HOST, 'API Gateway Host'], [API_GATEWAY_PORT, 'API Gateway Port'],
+    [API_KEY, 'API Key'],
+    [API_GATEWAY_HOST, 'API Gateway Host'],
+    [API_GATEWAY_PORT, 'API Gateway Port'],
     [API_GATEWAY_PATH, 'API Gateway Path'],
-    [WEB_APP_PATH, 'Web app api path'], [WEB_APP_HOST, 'Web app api Host'], [WEB_APP_PORT, 'Web app api port'],
+    [WEB_APP_HOST, 'Web app api Host'],
+    [WEB_APP_PORT, 'Web app api port'],
   ];
   const wrong = requiredEnvironmentVariables.find((x) => !x[0]);
   if (wrong) {
