@@ -3,6 +3,7 @@ const yaml = require('js-yaml');
 const process = require('process');
 const { dbDetailsFactory } = require('@metis-data/db-details');
 const stat_statements = require('./actions/stat_statments');
+const available_extensions = require('./actions/available_extensions');
 
 const { logger } = require('./logging');
 const { relevant } = require('./utils');
@@ -19,6 +20,7 @@ const ACTIONS = {
     return schemaDetailsObject.getDbDetails(dbConfig);
   },
   stat_statements,
+  available_extensions,
 };
 
 function getActions(fakeHoursDelta) {
@@ -44,11 +46,15 @@ function getActions(fakeHoursDelta) {
   return actions;
 }
 
+let pmcDevice;
+
 async function collectActions(fakeHoursDelta, dbConfigs) {
   const theActions = getActions(fakeHoursDelta);
   if (!theActions.length) return;
   const actionsData = await Promise.all(
     dbConfigs.map((dbConfig) => theActions.reduce(async (result, action) => {
+      const { database: db_name, host: db_host, port } = dbConfig;
+      pmcDevice = { db_name, db_host, port: port.toString(), rdbms: 'postgres' };
       logger.info(`Running action ${action.name}`);
       let schemaResult = {};
       let errors;
@@ -73,15 +79,18 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
     }, {
       apiKey: API_KEY,
       dbName: dbConfig.database,
-      dbHost: dbConfig.host,
+      dbHost: dbConfig.host
     })),
   );
   try {
-    const [{ stat_statements, ...rest }] = actionsData;
+    
+    const [{ stat_statements, available_extensions: extensions, ...rest }] = actionsData;
     await Promise.allSettled(
       [
         directHttpsSend(rest, WEB_APP_REQUEST_OPTIONS, 1),
-        directHttpsSend(stat_statements, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/pmc/statistics/query' }, 1)
+        directHttpsSend(pmcDevice, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/pmc-device' }, 1),
+        directHttpsSend(stat_statements, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/pmc/statistics/query' }, 1),
+        directHttpsSend({ pmcDevice,extensions}, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/customer-db-extension' }, 1),
       ]);
     logger.info('Sent actions results.');
     logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);

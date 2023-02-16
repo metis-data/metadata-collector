@@ -4,3 +4,6 @@ schemas:
 stat_statements:
   times_a_day:
    24
+available_extensions:
+  times_a_day:
+   1
