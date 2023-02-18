@@ -6,7 +6,7 @@ const stat_statements = require('./actions/stat_statments');
 
 const { logger } = require('./logging');
 const { relevant } = require('./utils');
-const { directHttpsSend } = require('./http');
+const { directHttpsSend, makeHttpRequest } = require('./http');
 const { API_KEY, ACTIONS_FILE, WEB_APP_REQUEST_OPTIONS } = require('./consts');
 
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
@@ -78,13 +78,14 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
   );
   try {
     const [{ stat_statements, ...rest }] = actionsData;
-    await Promise.allSettled(
+    const responses = await Promise.allSettled(
       [
-        directHttpsSend(rest, WEB_APP_REQUEST_OPTIONS, 1),
-        directHttpsSend(stat_statements, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/pmc/statistics/query' }, 1)
+        makeHttpRequest(rest, WEB_APP_REQUEST_OPTIONS, 1),
+        makeHttpRequest(stat_statements, { ...WEB_APP_REQUEST_OPTIONS, path: '/api/pmc/statistics/query' }, 1)
       ]);
-    logger.info('Sent actions results.');
-    logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
+
+    logger.info('Sent actions results.', responses);
+    logger.debug(`Actions data is ${JSON.stringify(actionsData)}`, responses);
   }
   catch (e) {
     logger.error(e);

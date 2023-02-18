@@ -28,9 +28,6 @@ limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};`;
         const { rows } = await client.query(query);
         return rows;
     }
-    catch (e) {
-        logger.error(e);
-    }
     finally {
         try {
             await client.end();
