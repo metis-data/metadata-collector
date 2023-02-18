@@ -78,6 +78,7 @@ function makeHttpRequest(payload, options, numRetries = 3, ignoreStatusCodes = [
 
       res.on('end', () => {
         const context = {
+          path: options.path,
           status: res.statusCode,
           requestId: res.headers['x-amzn-requestid'] || res.headers['x-ray-id'], // When used for our backend api
           traceId: res.headers['x-amzn-trace-id'], // When used for API Gateway
