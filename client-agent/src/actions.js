@@ -51,54 +51,58 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
   const theActions = getActions(fakeHoursDelta);
   if (!theActions.length) return;
   const actionsData = await Promise.all(
-    dbConfigs.map((dbConfig) => theActions.reduce(
-      async (result, action) => {
-        logger.info(`Running action ${action.name}`);
-        const schemaResult = {
-          exporter: action.exporter,
-          success: true,
-          data: undefined,
-          error: undefined,
-        };
-        try {
-          const actionResult = await action.fn(dbConfig);
-          schemaResult.data = actionResult;
-        } catch (err) {
-          schemaResult.success = false;
-          schemaResult.error = err;
-          logger.error(`Action '${action.name}' failed to run`, err);
-        }
-        const acc = await result;
-        return {
-          ...acc,
-          actions: {
-            ...acc.actions,
-            ...{
-              [action.name]: schemaResult,
+    dbConfigs.map((dbConfig) =>
+      theActions.reduce(
+        async (result, action) => {
+          logger.info(`Running action ${action.name}`);
+          const schemaResult = {
+            exporter: action.exporter,
+            success: true,
+            data: undefined,
+            error: undefined,
+          };
+          try {
+            const actionResult = await action.fn(dbConfig);
+            schemaResult.data = actionResult;
+          } catch (err) {
+            schemaResult.success = false;
+            schemaResult.error = err;
+            logger.error(`Action '${action.name}' failed to run`, err);
+          }
+          const acc = await result;
+          return {
+            ...acc,
+            actions: {
+              ...acc.actions,
+              ...{
+                [action.name]: schemaResult,
+              },
             },
+            errors: {
+              ...acc.errors,
+              ...(schemaResult.error && {
+                [action.name]: schemaResult.error,
+              }),
+            },
+          };
+        },
+        {
+          pmcDevice: {
+            dbName: dbConfig.database,
+            dbHost: dbConfig.host,
+            dbPort: dbConfig.port?.toString() ?? '5432',
+            rdbms: 'postgres',
           },
-          errors: {
-            ...acc.errors,
-            ...(schemaResult.error && {
-              [action.name]: schemaResult.error,
-            }),
-          },
-        };
-      },
-      {
-        apiKeyId: API_KEY,
-        dbName: dbConfig.database,
-        dbHost: dbConfig.host,
-        dbPort: dbConfig.port,
-      },
-    )),
+        },
+      ),
+    ),
   );
 
   //   {
   //     "apiKeyId":"XXX",
   //     "dbName":"XXX",
   //     "dbHost":"XX.XX.XX.XX",
-  //     "dbPort": 5432,
+  //     "dbPort": "5432",
   //     "actions":{
   //        "schemas":{
   //           "exporter":{
@@ -106,8 +110,7 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
   //              "url":"/api/db-details"
   //           },
   //           "success":true,
-  //           "data":[{...}
-  //           ]
+  //           "data":[{...}]
   //        },
   //        "stat_statements":{
   //           "exporter":{
@@ -127,37 +130,31 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
   // TODO: send errors per PMC
   const requestResults = await Promise.all(
     actionsData.map(
-      async ({
-        actions, dbHost, dbName, dbPort, errors,
-      }) => await Promise.allSettled(
-        Object.values(actions).map(async ({
-          exporter, data, success, error,
-        }) => {
-          if (!success) {
-            return error;
-          }
+      async ({ actions, pmcDevice, errors }) =>
+        await Promise.allSettled(
+          Object.values(actions).map(async ({ exporter, data, success, error }) => {
+            if (!success) {
+              return error;
+            }
 
-          if (exporter.provider === 'app') {
-            return exporter.sendResults({
-              payload: {
-                dbHost,
-                dbName,
-                dbPort,
-                data,
-                error,
-              },
-              success,
-              options: { ...WEB_APP_REQUEST_OPTIONS, path: exporter.url },
-            });
-          }
-        }),
-      ),
+            if (exporter.provider === 'app') {
+              return exporter.sendResults({
+                payload: {
+                  pmcDevice,
+                  data,
+                  error,
+                },
+                success,
+                options: { ...WEB_APP_REQUEST_OPTIONS, path: exporter.url },
+              });
+            }
+          }),
+        ),
     ),
   );
 
-  console.log(requestResults);
-  logger.info('Sent actions results.');
-  logger.debug(`Actions data is ${JSON.stringify(actionsData)}`);
+  logger.info('Sent actions results.', { requestResults });
+  logger.debug('Actions data', { actionsData });
 }
 
 module.exports = {

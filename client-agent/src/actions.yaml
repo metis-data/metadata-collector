@@ -10,3 +10,9 @@ stat_statements:
     provider: app
     url: '/api/pmc/statistics/query'
   times_a_day: 24
+available_extensions:
+  name: available_extensions
+  exporter:
+    provider: app
+    url: '/api/customer-db-extension'
+  times_a_day: 1

@@ -6,7 +6,7 @@ const action = async (dbConfig) => {
   return schemaDetailsObject.getDbDetails(dbConfig);
 };
 
-const sendResults = async ({ payload, options }) => directHttpsSend(payload, options, 0);
+const sendResults = async ({ payload, options }) => directHttpsSend([payload], options, 0);
 
 module.exports = {
   schemaAction: {
