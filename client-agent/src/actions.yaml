@@ -3,7 +3,7 @@ schemas:
   exporter:
     provider: app
     url: '/api/db-details'
-  times_a_day: 1
+  times_a_day: 24
 stat_statements:
   name: stat_statements
   exporter:
@@ -15,4 +15,4 @@ available_extensions:
   exporter:
     provider: app
     url: '/api/customer-db-extension'
-  times_a_day: 1
+  times_a_day: 24

@@ -14,7 +14,7 @@ FROM pg_available_extensions
 ORDER BY name`;
     const { rows } = await client.query(query);
     return rows;
-  } 
+  }
   finally {
     try {
       await client.end();
@@ -27,7 +27,7 @@ ORDER BY name`;
 
 const sendResults = async ({ payload, options }) => {
   const data = {
-    extenstions: payload.data,
+    extensions: payload.data,
     pmcDevice: {
       rdbms: payload.pmcDevice.rdbms,
       db_host: payload.pmcDevice.dbHost,
