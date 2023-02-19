@@ -1,5 +1,6 @@
 const pg = require('pg');
 const { logger } = require('../logging');
+const { directHttpsSend } = require('../http');
 
 const action = async (dbConfig) => {
   let client;
@@ -13,9 +14,8 @@ FROM pg_available_extensions
 ORDER BY name`;
     const { rows } = await client.query(query);
     return rows;
-  } catch (e) {
-    logger.error(e);
-  } finally {
+  } 
+  finally {
     try {
       await client.end();
       logger.info('connection has been closed.');
@@ -25,12 +25,22 @@ ORDER BY name`;
   }
 };
 
-module.exports = available_extensions;
+const sendResults = async ({ payload, options }) => {
+  const data = {
+    extenstions: payload.data,
+    pmcDevice: {
+      rdbms: payload.pmcDevice.rdbms,
+      db_host: payload.pmcDevice.dbHost,
+      db_name: payload.pmcDevice.dbName,
+      port: payload.pmcDevice.dbPort,
+    }
+  };
 
-const sendResults = async ({ payload, options }) => directHttpsSend(payload, options, 0);
+  return directHttpsSend(data, options, 0)
+};
 
 module.exports = {
-  schemaAction: {
+  availableExtensions: {
     fn: action,
     exporter: {
       sendResults,

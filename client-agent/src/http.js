@@ -12,7 +12,9 @@ function directHttpsSend(data, httpRequestOptions) {
       logger.debug(`STATUS: ${res.statusCode}`);
       res.setEncoding('utf8');
 
+      let data= ''
       res.on('data', (chunk) => {
+        data += chunk;
         logger.debug(`BODY: ${JSON.stringify(chunk)}`, httpRequestOptions);
       });
 
@@ -33,7 +35,7 @@ function directHttpsSend(data, httpRequestOptions) {
           requestId: res.headers['x-amzn-requestid'] || res.headers['x-ray-id'], // When used for our backend api
           traceId: res.headers['x-amzn-trace-id'], // When used for API Gateway
         };
-        reject(err);
+        reject({ err, data });
       } else {
         resolve();
       }

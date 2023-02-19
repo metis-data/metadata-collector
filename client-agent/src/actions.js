@@ -5,9 +5,9 @@ const process = require('process');
 
 const { logger } = require('./logging');
 const { relevant, mergeDeep } = require('./utils');
-const { directHttpsSend } = require('./http');
 const { statStatmentsAction } = require('./actions/stat_statments');
 const { schemaAction } = require('./actions/schema');
+const { availableExtensions } = require('./actions/available_extensions');
 
 const { API_KEY, ACTIONS_FILE, WEB_APP_REQUEST_OPTIONS } = require('./consts');
 
@@ -18,6 +18,7 @@ const ACTIONS_YAML = yaml.load(actionsFileContents);
 const ACTIONS_FUNCS = {
   schemas: schemaAction,
   stat_statements: statStatmentsAction,
+  available_extensions: availableExtensions,
 };
 
 const ACTIONS_DEF = mergeDeep(ACTIONS_YAML, ACTIONS_FUNCS);
