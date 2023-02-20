@@ -1,6 +1,6 @@
 const pg = require('pg');
 const { logger } = require('../logging');
-const { directHttpsSend } = require('../http');
+const { makeHttpRequest } = require('../http');
 
 const action = async (dbConfig) => {
   let client;
@@ -36,7 +36,7 @@ const sendResults = async ({ payload, options }) => {
     }
   };
 
-  return directHttpsSend(data, options, 0)
+  return makeHttpRequest(data, options, 0)
 };
 
 module.exports = {
