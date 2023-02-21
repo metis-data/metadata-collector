@@ -1,0 +1,100 @@
+name: Build and deploy
+on:
+  workflow_dispatch:
+    inputs:
+      docker_image_tag:
+        type: string
+        description: what is the tag version to set as latest
+      is_latest:
+        required: false
+        type: boolean
+        default: false
+jobs:
+  deploy_docker:
+    name: Build and Deploy Docker Image
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: ./client-agent/src
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: checkout source code
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.6.1
+        with:
+          role-to-assume: arn:aws:iam::357242092635:role/github-action-metis-production-agent
+          aws-region: us-east-1
+      - name: Node packages cache
+        id: node-cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Login to Amazon ECR Public
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@v1.5.1
+        with:
+          registry-type: public
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true # Ignore the failure of a step and avoid terminating the job.
+      - name: build and deploy
+        env:
+          REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
+          IS_LATEST: ${{ inputs.is_latest || 'false' }}
+        run: |
+          npm install --production
+
+          DOCKER_ID=$(docker build \
+            --build-arg NPM_TOKEN_READ_ONLY=${{ secrets.NPM_TOKEN_READ_ONLY }} \
+            --build-arg DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }} \
+            --build-arg SENTRY_DSN=${{ secrets.SENTRY_DSN }} \
+            -q -t $REGISTRY/o2c0x5x8/metis-md-collector .)
+
+
+          MD5_TAG=$(md5sum package.json)
+          echo "MD5_TAG: $MD5_TAG"
+          echo "docker_image_tag: $docker_image_tag"
+          echo "IS_LATEST: $IS_LATEST"
+
+          if [ $IS_LATEST != "true" ]
+          DOCKER_TAG=${docker_image_tag:=$MD5_TAG}
+          echo "new DOCKER_TAG: $DOCKER_TAG"
+
+          docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:$DOCKER_TAG
+          docker push $REGISTRY/o2c0x5x8/metis-md-collector:$DOCKER_TAG
+
+          elif [ $IS_LATEST == "true" ]
+          then
+            docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
+            docker push $REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
+          fi
+
+      - name: create cloud formation
+        if: ${{ github.ref != 'refs/heads/main'}}
+        env:
+          APP_ENV: staging
+          INGEST_URL: ingest-stg.metisdata.io
+          WEB_APP_HOST: dev.metisdata.io
+        run: |
+          echo "APP_ENV: $APP_ENV"
+          echo "INGEST_URL: $INGEST_URL"
+          echo "WEB_APP_HOST: $WEB_APP_HOST"
+
+          cat ../../metadata-collector-cloudformation.yaml | \
+              sed -e "s+ingest.metisdata.io+$INGEST_URL+g" \
+                  -e "s+app.metisdata.io+$WEB_APP_HOST+g" \
+                  -e "s+Value: production+Value: $APP_ENV+g" \
+                  -e "s+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:latest+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:$TAG+g" \
+              > ../../metadata-collector-cloudformation-stg.yaml
+          cp ../../metadata-collector-cloudformation-stg.yaml .
+      - name: upload artifact
+        if: ${{ github.ref != 'refs/heads/main' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: cloudformation.yaml
+          path: metadata-collector-cloudformation-stg.yaml
