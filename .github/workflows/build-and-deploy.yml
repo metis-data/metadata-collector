@@ -5,9 +5,6 @@ on:
       docker_image_tag:
         type: string
         description: what is the tag version to set as latest
-      ingest_url:
-        type: string
-        description: default ingest.metisdata.io
       is_latest:
         required: false
         type: boolean
@@ -44,48 +41,50 @@ jobs:
         with:
           registry-type: public
       - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true  # Ignore the failure of a step and avoid terminating the job.
+        continue-on-error: true # Ignore the failure of a step and avoid terminating the job.
       - name: build and deploy
         env:
           REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
           IS_LATEST: ${{ inputs.is_latest || 'false' }}
         run: |
           npm install --production
-          
+
           DOCKER_ID=$(docker build \
             --build-arg NPM_TOKEN_READ_ONLY=${{ secrets.NPM_TOKEN_READ_ONLY }} \
             --build-arg DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }} \
             --build-arg SENTRY_DSN=${{ secrets.SENTRY_DSN }} \
             -q -t $REGISTRY/o2c0x5x8/metis-md-collector .)
-          
-          
+
+
           MD5_TAG=$(md5sum package.json)
           echo "MD5_TAG: $MD5_TAG"
           echo "docker_image_tag: $docker_image_tag"
+          echo "IS_LATEST: $IS_LATEST"
+
+          if [ $IS_LATEST != "true" ]
           DOCKER_TAG=${docker_image_tag:=$MD5_TAG}
           echo "new DOCKER_TAG: $DOCKER_TAG"
-          
+
           docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:$DOCKER_TAG
           docker push $REGISTRY/o2c0x5x8/metis-md-collector:$DOCKER_TAG
 
-          echo "IS_LATEST: $IS_LATEST"
-          if [ $IS_LATEST == "true" ]
+          elif [ $IS_LATEST == "true" ]
           then
             docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
-            docker push $REGISTRY/o2c0x5x8/metis-md-collector:latest
+            docker push $REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
           fi
 
       - name: create cloud formation
         if: ${{ github.ref != 'refs/heads/main'}}
         env:
-          APP_ENV: ${{ (github.ref == 'refs/heads/develop' && 'staging') || (github.ref == 'refs/heads/main' && 'production') || 'development' }}
-          INGEST_URL: ${{ inputs.ingest_url || (github.ref != 'refs/heads/main' && 'ingest-stg.metisdata.io')) || 'ingest.metisdata.io' }}
-          WEB_APP_HOST: ${{ (github.ref == 'refs/heads/main' && 'app.metisdata.io') || 'dev.metisdata.io' }}
+          APP_ENV: staging
+          INGEST_URL: ingest-stg.metisdata.io
+          WEB_APP_HOST: dev.metisdata.io
         run: |
           echo "APP_ENV: $APP_ENV"
           echo "INGEST_URL: $INGEST_URL"
           echo "WEB_APP_HOST: $WEB_APP_HOST"
-          
+
           cat ../../metadata-collector-cloudformation.yaml | \
               sed -e "s+ingest.metisdata.io+$INGEST_URL+g" \
                   -e "s+app.metisdata.io+$WEB_APP_HOST+g" \
@@ -99,10 +98,3 @@ jobs:
         with:
           name: cloudformation.yaml
           path: metadata-collector-cloudformation-stg.yaml
-      - name: upload artifact
-        if: ${{ github.ref != 'refs/heads/main' }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: cloudformation-staging.yaml
-          path: metadata-collector-cloudformation-stg.yaml
-
