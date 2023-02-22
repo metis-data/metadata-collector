@@ -8,6 +8,11 @@ jobs:
     runs-on: ubuntu-20.04
     name: promote latest-dev tag to production
     steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.6.1
+        with:
+          role-to-assume: arn:aws:iam::357242092635:role/github-action-metis-production-agent
+          aws-region: us-east-1
       - name: login to ecr
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1.5.1
