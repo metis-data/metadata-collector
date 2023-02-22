@@ -1,5 +1,10 @@
 name: promote to production
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      docker_image_tag:
+        type: string
+        description: what is the tag version to set as latest
 jobs:
   promote_to_prod:
     defaults:
@@ -25,12 +30,13 @@ jobs:
 
       - name: checkout source code
         uses: actions/checkout@v3
-        
+
       - name: retreive the latest image id with latest-dev tag and repush it with latest tag
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          FILTER="$REGISTRY/o2c0x5x8/metis-md-collector:latest-dev"
+          TAG=${{ inputs.docker_image_tag || 'latest-dev' }}
+          FILTER="$REGISTRY/o2c0x5x8/metis-md-collector:$TAG"
           docker pull $FILTER
           IMAGE_ID="$(docker images --filter=reference=$FILTER -q | head -1)"
           IMAGE_NAME="$REGISTRY/o2c0x5x8/metis-md-collector:latest"
