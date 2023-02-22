@@ -35,6 +35,9 @@ jobs:
           FILTER="$REGISTRY/o2c0x5x8/metis-md-collector:latest-dev"
           echo "$FILTER"
 
+
+          docker pull $FILTER
+          
           echo "$(docker images)"
 
           IMAGE_ID="$(docker images --filter=reference=$FILTER -q | head -1)"
