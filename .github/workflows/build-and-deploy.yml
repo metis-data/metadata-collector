@@ -66,7 +66,7 @@ jobs:
 
           else
           # generate a tag based on sha fingerprint
-          TAG=$( "${{ inputs.docker_image_tag }}" || shasum package.json | awk '{ print $1 }' )
+          TAG=if [ ${{ inputs.docker_image_tag }} ]; then "${{ inputs.docker_image_tag }}" else $( shasum package.json | awk '{ print $1 }' )
 
           docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
           docker push $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
