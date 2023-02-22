@@ -36,11 +36,7 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-<<<<<<< HEAD
           TAG=${{ inputs.docker_image_tag }}
-=======
-          TAG=${{ inputs.docker_image_tag || 'latest-dev' }}
->>>>>>> b959810876d44a710c551beb7fe67e28ee0d7ed6
           FILTER="$REGISTRY/o2c0x5x8/metis-md-collector:$TAG"
           docker pull $FILTER
           IMAGE_ID="$(docker images --filter=reference=$FILTER -q | head -1)"
