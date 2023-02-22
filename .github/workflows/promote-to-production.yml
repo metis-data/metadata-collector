@@ -34,12 +34,6 @@ jobs:
           WEB_APP_HOST: app.metisdata.io
         run: |
           file_name=metadata-collector-cloudformation.yaml
-          cat ../../$file_name | \
-              sed -e "s+ingest.metisdata.io+$INGEST_URL+g" \
-                  -e "s+app.metisdata.io+$WEB_APP_HOST+g" \
-                  -e "s+Value: production+Value: $APP_ENV+g" \
-                  -e "s+Image: public.ecr.aws/o2c0x5x8/metis-md-collector:latest+Image: ${{ steps.retreive-latest-image-id.outputs.image_name }}+g" \
-              > ../../$file_name
           cp ../../$file_name .
           echo "file_name=$file_name" >> "$GITHUB_OUTPUT"
 
