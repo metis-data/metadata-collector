@@ -4,7 +4,8 @@ on:
     inputs:
       docker_image_tag:
         type: string
-        description: what is the tag version to set as latest
+        default: dev-latest
+        description: when not specified - image is set to 'dev-latest'
       is_latest:
         required: false
         type: boolean

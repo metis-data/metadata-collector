@@ -4,7 +4,8 @@ on:
     inputs:
       docker_image_tag:
         type: string
-        description: what is the tag version to set as latest
+        default: dev-latest
+        description: when not specified - image is set to 'dev-latest'
 jobs:
   promote_to_prod:
     defaults:
@@ -35,7 +36,7 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          TAG=${{ inputs.docker_image_tag || 'latest-dev' }}
+          TAG=${{ inputs.docker_image_tag }}
           FILTER="$REGISTRY/o2c0x5x8/metis-md-collector:$TAG"
           docker pull $FILTER
           IMAGE_ID="$(docker images --filter=reference=$FILTER -q | head -1)"
