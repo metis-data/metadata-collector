@@ -60,7 +60,7 @@ jobs:
 
 
           if $IS_LATEST;
-          then;
+          then
           docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
           docker push $REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
 
