@@ -50,7 +50,7 @@ jobs:
       - name: build and deploy
         env:
           REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
-          IS_LATEST: ${{ inputs.is_latest }}
+          IS_LATEST: "${{ inputs.is_latest }}"
         run: |
           DOCKER_ID=$(docker build \
             --build-arg NPM_TOKEN_READ_ONLY=${{ secrets.NPM_TOKEN_READ_ONLY }} \
@@ -66,7 +66,7 @@ jobs:
 
           else
           # generate a tag based on sha fingerprint
-          TAG=$( ${{ inputs.docker_image_tag }} || shasum package.json | awk '{ print $1 }' )
+          TAG=$( "${{ inputs.docker_image_tag }}" || shasum package.json | awk '{ print $1 }' )
 
           docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
           docker push $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
