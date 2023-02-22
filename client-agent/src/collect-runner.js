@@ -14,4 +14,5 @@ setup()
   .catch((e) => logger.error('runner has failed', e))
   .finally(() => {
     winstonLogger.profile(COLLECT_RUNNER);
+    process.exit(0);
   });
