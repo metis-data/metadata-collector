@@ -23,6 +23,9 @@ jobs:
         with:
           registry-type: public
 
+      - name: checkout source code
+        uses: actions/checkout@v3
+        
       - name: retreive the latest image id with latest-dev tag and repush it with latest tag
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -31,6 +34,7 @@ jobs:
           docker pull $FILTER
           IMAGE_ID="$(docker images --filter=reference=$FILTER -q | head -1)"
           IMAGE_NAME="$REGISTRY/o2c0x5x8/metis-md-collector:latest"
+
           docker tag $IMAGE_ID $IMAGE_NAME
           docker push $IMAGE_NAME
 
