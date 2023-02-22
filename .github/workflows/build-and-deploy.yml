@@ -59,14 +59,15 @@ jobs:
           echo "docker_image_tag: $docker_image_tag"
           echo "IS_LATEST: $IS_LATEST"
 
-          if [ $IS_LATEST != "true" ]
+          if [ $IS_LATEST != "true" ];
+          then
           DOCKER_TAG=${docker_image_tag:=$MD5_TAG}
           echo "new DOCKER_TAG: $DOCKER_TAG"
 
           docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:$DOCKER_TAG
           docker push $REGISTRY/o2c0x5x8/metis-md-collector:$DOCKER_TAG
 
-          elif [ $IS_LATEST == "true" ]
+          elif [ $IS_LATEST == "true" ];
           then
             docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
             docker push $REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
