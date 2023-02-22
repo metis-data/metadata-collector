@@ -23,9 +23,6 @@ jobs:
         with:
           registry-type: public
 
-      - name: checkout source code
-        uses: actions/checkout@v3
-
       - name: retreive the latest image id with latest-dev tag and repush it with latest tag
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
