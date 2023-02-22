@@ -61,17 +61,18 @@ jobs:
 
           if $IS_LATEST;
           then
-          docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
-          docker push $REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
+          TAG=latest-dev
+
+          elif [ "${{ inputs.docker_image_tag }}" != "" ];
+          then
+          TAG="${{ inputs.docker_image_tag }}"
 
           else
-          # generate a tag based on sha fingerprint
-          TAG=$( if [ "${{ inputs.docker_image_tag }}" ]; then "${{ inputs.docker_image_tag }}" else shasum package.json | awk '{ print $1 }' fi )
+          TAG=$( shasum package.json | awk '{ print $1 }' )
+          fi
 
           docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
           docker push $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
-          
-          fi
 
       - name: create cloud formation
         env:
