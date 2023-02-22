@@ -32,7 +32,7 @@ jobs:
           image_name=$REGISTRY/o2c0x5x8/metis-md-collector:latest
           docker tag $IMAGE_ID $image_name
           docker push $image_name
-          echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
+          echo "image_name=$image_name" >> $GITHUB_OUTPUT
 
       - name: generate cloud formation script
         id: generate-cloud-formation-script
@@ -43,7 +43,7 @@ jobs:
         run: |
           file_name=metadata-collector-cloudformation.yaml
           cp ../../$file_name .
-          echo "file_name=$file_name" >> "$GITHUB_OUTPUT"
+          echo "file_name=$file_name" >> $GITHUB_OUTPUT
 
       - name: upload cloud formation script to S3
         uses: actions/upload-artifact@v3
