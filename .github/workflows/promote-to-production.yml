@@ -23,24 +23,22 @@ jobs:
           registry-type: public
 
       - name: retreive the latest image id with latest-dev tag and repush it with latest tag
-        id: retreive-latest-image-id
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           echo $REGISTRY
 
-          filter=$REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
-          echo $filter
+          FILTER=$REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
+          echo $FILTER
 
-          IMAGE_ID=$(docker images --filter=reference=$filter -q | head -1)
+          IMAGE_ID=$(docker images --filter=reference=$FILTER -q | head -1)
           echo $IMAGE_ID
 
-          image_name=$REGISTRY/o2c0x5x8/metis-md-collector:latest
-          echo $image_name
+          IMAGE_NAME=$REGISTRY/o2c0x5x8/metis-md-collector:latest
+          echo $IMAGE_NAME
 
-          docker tag $IMAGE_ID $image_name
-          docker push $image_name
-          echo "image_name=$image_name" >> $GITHUB_OUTPUT
+          docker tag $IMAGE_ID $IMAGE_NAME
+          docker push $IMAGE_NAME
 
       - name: generate cloud formation script
         id: generate-cloud-formation-script
@@ -49,9 +47,9 @@ jobs:
           INGEST_URL: ingest.metisdata.io
           WEB_APP_HOST: app.metisdata.io
         run: |
-          file_name=metadata-collector-cloudformation.yaml
-          cp ../../$file_name .
-          echo "file_name=$file_name" >> $GITHUB_OUTPUT
+          FILE_NAME=metadata-collector-cloudformation.yaml
+          cp ../../$FILE_NAME .
+          echo "file_name=$FILE_NAME" >> $GITHUB_OUTPUT
 
       - name: upload cloud formation script to S3
         uses: actions/upload-artifact@v3
