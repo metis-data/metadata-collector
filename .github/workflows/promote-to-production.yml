@@ -27,9 +27,17 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          filter=*$REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
+          echo $REGISTRY
+
+          filter=$REGISTRY/o2c0x5x8/metis-md-collector:latest-dev
+          echo $filter
+
           IMAGE_ID=$(docker images --filter=reference=$filter -q | head -1)
+          echo $IMAGE_ID
+
           image_name=$REGISTRY/o2c0x5x8/metis-md-collector:latest
+          echo $image_name
+
           docker tag $IMAGE_ID $image_name
           docker push $image_name
           echo "image_name=$image_name" >> $GITHUB_OUTPUT
