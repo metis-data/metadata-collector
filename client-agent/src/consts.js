@@ -1,4 +1,5 @@
 const path = require('path');
+
 const COLLECTOR_VERSION = '0.63';
 const TAGS = new Set(['schema', 'table', 'index']);
 require('dotenv').config();
@@ -8,7 +9,6 @@ const {
   API_GATEWAY_HOST,
   API_GATEWAY_PATH,
   WEB_APP_HOST,
-  WEB_APP_PATH,
   APP_ENV,
   NODE_ENV,
   PG_STAT_STATEMENTS_ROWS_LIMIT = 300,
@@ -27,7 +27,9 @@ if (LOG_LEVEL) {
   LOG_LEVEL = LOG_LEVEL.toUpperCase();
   const logLevelsKeys = Object.keys(LogLevelEnum);
   if (!logLevelsKeys.includes(LOG_LEVEL)) {
-    throw new Error(`LOG_LEVEL isn't match to ${JSON.stringify(logLevelsKeys).replaceAll(',', '/')}.`);
+    throw new Error(
+      `LOG_LEVEL isn't match to ${JSON.stringify(logLevelsKeys).replaceAll(',', '/')}.`,
+    );
   }
 }
 
@@ -50,7 +52,9 @@ if (ENVIRONMENT) {
   ENVIRONMENT = ENVIRONMENT.toUpperCase();
   const optionalKeys = Object.keys(EnvironmentsEnum);
   if (!optionalKeys.includes(ENVIRONMENT)) {
-    throw new Error(`APP_ENV or NODE_ENV doesn't match to ${JSON.stringify(optionalKeys).replaceAll(',', '/')}.`);
+    throw new Error(
+      `APP_ENV or NODE_ENV doesn't match to ${JSON.stringify(optionalKeys).replaceAll(',', '/')}.`,
+    );
   }
 }
 
@@ -66,7 +70,6 @@ const HTTPS_REQUEST_OPTIONS = {
 const WEB_APP_REQUEST_OPTIONS = {
   host: WEB_APP_HOST,
   port: WEB_APP_PORT,
-  path: WEB_APP_PATH,
   method: 'POST',
   headers: { 'x-api-key': API_KEY },
   timeout: HTTPS_TIMEOUT,
@@ -85,7 +88,6 @@ module.exports = {
   WEB_APP_REQUEST_OPTIONS,
   WEB_APP_HOST,
   WEB_APP_PORT,
-  WEB_APP_PATH,
   LOG_LEVEL,
   LogLevelEnum,
   ENVIRONMENT,
