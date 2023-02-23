@@ -1,7 +1,9 @@
+const { IS_HOSTED_ON_AWS_REQUEST_TIMEOUT_IN_SEC, DEFAULT_REQUEST_TIMEOUT_IN_SEC } = require('./consts');
 const http = require('http');
 const https = require('https');
+const axios = require('axios');
 
-function makeHttpRequest(payload, options, numRetries = 0, ignoreStatusCodes = []) {
+function makeInternalHttpRequest(payload, options, numRetries = 0, ignoreStatusCodes = []) {
   const provider = options.port === 443 ? https : http;
 
   const strinigyJsonPayload = JSON.stringify(payload);
@@ -48,7 +50,7 @@ function makeHttpRequest(payload, options, numRetries = 0, ignoreStatusCodes = [
       if (numRetries === 0) {
         reject(error);
       } else {
-        makeHttpRequest(payload, options, numRetries - 1, ignoreStatusCodes)
+        makeInternalHttpRequest(payload, options, numRetries - 1, ignoreStatusCodes)
           .then(resolve)
           .catch(reject);
       }
@@ -60,6 +62,18 @@ function makeHttpRequest(payload, options, numRetries = 0, ignoreStatusCodes = [
   });
 }
 
+function makeHttpRequest(method, url, data, headers, timeout = DEFAULT_REQUEST_TIMEOUT_IN_SEC) {
+  return axios({
+    method,
+    url,
+    data,
+    headers,
+    timeout: timeout * 1000,
+    timeoutErrorMessage: 'REQUEST_TIMEOUT',
+  });
+}
+
 module.exports = {
+  makeInternalHttpRequest,
   makeHttpRequest
 };

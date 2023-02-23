@@ -1,6 +1,6 @@
 const process = require('process');
 const connectionParser = require('connection-string-parser');
-const { makeHttpRequest } = require('./http');
+const { makeInternalHttpRequest } = require('./http');
 const { WEB_APP_REQUEST_OPTIONS } = require('./consts');
 
 require('dotenv').config();
@@ -58,7 +58,7 @@ async function run(fakeHoursDelta = 0) {
   const dbConfigs = await getDBConfigs();
 
   const pmcPingResult = await Promise.allSettled(
-    dbConfigs.map(({ database: db_name, host: db_host, port }) => makeHttpRequest(
+    dbConfigs.map(({ database: db_name, host: db_host, port }) => makeInternalHttpRequest(
       {
         db_name,
         db_host,

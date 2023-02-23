@@ -1,7 +1,7 @@
 const { randomUUID } = require('crypto');
 
 const { logger } = require('./logging');
-const { makeHttpRequest } = require('./http');
+const { makeInternalHttpRequest } = require('./http');
 const { COLLECTOR_VERSION, TAGS, HTTPS_REQUEST_OPTIONS } = require('./consts');
 
 async function processRows(dbConfig, rows, timestamp, fake) {
@@ -28,7 +28,7 @@ async function processRows(dbConfig, rows, timestamp, fake) {
       metricsData.push(r);
     });
   });
-  const res = await makeHttpRequest(metricsData, HTTPS_REQUEST_OPTIONS);
+  const res = await makeInternalHttpRequest(metricsData, HTTPS_REQUEST_OPTIONS);
   logger.info('Sent query results.');
   logger.debug(`Metrics data is ${JSON.stringify(metricsData)}`);
   return res;

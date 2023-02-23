@@ -1,7 +1,7 @@
 const pg = require('pg');
 const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
-const { makeHttpRequest } = require('../http');
+const { makeInternalHttpRequest } = require('../http');
 
 const action = async (dbConfig) => {
   let client;
@@ -40,7 +40,7 @@ limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};`;
   }
 };
 
-const sendResults = async ({ payload, options }) => makeHttpRequest(payload, options, 0);
+const sendResults = async ({ payload, options }) => makeInternalHttpRequest(payload, options, 0);
 
 module.exports = {
   statStatmentsAction: {
