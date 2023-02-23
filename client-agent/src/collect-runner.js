@@ -14,8 +14,8 @@ winstonLogger.profile(COLLECT_RUNNER);
     const hostedOnAws = await isHostedOnAws();
     if (!hostedOnAws) {
       const cron = require('node-cron');
-      cron.schedule(CRON_LOCAL_RUNNING_EXP, () => {
-        app(hostedOnAws);
+      cron.schedule(CRON_LOCAL_RUNNING_EXP, async () => {
+        await app(hostedOnAws);
       }, {
         runOnInit: true
       });
