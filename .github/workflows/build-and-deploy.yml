@@ -49,6 +49,7 @@ jobs:
         continue-on-error: true # Ignore the failure of a step and avoid terminating the job.
       
       - name: build and deploy
+        id: build-and-deploy
         env:
           REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
           IS_LATEST: "${{ inputs.is_latest }}"
@@ -60,19 +61,25 @@ jobs:
             -q -t $REGISTRY/o2c0x5x8/metis-md-collector .)
 
           TAG=$( $IS_LATEST && echo "latest" || [ "${{inputs.docker_image_tag}}" != "" ] && echo "${{inputs.docker_image_tag}}" || shasum package.json | awk '{ print $1 }' )
+          
+          echo "DOCKER_ID: $DOCKER_ID"
+          echo "TAG: $TAG"
 
           docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
           docker push $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: create cloud formation
         env:
           APP_ENV: staging
           INGEST_URL: ingest-stg.metisdata.io
           WEB_APP_HOST: dev.metisdata.io
+          TAG: ${{ steps.build-and-deploy.outputs.tag }}
         run: |
           echo "APP_ENV: $APP_ENV"
           echo "INGEST_URL: $INGEST_URL"
           echo "WEB_APP_HOST: $WEB_APP_HOST"
+          echo "TAG: $TAG"
 
           cat ../../metadata-collector-cloudformation.yaml | \
               sed -e "s+ingest.metisdata.io+$INGEST_URL+g" \
