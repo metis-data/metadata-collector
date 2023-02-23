@@ -1,5 +1,4 @@
 const { loggingSetup, logger, loggerExit } = require('./logging');
-
 const {
   API_KEY,
   API_GATEWAY_HOST,
