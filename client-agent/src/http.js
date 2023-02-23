@@ -62,7 +62,7 @@ function makeInternalHttpRequest(payload, options, numRetries = 0, ignoreStatusC
   });
 }
 
-function makeHttpRequest(method, url, data, headers, timeout = DEFAULT_REQUEST_TIMEOUT_IN_SEC) {
+function makeHttpRequest(url, method, data, headers, timeout = DEFAULT_REQUEST_TIMEOUT_IN_SEC) {
   return axios({
     method,
     url,
