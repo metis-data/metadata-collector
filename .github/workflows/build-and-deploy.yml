@@ -59,7 +59,7 @@ jobs:
             --build-arg SENTRY_DSN=${{ secrets.SENTRY_DSN }} \
             -q -t $REGISTRY/o2c0x5x8/metis-md-collector .)
 
-          TAG=$( if [ $IS_LATEST ]; then echo "latest"; elif [ "${{inputs.docker_image_tag}}" != "" ]; then echo "${{inputs.docker_image_tag}}"; else shasum package.json | awk '{ print $1 }'; fi )
+          TAG=$( if [ $IS_LATEST = true ]; then echo "latest"; elif [ "${{inputs.docker_image_tag}}" != "" ]; then echo "${{inputs.docker_image_tag}}"; else shasum package.json | awk '{ print $1 }'; fi )
 
           docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
           docker push $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
