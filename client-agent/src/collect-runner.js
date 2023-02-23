@@ -21,7 +21,7 @@ winstonLogger.profile(COLLECT_RUNNER);
       });
     }
     else {
-      app(hostedOnAws);
+        await app(hostedOnAws);
     }
   }
   catch (e) {

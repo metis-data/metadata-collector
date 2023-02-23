@@ -1,4 +1,4 @@
-const { IS_HOSTED_ON_AWS_REQUEST_TIMEOUT_IN_SEC, DEFAULT_REQUEST_TIMEOUT_IN_SEC } = require('./consts');
+const {  DEFAULT_REQUEST_TIMEOUT_IN_SEC } = require('./consts');
 const http = require('http');
 const https = require('https');
 const axios = require('axios');

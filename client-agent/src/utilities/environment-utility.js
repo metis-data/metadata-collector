@@ -5,10 +5,14 @@ const { logger } = require("../logging");
 
 async function isHostedOnAws() {
     try {
-        const url = 'http://169.254.169.254/latest/meta-data/';
+        const { ECS_CONTAINER_METADATA_URI_V4 } = process?.env;
+        if (!ECS_CONTAINER_METADATA_URI_V4) {
+            return false;
+        }
+        const url = `${ECS_CONTAINER_METADATA_URI_V4}/task`;
         const httpMethod = 'GET';
 
-        await makeHttpRequest(url, httpMethod, null, null);
+        await makeHttpRequest(url, httpMethod, null, null, IS_HOSTED_ON_AWS_REQUEST_TIMEOUT_IN_SEC);
         return true;
     }
     catch (e) {
@@ -17,7 +21,7 @@ async function isHostedOnAws() {
                 return false;
             default:
                 logger.error(e);
-                return true;
+                return false;
         }
     }
 }
