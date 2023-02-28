@@ -58,7 +58,7 @@ const logFormat = [
   format.timestamp(),
 ];
 
-if (ENVIRONMENT !== EnvironmentsEnum.Production && ENVIRONMENT !== EnvironmentsEnum.Staging) {
+if (ENVIRONMENT !== EnvironmentsEnum.PRODUCTION && ENVIRONMENT !== EnvironmentsEnum.STAGING) {
   logFormat.push(format.prettyPrint());
 } else {
   logFormat.push(format.json());
@@ -67,46 +67,54 @@ if (ENVIRONMENT !== EnvironmentsEnum.Production && ENVIRONMENT !== EnvironmentsE
 const consoleTransporter = new transports.Console({ level: LogLevelEnum[LOG_LEVEL] });
 const winstonConsoleTransporter = IGNORE_WINSTON_CONSOLE === 'true' ? [] : [consoleTransporter];
 
-const winstonLogger = createLogger({
-  level: LOG_LEVEL,
-  exitOnError: false,
-  format: format.combine(...logFormat),
-  transports: [
-    httpTransport,
-    ...winstonConsoleTransporter,
-  ],
-  exceptionHandlers: [
-    httpTransport,
-    consoleTransporter,
-  ],
-  rejectionHandlers: [
-    httpTransport,
-    consoleTransporter,
-  ],
-});
+const loggers = [];
+const createSubLogger = (componentName, logLevel=LogLevelEnum.INFO) => { 
+  const winstonLogger = createLogger({
+    level: LOG_LEVEL || logLevel,
+    defaultMeta: { component: componentName },
+    exitOnError: false,
+    format: format.combine(...logFormat),
+    transports: [
+      httpTransport,
+      ...winstonConsoleTransporter,
+    ],
+    exceptionHandlers: [
+      httpTransport,
+      consoleTransporter,
+    ],
+    rejectionHandlers: [
+      httpTransport,
+      consoleTransporter,
+    ],
+  });
 
-const logger = {
-  debug: (msg, ...meta) => {
-    winstonLogger.debug(msg, ...meta);
-  },
-  info: (msg, ...meta) => {
-    winstonLogger.info(msg, ...meta);
-  },
-  warn: (msg, ...meta) => {
-    winstonLogger.warn(msg, ...meta);
-  },
-  error: (msg, ...meta) => {
-    const error = getError(msg, meta);
+  loggers.push(winstonLogger);
 
-    if (!error) {
-      Sentry.captureMessage(msg, 'error');
-    } else {
-      Sentry.captureException(error);
-    }
+  return {
+    debug: (msg, ...meta) => {
+      winstonLogger.debug(msg, ...meta);
+    },
+    info: (msg, ...meta) => {
+      winstonLogger.info(msg, ...meta);
+    },
+    warn: (msg, ...meta) => {
+      winstonLogger.warn(msg, ...meta);
+    },
+    error: (msg, ...meta) => {
+      const error = getError(msg, meta);
 
-    winstonLogger.error(msg, ...meta);
-  },
-};
+      if (!error) {
+        Sentry.captureMessage(msg, 'error');
+      } else {
+        Sentry.captureException(error);
+      }
+
+      winstonLogger.error(msg, ...meta);
+    },
+  };
+}
+const logger = createSubLogger('app');
+
 
 function consoleLog(level, stream, message) {
   if (stream) {
@@ -172,13 +180,15 @@ function loggerExit(msg) {
     log('INFO', process.stdout, msg);
   }
 
-  winstonLogger.close();
-  winstonLogger.end();
+  loggers.forEach(loggerItem => {
+    loggerItem.close();
+    loggerItem.end();
+  });
 }
 
 module.exports = {
   logger,
-  winstonLogger,
+  createSubLogger,
   loggingSetup,
   loggerExit,
 };

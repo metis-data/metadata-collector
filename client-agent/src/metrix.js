@@ -15,7 +15,11 @@ const DB_CONNECT_TIMEOUT = 5000;
 let DB_CONNECTION_STRINGS = null;
 
 // eslint-disable-next-line max-len
-const collectRunner = (fakeHoursDelta, dbConfigs) => (collectFn) => collectFn(fakeHoursDelta, dbConfigs).catch((e) => logger.error("Couldn't run collect runner.", e));
+const collectRunner = (fakeHoursDelta, dbConfigs) => {
+  return (collectFn) => {
+    return collectFn(fakeHoursDelta, dbConfigs).catch((e) => logger.error("Couldn't run collect runner.", e));
+  }
+}
 
 async function getDBConfigs() {
   const connectionStringParser = new connectionParser.ConnectionStringParser({

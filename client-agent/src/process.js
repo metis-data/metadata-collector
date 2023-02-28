@@ -1,19 +1,26 @@
 const { randomUUID } = require('crypto');
-
-const { logger } = require('./logging');
 const { makeInternalHttpRequest } = require('./http');
+const { createSubLogger } = require('./logging');
+const logger = createSubLogger('process_queries');
 const { COLLECTOR_VERSION, TAGS, HTTPS_REQUEST_OPTIONS } = require('./consts');
+
+const IGNORE_PROPS = ['name', 'last', ...TAGS];
 
 async function processRows(dbConfig, rows, timestamp, fake) {
   const metricsData = [];
+
   rows.forEach((row) => {
-    const valueNames = Object.keys(row).filter((key) => !TAGS.has(key));
-    valueNames.forEach((valueName) => {
+    const columnsName = Object.keys(row);
+    const metricColumn = columnsName.filter(
+      (propName) => !IGNORE_PROPS.some(ignored_column => propName.includes(ignored_column))
+    );
+
+    metricColumn.forEach((propName) => {
       const r = {};
       r.id = randomUUID();
       r.timestamp = timestamp;
-      r.metricName = valueName;
-      r.value = parseFloat(row[valueName]);
+      r.metricName = propName;
+      r.value = parseFloat(row[propName]);
       if (fake) {
         const isInt = Number.isInteger(r.value);
         r.value *= 0.6 * Math.random() + 0.7;
@@ -29,7 +36,7 @@ async function processRows(dbConfig, rows, timestamp, fake) {
     });
   });
   const res = await makeInternalHttpRequest(metricsData, HTTPS_REQUEST_OPTIONS);
-  logger.info('Sent query results.');
+  logger.info('Sent query results.', { res });
   logger.debug(`Metrics data is ${JSON.stringify(metricsData)}`);
   return res;
 }

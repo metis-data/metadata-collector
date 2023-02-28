@@ -1,4 +1,4 @@
-# The extracted name of the schema and table MUST be "schema" and "table", respectively.
+# The extracted name of the schema and table MUST be schema and table, respectively.
 tables_size:
   query: SELECT
     n.nspname AS schema,

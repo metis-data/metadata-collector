@@ -3,13 +3,15 @@ const pg = require('pg');
 const yaml = require('js-yaml');
 const process = require('process');
 
-const { logger } = require('./logging');
+const { createSubLogger } = require('./logging');
 const { relevant, mergeDeep } = require('./utils');
 const { statStatmentsAction } = require('./actions/stat_statments');
 const { schemaAction } = require('./actions/schema');
 const { availableExtensions } = require('./actions/available_extensions');
+const { pgConfig } = require('./actions/pg_config');
 
 const { API_KEY, ACTIONS_FILE, WEB_APP_REQUEST_OPTIONS } = require('./consts');
+const logger = createSubLogger('actions');
 
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 const actionsFileContents = fs.readFileSync(ACTIONS_FILE, 'utf8');
@@ -19,6 +21,7 @@ const ACTIONS_FUNCS = {
   schemas: schemaAction,
   stat_statements: statStatmentsAction,
   available_extensions: availableExtensions,
+  pg_config: pgConfig,
 };
 
 const ACTIONS_DEF = mergeDeep(ACTIONS_YAML, ACTIONS_FUNCS);
@@ -89,9 +92,9 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
         },
         {
           pmcDevice: {
-            dbName: dbConfig.database,
-            dbHost: dbConfig.host,
-            dbPort: dbConfig.port?.toString() ?? '5432',
+            db_name: dbConfig.database,
+            db_host: dbConfig.host,
+            port: dbConfig.port?.toString() ?? '5432',
             rdbms: 'postgres',
           },
         },

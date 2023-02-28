@@ -3,7 +3,8 @@ const process = require('process');
 const pg = require('pg');
 const yaml = require('js-yaml');
 
-const { logger } = require('./logging');
+const { createSubLogger } = require('./logging');
+const logger = createSubLogger('queries');
 const { processResults } = require('./process');
 const { relevant } = require('./utils');
 const { QUERIES_FILE } = require('./consts');
