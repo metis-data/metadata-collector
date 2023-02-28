@@ -30,18 +30,18 @@ function makeInternalHttpRequest(payload, options, numRetries = 0, ignoreStatusC
         const context = {
           path: options.path,
           status: res.statusCode,
-          requestId: res.headers['x-amzn-requestid'] || res.headers['x-ray-id'], // When used for our backend api
-          traceId: res.headers['x-amzn-trace-id'], // When used for API Gateway
+          requestId: res.headers['x-amzn-requestid'], // When used for our backend api
+          traceId: res.headers['x-amzn-trace-id'] || res.headers['x-ray-id'], // When used for API Gateway
         };
 
         if (res.statusCode < 400) {
-          resolve({ statusCode: res.statusCode, headers, context, data });
+          resolve({ statusCode: res.statusCode, context, data });
         } else {
           const error = new Error(`Problem with HTTPS request, status code is ${JSON.stringify(context, null, 2)
             }`);
 
           error.context = context;
-          reject({ error, statusCode: res.statusCode, headers, data });
+          reject({ error, statusCode: res.statusCode, data });
         }
       });
     });

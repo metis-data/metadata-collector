@@ -9,9 +9,7 @@ const action = async (dbConfig) => {
     logger.info(`Trying to connect to ${dbConfig.database} ...`);
     await client.connect();
     logger.info(`Connected to ${dbConfig.database}`);
-    const query = `SELECT name, default_version, installed_version, comment 
-FROM pg_available_extensions 
-ORDER BY name`;
+    const query = `show all`;
     const { rows } = await client.query(query);
     return rows;
   }
@@ -28,7 +26,7 @@ ORDER BY name`;
 const sendResults = async ({ payload, options }) => makeInternalHttpRequest(payload, options, 0);
 
 module.exports = {
-  availableExtensions: {
+  pgConfig: {
     fn: action,
     exporter: {
       sendResults,

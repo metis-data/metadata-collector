@@ -1,5 +1,6 @@
 const { setup } = require('./setup');
-const { logger } = require('./logging');
+const { createSubLogger } = require('./logging');
+const logger = createSubLogger('mock');
 const { processResults } = require('./process');
 
 const { API_KEY } = require('./consts');
