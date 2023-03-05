@@ -78,7 +78,8 @@ async function run(fakeHoursDelta = 0) {
   const collectingActionPromises = [collectQueries, collectActions].map(
     collectRunner(fakeHoursDelta, dbConfigs),
   );
-  await Promise.all(collectingActionPromises);
+  
+  await Promise.allSettled(collectingActionPromises);
 }
 
 module.exports.run = run;

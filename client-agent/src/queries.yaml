@@ -4,7 +4,7 @@ tables_size:
     n.nspname AS schema,
     c.relname AS table,
     relpages AS pages,
-    reltuples AS table_size,
+    reltuples AS rows,
     pg_relation_size(c.oid) / 1024 AS relation_size,
     pg_table_size(c.oid) / 1024 AS table_size,
     pg_size_pretty(pg_table_size(c.oid)) AS table_size_pretty,

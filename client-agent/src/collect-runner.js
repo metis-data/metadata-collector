@@ -26,7 +26,7 @@ const { isHostedOnAws } = require('./utilities/environment-utility');
   }
 })()
 
-function app(hostedOnAws) {
+async function app(hostedOnAws) {
   return setup()
     .then(run)
     .catch((e) => logger.error('runner has failed', e))
