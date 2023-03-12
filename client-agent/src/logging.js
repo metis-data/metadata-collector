@@ -53,13 +53,13 @@ const getError = (msg, meta) => {
 const httpTransport = new transports.Http(httpTransportOptions);
 
 const logFormat = [
-  format.splat(),
   format.errors({ stack: true }),
   format.timestamp(),
 ];
 
-if (ENVIRONMENT !== EnvironmentsEnum.PRODUCTION && ENVIRONMENT !== EnvironmentsEnum.STAGING) {
+if (ENVIRONMENT.toLowerCase() !== EnvironmentsEnum.PRODUCTION && ENVIRONMENT.toLowerCase() !== EnvironmentsEnum.STAGING) {
   logFormat.push(format.prettyPrint());
+  logFormat.push(format.splat());
 } else {
   logFormat.push(format.json());
 }
