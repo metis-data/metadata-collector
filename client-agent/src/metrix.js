@@ -75,7 +75,7 @@ async function run(fakeHoursDelta = 0) {
 
   logger.info('PMC Ping result', { pmcPingResult });
   // eslint-disable-next-line max-len
-  const collectingActionPromises = [collectQueries].map(
+  const collectingActionPromises = [collectQueries, collectActions].map(
     collectRunner(fakeHoursDelta, dbConfigs),
   );
   
