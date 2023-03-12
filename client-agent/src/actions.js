@@ -158,7 +158,6 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
   );
 
   logger.info('Sent actions results.', { requestResults });
-  logger.debug('Actions data', { actionsData });
 }
 
 module.exports = {

@@ -31,7 +31,6 @@ async function processRows(dbConfig, rows, timestamp, fake) {
   });
   const res = await makeInternalHttpRequest(metricsData, HTTPS_REQUEST_OPTIONS);
   logger.info(`Sent query results for ${dbConfig.host}`, { res });
-  logger.debug(`Metrics data is ${JSON.stringify(metricsData)}`);
   return res;
 }
 
