@@ -1,7 +1,7 @@
 const path = require('path');
 
 const COLLECTOR_VERSION = '0.63';
-const TAGS = new Set(['schema', 'table', 'index', 'schema_name', 'table_name', 'index_name']);
+const TAGS = new Set(['schema', 'table', 'index']);
 require('dotenv').config();
 
 const {
