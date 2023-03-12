@@ -11,9 +11,7 @@ async function processRows(dbConfig, rows, timestamp, fake) {
 
   rows.forEach((row) => {
     const columnsName = Object.keys(row);
-    const metricColumn = columnsName.filter(
-      (propName) => !IGNORE_PROPS.some(ignored_column => propName.includes(ignored_column))
-    );
+    const metricColumn = columnsName.filter((propName) => IGNORE_PROPS.indexOf(propName) === -1);
 
     metricColumn.forEach((propName) => {
       const r = {};
