@@ -6,7 +6,7 @@ const {
   org, bucket, token, url, tags, sentryDSN,
 } = process.env;
 const tagKeys = new Set(tags ? tags.split(',').map((t) => t.trim()) : []);
-const writeOptions = { flushInterval: 0 };
+const writeOptions = { flushInterval: 0, maxRetries: 0 };
 Sentry.AWSLambda.init({
   dsn: sentryDSN,
   tracesSampleRate: 1.0,

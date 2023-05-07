@@ -1,7 +1,8 @@
 const { randomUUID } = require('crypto');
+const { makeInternalHttpRequest } = require('./http');
+const { createSubLogger } = require('./logging');
+const logger = createSubLogger('process_queries');
 
-const { logger } = require('./logging');
-const { directHttpsSend } = require('./http');
 const { COLLECTOR_VERSION, TAGS, HTTPS_REQUEST_OPTIONS } = require('./consts');
 
 async function processRows(dbConfig, rows, timestamp, fake) {
@@ -28,15 +29,14 @@ async function processRows(dbConfig, rows, timestamp, fake) {
       metricsData.push(r);
     });
   });
-  await directHttpsSend(metricsData, HTTPS_REQUEST_OPTIONS);
-  logger.info('Sent query results.');
-  logger.debug(`Metrics data is ${JSON.stringify(metricsData)}`);
+  const res = await makeInternalHttpRequest(metricsData, HTTPS_REQUEST_OPTIONS);
+  logger.info(`Sent query results for ${dbConfig.host}`, { res });
+  return res;
 }
 
 async function processResults(dbConfig, results, timestamp, fake) {
   await Promise.all(
-    results.map(async (result) => { await processRows(dbConfig, result.rows, timestamp, fake); }),
-  );
+    results.map(async (result) => await processRows(dbConfig, result.rows, timestamp, fake)));
 }
 
 module.exports = {

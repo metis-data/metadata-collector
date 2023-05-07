@@ -1,28 +1,32 @@
-# The extracted name of the schema and table MUST be "schema" and "table", respectively.
+# The extracted name of the schema and table MUST be schema and table, respectively.
 tables_size:
-      query:
-            SELECT 
-                  n.nspname AS schema, c.relname AS table, relpages AS pages, reltuples AS rows,
-                  pg_relation_size(c.oid) / 1024 AS relation_size, pg_table_size(c.oid) / 1024 AS table_size, 
-                  pg_indexes_size(c.oid) / 1024 AS indexes_size, 
-                  (pg_total_relation_size(c.oid) - pg_relation_size(c.oid) - pg_indexes_size(c.oid)) / 1024 AS toast_size
-            FROM pg_class AS c
-                  LEFT JOIN pg_namespace AS n
-                        ON (N.oid = c.relnamespace)
-            WHERE relkind='r'
-            AND n.nspname NOT IN ('pg_catalog', 'information_schema') 
-            ORDER BY 1, 2;
-      times_a_day:
-            1
+  query: SELECT
+    n.nspname AS schema,
+    c.relname AS table,
+    relpages AS pages,
+    reltuples AS rows,
+    pg_relation_size(c.oid) / 1024 AS relation_size,
+    pg_table_size(c.oid) / 1024 AS table_size,
+    pg_size_pretty(pg_table_size(c.oid)) AS table_size_pretty,
+    pg_indexes_size(c.oid) / 1024 AS indexes_size,
+    pg_size_pretty(pg_indexes_size(c.oid)) AS indexes_size_pretty,
+    (pg_total_relation_size(c.oid) - pg_relation_size(c.oid) - pg_indexes_size(c.oid)) / 1024 AS toast_size,
+    pg_size_pretty(pg_total_relation_size(c.oid) - pg_relation_size(c.oid) - pg_indexes_size(c.oid)) as toast_size_pretty,
+    pg_stat_get_dead_tuples(c.oid) AS dead_rows_tuples
+    FROM
+    pg_class AS c
+    LEFT JOIN pg_namespace AS n ON (N.oid = c.relnamespace)
+    WHERE
+    relkind = 'r'
+    AND n.nspname NOT IN ('pg_catalog', 'information_schema');
+  times_a_day: 1
 index_usage:
-      query:
-            SELECT
-                  sui.schemaname AS schema, sui.relid, sui.relname AS table, sui.indexrelid, sui.indexrelname AS index, 
-                  sui.idx_scan AS index_scans, sui.idx_tup_read AS index_rows_reads, sui.idx_tup_fetch AS index_rows_writes,
-                  sio_ui.idx_blks_read AS pages_read_from_disk, sio_ui.idx_blks_hit AS pages_read_from_buffer
-            FROM pg_stat_user_indexes AS sui
-                  JOIN pg_statio_user_indexes AS sio_ui
-                        ON sui.relid = sio_ui.relid
-            AND sui.indexrelid = sio_ui.indexrelid;
-      times_a_day:
-            6
+  query: SELECT
+    sui.schemaname AS schema, sui.relid, sui.relname AS table, sui.indexrelid, sui.indexrelname AS index,
+    sui.idx_scan AS index_scans, sui.idx_tup_read AS index_rows_reads, sui.idx_tup_fetch AS index_rows_writes,
+    sio_ui.idx_blks_read AS pages_read_from_disk, sio_ui.idx_blks_hit AS pages_read_from_buffer
+    FROM pg_stat_user_indexes AS sui
+    JOIN pg_statio_user_indexes AS sio_ui
+    ON sui.relid = sio_ui.relid
+    AND sui.indexrelid = sio_ui.indexrelid;
+  times_a_day: 6

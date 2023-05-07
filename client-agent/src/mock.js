@@ -1,5 +1,6 @@
 const { setup } = require('./setup');
-const { logger } = require('./logging');
+const { createSubLogger } = require('./logging');
+const logger = createSubLogger('mock');
 const { processResults } = require('./process');
 
 const { API_KEY } = require('./consts');
@@ -40,13 +41,13 @@ function generateMockResults(queriesNumParams) {
 async function mockCollect() {
   try {
     const queriesNumParams = [4, 6];
-    logger.info('Getting Mock results');
+    logger.info('Getting Mock results.');
     const results = generateMockResults(queriesNumParams);
     logger.info('Got Mock results. Sending the results ...');
     await processResults({ database: `Database:${API_KEY.split(4, 10)}`, host: 'mock.host.com' }, results, new Date().getTime(), 0);
     logger.info('Sending result done.');
   } catch (err) {
-    logger.error(err.message, false, err.context);
+    logger.error('Couldn\'t generate mock data.', err);
   }
   logger.info(' Collection is done.');
 }
@@ -57,7 +58,7 @@ async function run() {
     return;
   }
 
-  mockCollect();
+  await mockCollect();
 }
 
-run().then(() => {}).catch((err) => { logger.error(err.message); });
+run().then(() => {}).catch(logger.error);

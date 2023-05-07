@@ -1,0 +1,64 @@
+name: promote to production
+on:
+  workflow_dispatch:
+    inputs:
+      docker_image_tag:
+        type: string
+        default: dev-latest
+        description: when not specified - image is set to 'dev-latest'
+jobs:
+  promote_to_prod:
+    defaults:
+      run:
+        working-directory: ./client-agent/src
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-20.04
+    name: promote latest-dev tag to production
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.6.1
+        with:
+          role-to-assume: arn:aws:iam::357242092635:role/github-action-metis-production-agent
+          aws-region: us-east-1
+
+      - name: login to ecr
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1.5.1
+        with:
+          registry-type: public
+
+      - name: checkout source code
+        uses: actions/checkout@v3
+
+      - name: retreive the latest image id with latest-dev tag and repush it with latest tag
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          TAG=${{ inputs.docker_image_tag }}
+
+          FILTER="$REGISTRY/o2c0x5x8/metis-md-collector:$TAG"
+          docker pull $FILTER
+          IMAGE_ID="$(docker images --filter=reference=$FILTER -q | head -1)"
+          IMAGE_NAME="$REGISTRY/o2c0x5x8/metis-md-collector:latest"
+
+          docker tag $IMAGE_ID $IMAGE_NAME
+          docker push $IMAGE_NAME
+
+      - name: generate cloud formation script
+        id: generate-cloud-formation-script
+        env:
+          APP_ENV: production
+          INGEST_URL: ingest.metisdata.io
+          WEB_APP_HOST: app.metisdata.io
+        run: |
+          FILE_NAME=metadata-collector-cloudformation.yaml
+          cp ../../$FILE_NAME .
+          echo "file_name=$FILE_NAME" >> $GITHUB_OUTPUT
+
+      - name: upload cloud formation script to S3
+        uses: actions/upload-artifact@v3
+        with:
+          name: cloudformation.yaml
+          path: ${{ steps.generate-cloud-formation-script.outputs.file_name }}

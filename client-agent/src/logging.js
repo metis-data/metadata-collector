@@ -1,59 +1,120 @@
-const { createLogger, format, transports } = require('winston');
+const {
+  createLogger,
+  format,
+  transports,
+} = require('winston');
+const isError = require('lodash.iserror');
+
 const Sentry = require('@sentry/node');
+const utils = require('./utils');
+const {
+  ENVIRONMENT,
+  EnvironmentsEnum,
+  LOG_LEVEL,
+  LogLevelEnum,
+} = require('./consts');
 
 const {
-  API_KEY, DATADOG_API_KEY, IGNORE_WINSTON_CONSOLE, SENTRY_DSN,
+  API_KEY,
+  DATADOG_API_KEY,
+  IGNORE_WINSTON_CONSOLE,
+  SENTRY_DSN,
 } = process.env;
 
 const httpTransportOptions = {
   host: 'http-intake.logs.datadoghq.com',
   path: `/api/v2/logs?dd-api-key=${DATADOG_API_KEY}&ddsource=nodejs&service=PMC&host=${API_KEY}`,
   ssl: true,
-  level: 'debug',
+  level: LogLevelEnum[LOG_LEVEL],
   handleExceptions: true,
 };
 
-const winstonLevels = {
-  DEBUG: 'debug',
-  INFO: 'info',
-  WARNING: 'warn',
-  ERROR: 'error',
+const voidFunc = () => {
 };
 
-const voidFunc = () => {};
+const getError = (msg, meta) => {
+  if (isError(msg)) {
+    return msg;
+  }
+
+  if (meta) {
+    if (Array.isArray(meta)) {
+      return meta.find((arg) => isError(arg));
+    }
+
+    if ('stack' in meta) {
+      return meta;
+    }
+  }
+
+  return undefined;
+};
 
 const httpTransport = new transports.Http(httpTransportOptions);
 
-let winstonConsoleLogger = IGNORE_WINSTON_CONSOLE === 'true' ? null : createLogger({
-  level: 'debug',
-  exitOnError: false,
-  format: format.json(),
-  transports: [
-    new transports.Console(),
-  ],
-});
+const logFormat = [
+  format.errors({ stack: true }),
+  format.timestamp(),
+];
 
-const winstonLogger = createLogger({
-  level: 'debug',
-  exitOnError: false,
-  format: format.json(),
-  transports: [
-    httpTransport,
-  ],
-});
+if (ENVIRONMENT.toLowerCase() !== EnvironmentsEnum.PRODUCTION && ENVIRONMENT.toLowerCase() !== EnvironmentsEnum.STAGING) {
+  logFormat.push(format.prettyPrint());
+  logFormat.push(format.splat());
+} else {
+  logFormat.push(format.json());
+}
 
-/* eslint-disable no-use-before-define */
-const logger = {
-  debug: (msg) => { log('DEBUG', process.stdout, msg); winstonLogger.log('debug', msg); },
-  info: (msg) => { log('INFO', process.stdout, msg); winstonLogger.log('info', msg); },
-  warn: (msg) => { log('WARNING', process.stderr, msg); winstonLogger.log('warn', msg); },
-  error: (msg) => {
-    log('ERROR', process.stderr, msg);
-    winstonLogger.log('error', msg);
-    Sentry.captureException(msg);
-  },
-};
-/* eslint-enable no-use-before-define */
+const consoleTransporter = new transports.Console({ level: LogLevelEnum[LOG_LEVEL] });
+const winstonConsoleTransporter = IGNORE_WINSTON_CONSOLE === 'true' ? [] : [consoleTransporter];
+
+const loggers = [];
+const createSubLogger = (componentName, logLevel=LogLevelEnum.INFO) => { 
+  const winstonLogger = createLogger({
+    level: LOG_LEVEL || logLevel,
+    defaultMeta: { component: componentName },
+    exitOnError: false,
+    format: format.combine(...logFormat),
+    transports: [
+      httpTransport,
+      ...winstonConsoleTransporter,
+    ],
+    exceptionHandlers: [
+      httpTransport,
+      consoleTransporter,
+    ],
+    rejectionHandlers: [
+      httpTransport,
+      consoleTransporter,
+    ],
+  });
+
+  loggers.push(winstonLogger);
+
+  return {
+    debug: (msg, ...meta) => {
+      winstonLogger.debug(msg, ...meta);
+    },
+    info: (msg, ...meta) => {
+      winstonLogger.info(msg, ...meta);
+    },
+    warn: (msg, ...meta) => {
+      winstonLogger.warn(msg, ...meta);
+    },
+    error: (msg, ...meta) => {
+      const error = getError(msg, meta);
+
+      if (!error) {
+        Sentry.captureMessage(msg, 'error');
+      } else {
+        Sentry.captureException(error);
+      }
+
+      winstonLogger.error(msg, ...meta);
+    },
+  };
+}
+const logger = createSubLogger('app');
+
 
 function consoleLog(level, stream, message) {
   if (stream) {
@@ -63,30 +124,21 @@ function consoleLog(level, stream, message) {
 }
 
 function log(level, stream, message) {
-  if (winstonConsoleLogger) {
-    const levelIsOK = level in winstonLevels;
-    winstonConsoleLogger.log(levelIsOK ? winstonLevels[level] : 'error', message);
-    if (!levelIsOK) {
-      consoleLog(level, stream, message);
-      consoleLog('ERROR', stream, `Level "${level}" is not mapped to a winston level. This is a bug.`);
-    }
-  } else {
-    consoleLog(level, stream, message);
-  }
+  consoleLog(level || 'INFO', stream, message);
 }
 
 async function loggingSetup() {
   /* eslint-disable no-use-before-define */
   if (!DATADOG_API_KEY) {
-    log('ERROR', process.stderr, 'Datadog API Key is not defined. We cannot continue.');
+    logger.error('Datadog API Key is not defined. We cannot continue.');
   }
 
   if (!SENTRY_DSN) {
-    log('ERROR', process.stderr, 'Sentry DSN is not defined. We cannot continue.');
+    logger.error('Sentry DSN is not defined. We cannot continue.');
   }
 
   if (!DATADOG_API_KEY || !SENTRY_DSN) {
-    log('INFO', process.stdout, 'Exiting...');
+    logger.info('Exiting...');
     process.exit(1);
   }
   /* eslint-enable no-use-before-define */
@@ -95,13 +147,14 @@ async function loggingSetup() {
   (async () => {
     await new Promise((resolve) => {
       httpTransport.on('finish', voidFunc);
-      winstonLogger.on('finish', resolve);
+      logger.on('finish', resolve);
     }).then(voidFunc).catch(voidFunc);
   })();
 
   httpTransport.on('warn', (err) => {
     const errString = `${err}`;
-    if (errString.toLowerCase().includes('error') && !errString.includes(' 2')) {
+    if (errString.toLowerCase()
+      .includes('error') && !errString.includes('Code: 2')) { // We dont care when 2XX status code
       /* eslint-disable no-use-before-define */
       log('ERROR', process.stderr, `Datadog HTTP logging does not work: "${errString}"`);
       /* eslint-enable no-use-before-define */
@@ -110,29 +163,32 @@ async function loggingSetup() {
 
   Sentry.init({
     dsn: SENTRY_DSN,
+    environment: ENVIRONMENT,
     tracesSampleRate: 1.0,
-    environment: process.env.APP_ENV || process.env.NODE_ENV,
+    release: `metadata-collector-agent@${utils.getPackageVersion()}`,
   });
+
   Sentry.setUser({ id: API_KEY });
 }
 
 function loggerExit(msg) {
-  Sentry.close(2000).then(voidFunc).catch(voidFunc);
-  if (msg) {
-    logger.info(msg);
-  }
-  winstonLogger.close();
-  winstonLogger.end();
-}
+  Sentry.close(2000)
+    .then(voidFunc)
+    .catch(voidFunc);
 
-function setErrorOnlyLogging() {
-  winstonLogger.level = 'error';
-  winstonConsoleLogger = null;
+  if (msg) {
+    log('INFO', process.stdout, msg);
+  }
+
+  loggers.forEach(loggerItem => {
+    loggerItem.close();
+    loggerItem.end();
+  });
 }
 
 module.exports = {
   logger,
+  createSubLogger,
   loggingSetup,
   loggerExit,
-  setErrorOnlyLogging,
 };
