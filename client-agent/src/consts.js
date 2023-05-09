@@ -4,12 +4,18 @@ const COLLECTOR_VERSION = '0.63';
 const TAGS = new Set(['schema', 'table', 'index']);
 require('dotenv').config();
 
+const EnvironmentsEnum = {
+  DEVELOPMENT: 'development',
+  STAGING: 'staging',
+  PRODUCTION: 'production',
+};
+
 const {
   API_KEY,
-  API_GATEWAY_HOST,
-  API_GATEWAY_PATH,
-  WEB_APP_HOST,
-  APP_ENV,
+  API_GATEWAY_HOST = 'ingest.metisdata.io',
+  API_GATEWAY_PATH = '/md-collector',
+  WEB_APP_HOST = 'app.metisdata.io',
+  APP_ENV = EnvironmentsEnum.PRODUCTION,
   NODE_ENV,
   PG_STAT_STATEMENTS_ROWS_LIMIT = 300,
   IS_HOSTED_ON_AWS_REQUEST_TIMEOUT_IN_SEC = 5,
@@ -45,10 +51,8 @@ const HTTPS_TIMEOUT = 30000;
 
 let ENVIRONMENT = APP_ENV || NODE_ENV;
 
-const EnvironmentsEnum = {
-  DEVELOPMENT: 'development',
-  STAGING: 'staging',
-  PRODUCTION: 'production',
+const isDebug = () => {
+  return ['1', 'true'].includes(process.env.DEBUG?.toLowerCase());
 };
 
 if (ENVIRONMENT) {
@@ -79,6 +83,7 @@ const WEB_APP_REQUEST_OPTIONS = {
 };
 
 module.exports = {
+  isDebug,
   COLLECTOR_VERSION,
   API_KEY,
   API_GATEWAY_HOST,
