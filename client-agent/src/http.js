@@ -2,14 +2,27 @@ const {  DEFAULT_REQUEST_TIMEOUT_IN_SEC } = require('./consts');
 const http = require('http');
 const https = require('https');
 const axios = require('axios');
+const { createSubLogger } = require('./logging');
+const logger = createSubLogger('http');
+
+function formatSizeUnits(bytes){
+  if      (bytes >= 1073741824) { bytes = (bytes / 1073741824).toFixed(2) + " GB"; }
+  else if (bytes >= 1048576)    { bytes = (bytes / 1048576).toFixed(2) + " MB"; }
+  else if (bytes >= 1024)       { bytes = (bytes / 1024).toFixed(2) + " KB"; }
+  else if (bytes > 1)           { bytes = bytes + " bytes"; }
+  else if (bytes == 1)          { bytes = bytes + " byte"; }
+  else                          { bytes = "0 bytes"; }
+  return bytes;
+}
 
 function makeInternalHttpRequest(payload, options, numRetries = 0, ignoreStatusCodes = [], timeout = DEFAULT_REQUEST_TIMEOUT_IN_SEC) {
   const provider = options.port === 443 ? https : http;
 
   const strinigyJsonPayload = JSON.stringify(payload);
 
+  logger.debug("Sending a request", { options, length: formatSizeUnits(strinigyJsonPayload.length) });
+  
   options = {
-    timeout: timeout * 1000,
     ...options,
     headers: {
       ...options.headers,
@@ -21,7 +34,6 @@ function makeInternalHttpRequest(payload, options, numRetries = 0, ignoreStatusC
   return new Promise((resolve, reject) => {
     const req = provider.request(options, (res) => {
       let data = '';
-      let headers = res.headers;
 
       res.on('data', (chunk) => {
         data += chunk;
