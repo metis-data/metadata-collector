@@ -3,12 +3,13 @@ const http = require('http');
 const https = require('https');
 const axios = require('axios');
 
-function makeInternalHttpRequest(payload, options, numRetries = 0, ignoreStatusCodes = []) {
+function makeInternalHttpRequest(payload, options, numRetries = 0, ignoreStatusCodes = [], timeout = DEFAULT_REQUEST_TIMEOUT_IN_SEC) {
   const provider = options.port === 443 ? https : http;
 
   const strinigyJsonPayload = JSON.stringify(payload);
 
   options = {
+    timeout: timeout * 1000,
     ...options,
     headers: {
       ...options.headers,
