@@ -13,7 +13,7 @@ const action = async (dbConfig) => {
     logger.info(`Connected to ${dbConfig.database}`);
     const query = `
         SELECT table_catalog, table_schema, table_name from information_schema.tables WHERE table_schema NOT IN('pg_catalog', 'information_schema');
-
+        
         select 
         queryid as query_id,
         pgss.calls as calls,
@@ -37,6 +37,7 @@ const action = async (dbConfig) => {
         `;
 
     const [{ rows: userTablesArr }, { rows: data }] = await client.query(query);
+    await client.end();
     const parser = new astParser();
     const userTables = userTablesArr.map((el) => el.table_name);
     const sanitizedData = data.map(item => {
@@ -59,13 +60,8 @@ const action = async (dbConfig) => {
     }).filter(Boolean);
 
     return sanitizedData;
-  } finally {
-    try {
-      await client.end();
-      logger.info('connection has been closed.');
-    } catch (e) {
-      logger.error('connection could not be closed: ', e);
-    }
+  } catch (e) {
+    logger.error('connection could not be closed: ', e);
   }
 };
 
