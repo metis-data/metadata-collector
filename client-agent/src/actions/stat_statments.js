@@ -1,4 +1,5 @@
 const pg = require('pg');
+const astParser = require('node-sql-parser').Parser;
 const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
 const { makeInternalHttpRequest } = require('../http');
@@ -35,9 +36,29 @@ const action = async (dbConfig) => {
         limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};
         `;
 
-    const [{ rows: userTables }, { rows: data }] = await client.query(query);
-    return { userTables, data };
+    const [{ rows: userTablesArr }, { rows: data }] = await client.query(query);
+    const parser = new astParser();
+    const userTables = userTablesArr.map((el) => el.table_name);
+    const sanitizedData = data.map(item => {
+      try {
+        const { ast } = parser.parse(item.query, {
+          database: 'PostgresQL',
+        });
+        const qryTables = ast?.from?.map((el) => el.table);
+        const isUserTablesQry = qryTables.every((tableName) =>
+          userTables.includes(tableName),
+        );
 
+        return isUserTablesQry ? el
+          :
+          null;
+      }
+      catch (e) {
+        return null;
+      }
+    }).filter(Boolean);
+
+    return sanitizedData;
   } finally {
     try {
       await client.end();
