@@ -49,7 +49,7 @@ const action = async (dbConfig) => {
           userTables.includes(tableName),
         );
 
-        return isUserTablesQry ? el
+        return isUserTablesQry ? item
           :
           null;
       }
