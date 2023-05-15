@@ -1,4 +1,7 @@
-FROM --platform=linux/x86_64 node:16-alpine
+FROM node:18-alpine
+# --platform=linux/x86_64 
+
+RUN apk add --update gcc g++ make python3 bash git gcompat
 
 ARG DATADOG_API_KEY
 ARG SENTRY_DSN
