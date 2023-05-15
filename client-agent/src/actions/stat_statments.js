@@ -1,8 +1,20 @@
 const pg = require('pg');
-const astParser = require('node-sql-parser').Parser;
+const { parseAsync } = require('pgsql-parser');
 const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
 const { makeInternalHttpRequest } = require('../http');
+
+function extractTablesInvolved(ast) {
+  return [
+    ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause.length > 0 ? ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause.map(el => el?.RangeVar?.relname) : null,
+    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr?.larg?.JoinExpr?.larg?.RangeVar?.relname,
+    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr?.larg?.JoinExpr?.rarg?.RangeVar?.relname,
+    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr?.rarg?.RangeVar?.relname,
+    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.RangeVar?.relname,
+    ast?.RawStmt?.stmt?.InsertStmt?.relation?.relname,
+    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.length > 0 ? ast?.RawStmt?.stmt?.SelectStmt?.fromClause.map(el => el?.RangeVar?.relname) : null,
+  ].flat(Infinity).filter(Boolean);
+}
 
 const action = async (dbConfig) => {
   let client;
@@ -38,25 +50,19 @@ const action = async (dbConfig) => {
 
     const [{ rows: userTablesArr }, { rows: data }] = await client.query(query);
     await client.end();
-    const parser = new astParser();
     const userTables = userTablesArr.map((el) => el.table_name);
-    const sanitizedData = data.map(item => {
-      try {
-        const { ast } = parser.parse(item.query, {
-          database: 'PostgresQL',
-        });
-        const qryTables = ast?.from?.map((el) => el.table);
-        const isUserTablesQry = qryTables.every((tableName) =>
-          userTables.includes(tableName),
-        );
 
-        return isUserTablesQry ? item
-          :
-          null;
-      }
-      catch (e) {
-        return null;
-      }
+    const astPromiseArr = data.map(stat => parseAsync(stat.query));
+    const resolvedPromiseArr = await Promise.all(astPromiseArr);
+    const sanitizedData = resolvedPromiseArr.map((el, ind) => {
+      const qryTables = extractTablesInvolved(el?.[0]);
+      const isUserTablesQry = qryTables.every((tableName) =>
+        userTables.includes(tableName),
+      );
+
+      return isUserTablesQry ? { ...data[ind], metadata: {} }
+        :
+        null;
     }).filter(Boolean);
 
     return sanitizedData;
