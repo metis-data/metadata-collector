@@ -1,5 +1,7 @@
 FROM node:16-alpine
 
+RUN apk add --update gcc g++ make python3
+
 ARG DATADOG_API_KEY
 ARG SENTRY_DSN
 ARG NPM_TOKEN_READ_ONLY
