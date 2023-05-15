@@ -1,5 +1,4 @@
 FROM node:18-alpine
-# --platform=linux/x86_64 
 
 RUN apk add --update gcc g++ make python3 bash git gcompat
 
