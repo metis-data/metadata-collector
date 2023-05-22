@@ -22,6 +22,7 @@
     "lodash.iserror": "^3.1.1",
     "node-cron": "^3.0.2",
     "pg": "^8.7.3",
+    "pgsql-parser": "^13.5.0",
     "winston": "^3.8.1",
     "wtfnode": "^0.9.1"
   },
