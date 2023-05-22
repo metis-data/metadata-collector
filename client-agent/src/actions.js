@@ -55,51 +55,70 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
   const theActions = getActions(fakeHoursDelta);
   if (!theActions.length) return;
   const actionsData = await Promise.all(
-    dbConfigs.map((dbConfig) =>
-      theActions.reduce(
-        async (result, action) => {
-          logger.info(`Running action ${action.name}`);
-          const schemaResult = {
-            exporter: action.exporter,
-            success: true,
-            data: undefined,
-            error: undefined,
-          };
-          try {
-            const actionResult = await action.fn(dbConfig);
-            schemaResult.data = actionResult;
-          } catch (err) {
-            schemaResult.success = false;
-            schemaResult.error = err;
-            logger.error(`Action '${action.name}' failed to run`, err);
-          }
-          const acc = await result;
-          return {
-            ...acc,
-            actions: {
-              ...acc.actions,
-              ...{
-                [action.name]: schemaResult,
+    dbConfigs.map(async (dbConfig) => {
+      let client;
+      try {
+        client = new pg.Client(dbConfig);
+        logger.debug(`Trying to connect to ${dbConfig.database} ...`);
+
+        await client.connect();
+
+        logger.debug(`connected to ${dbConfig.database}`);
+
+        return await theActions.reduce(
+          async (result, action) => {
+            logger.info(`Running action ${action.name}`);
+            const schemaResult = {
+              exporter: action.exporter,
+              success: true,
+              data: undefined,
+              error: undefined,
+            };
+            try {
+              const actionResult = await action.fn({ dbConfig, client });
+              schemaResult.data = actionResult;
+            } catch (err) {
+              schemaResult.success = false;
+              schemaResult.error = err;
+              logger.error(`Action '${action.name}' failed to run`, err);
+            }
+            const acc = await result;
+            return {
+              ...acc,
+              actions: {
+                ...acc.actions,
+                ...{
+                  [action.name]: schemaResult,
+                },
               },
-            },
-            errors: {
-              ...acc.errors,
-              ...(schemaResult.error && {
-                [action.name]: schemaResult.error,
-              }),
-            },
-          };
-        },
-        {
-          pmcDevice: {
-            db_name: dbConfig.database,
-            db_host: dbConfig.host,
-            port: dbConfig.port?.toString() ?? '5432',
-            rdbms: 'postgres',
+              errors: {
+                ...acc.errors,
+                ...(schemaResult.error && {
+                  [action.name]: schemaResult.error,
+                }),
+              },
+            };
           },
-        },
-      ),
-    ),
+          {
+            pmcDevice: {
+              db_name: dbConfig.database,
+              db_host: dbConfig.host,
+              port: dbConfig.port?.toString() ?? '5432',
+              rdbms: 'postgres',
+            },
+          },
+        );
+      } finally {
+        try {
+          if (client) {
+            await client.end();
+            logger.debug('connection has been closed.');
+          }
+        } catch (e) {
+          logger.error('connection could not be closed: ', e);
+        }
+      }
+    }),
   );
 
   //   {

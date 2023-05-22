@@ -68,8 +68,13 @@ async function collectQueries(fakeHoursDelta, dbConfigs) {
           logger.error('Couldn\'t run queries', err, dbConfigs);
           throw err;
         } finally {
-          if (client) {
-            client.end();
+          try {
+            if (client) {
+              await client.end();
+              logger.debug('connection has been closed.');
+            }
+          } catch (e) {
+            logger.error('connection could not be closed.', e);
           }
         }
       },

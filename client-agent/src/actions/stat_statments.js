@@ -6,23 +6,28 @@ const { makeInternalHttpRequest } = require('../http');
 
 function extractTablesInvolved(ast) {
   return [
-    ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause.length > 0 ? ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause.map(el => el?.RangeVar?.relname) : null,
-    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr?.larg?.JoinExpr?.larg?.RangeVar?.relname,
-    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr?.larg?.JoinExpr?.rarg?.RangeVar?.relname,
+    ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause.length > 0
+      ? ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause.map(
+          (el) => el?.RangeVar?.relname,
+        )
+      : null,
+    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr?.larg?.JoinExpr?.larg?.RangeVar
+      ?.relname,
+    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr?.larg?.JoinExpr?.rarg?.RangeVar
+      ?.relname,
     ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr?.rarg?.RangeVar?.relname,
     ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.RangeVar?.relname,
     ast?.RawStmt?.stmt?.InsertStmt?.relation?.relname,
-    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.length > 0 ? ast?.RawStmt?.stmt?.SelectStmt?.fromClause.map(el => el?.RangeVar?.relname) : null,
-  ].flat(Infinity).filter(Boolean);
+    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.length > 0
+      ? ast?.RawStmt?.stmt?.SelectStmt?.fromClause.map((el) => el?.RangeVar?.relname)
+      : null,
+  ]
+    .flat(Infinity)
+    .filter(Boolean);
 }
 
-const action = async (dbConfig) => {
-  let client;
+const action = async ({ dbConfig, client }) => {
   try {
-    client = new pg.Client(dbConfig);
-    logger.info(`Trying to connect to ${dbConfig.database} ...`);
-    await client.connect();
-    logger.info(`Connected to ${dbConfig.database}`);
     const query = `
         SELECT table_catalog, table_schema, table_name from information_schema.tables WHERE table_schema NOT IN('pg_catalog', 'information_schema');
         
@@ -49,21 +54,19 @@ const action = async (dbConfig) => {
         `;
 
     const [{ rows: userTablesArr }, { rows: data }] = await client.query(query);
-    await client.end();
+
     const userTables = userTablesArr.map((el) => el.table_name);
 
-    const astPromiseArr = data.map(stat => parseAsync(stat.query));
+    const astPromiseArr = data.map((stat) => parseAsync(stat.query));
     const resolvedPromiseArr = await Promise.all(astPromiseArr);
-    const sanitizedData = resolvedPromiseArr.map((el, ind) => {
-      const qryTables = extractTablesInvolved(el?.[0]);
-      const isUserTablesQry = qryTables.every((tableName) =>
-        userTables.includes(tableName),
-      );
+    const sanitizedData = resolvedPromiseArr
+      .map((el, ind) => {
+        const qryTables = extractTablesInvolved(el?.[0]);
+        const isUserTablesQry = qryTables.every((tableName) => userTables.includes(tableName));
 
-      return isUserTablesQry ? { ...data[ind], metadata: {} }
-        :
-        null;
-    }).filter(Boolean);
+        return isUserTablesQry ? { ...data[ind], metadata: {} } : null;
+      })
+      .filter(Boolean);
 
     return sanitizedData;
   } catch (e) {
