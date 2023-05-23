@@ -1,7 +1,0 @@
-{
-    "connections_status": {
-        "query": "SELECT state, count(*) FROM pg_stat_activity where datname = 'database' group by state;",
-        "params": ["database"],
-        "frequency": "24"
-    }
-}
