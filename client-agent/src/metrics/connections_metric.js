@@ -1,6 +1,8 @@
 const pg = require('pg');
 const { makeInternalHttpRequest } = require('../http');
 const { HTTPS_REQUEST_OPTIONS } = require('../consts');
+const { createSubLogger } = require('../logging');
+const logger = createSubLogger('connections_metric');
 
 const ConnectionState = {
     IDLE: 'idle',
@@ -8,23 +10,35 @@ const ConnectionState = {
 }
 
 async function fetchData(dbConfig) {
+    let client;
+
     try {
+        logger.info('fetchData - start');
+
         const qry = `SELECT state, count(*)::int, application_name FROM pg_stat_activity
         where datid is not null
         and datname = '${dbConfig.database}'
         group by state, application_name;`
 
         client = new pg.Client(dbConfig);
+        logger.debug('connecting to DB');
         await client.connect();
         const { rows } = await client.query(qry);
+        logger.debug('fetchData - data: ', rows);
         return rows;
     }
     catch (e) {
-
+        logger.error('fetchData - error: ', e);
+    }
+    finally {
+        await client?.end();
+        logger.debug('connection to the DB is now closed');
+        logger.info('fetchData - end');
     }
 }
 
 function shapeData(data, dbConfig) {
+    logger.info('shapeData - start');
     const idleConnections = [];
     const activeConnections = [];
     const { database: db, host } = dbConfig;
@@ -40,33 +54,44 @@ function shapeData(data, dbConfig) {
             idleConnections.push({ value: count, metricName: 'idle_connections', tags: { timestamp, db, host, ...rest } });
         }
     });
-
-    return [
+    const results = [
         idleConnections,
         activeConnections
-    ]
+    ];
+
+    logger.debug('shapeData - results: ', results);
+    logger.info('shapeData - end');
+    return results;
 }
 
 async function transferData(...args) {
     try {
+        logger.info('transferData - start');
         const data = args.flat(Infinity);
         const { headers, ...rest } = HTTPS_REQUEST_OPTIONS;
-        await makeInternalHttpRequest(data, { ...rest, headers: { ...headers, 'x-api-version': 'v2' } });
+        const options = { ...rest, headers: { ...headers, 'x-api-version': 'v2' } };
+        logger.debug('transferData - calling makeInternalHttpRequest: ', data, options);
+        await makeInternalHttpRequest(data, options);
+        logger.info('transferData - end');
     }
     catch (e) {
-
+        logger.error('transferData - error: ', e);
     }
 }
 
 async function run(dbConfig) {
     try {
+        logger.info('run - start');
+        logger.debug('run - calling fetchData with: ', dbConfig);
         const data = await fetchData(dbConfig);
         const results = shapeData(data, dbConfig);
+        logger.debug('run - calling transferData with: ', results);
         await transferData(...results);
+        logger.info('run - end');
         return;
     }
     catch (e) {
-
+        logger.error('run - error: ', e);
     }
 
 }
