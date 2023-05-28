@@ -28,25 +28,29 @@ and last_call >= NOW() - interval '1h'
 
             this.logger.debug('fetchData - calling dbClient.query with: ', query);
             const [_, { rows }] = await this.dbClient.query(query);
+            this.logger.debug('fetchData - rows: ', rows);
             this.logger.info('fetchData - end');
             return rows;
         }
         catch (e) {
-            logger.error('fetchData - error: ', e);
+            this.logger.error('fetchData - error: ', e);
         }
     }
 
     shapeData(_data, dbConfig) {
         try {
+            this.logger.info('shapeData - start');
             const apiKey = process.env?.API_KEY;
             const { rowsFetched, } = _data;
             const data = {
                 data: rowsFetched, api_key: apiKey
             };
+            this.logger.debug('shapeData - data', data);
+            this.logger.info('shapeData - end');
             return data;
         }
         catch (e) {
-
+            this.logger.error('shapeData - error: ', e);
         }
     }
 
@@ -83,7 +87,9 @@ and last_call >= NOW() - interval '1h'
         try {
             if (await this.isActiveMechanism()) {
                 this.logger.info('run - start');
+                this.logger.debug('run - calling fetchData');
                 const rowsFetched = await this.fetchData();
+                this.logger.debug('run - calling shapeData with: ', { rowsFetched, dbConfig: this.dbConfig });
                 const data = this.shapeData(rowsFetched, this.dbConfig);
                 this.logger.debug('run - calling transferData with: ', data);
                 await this.transferData(data);
