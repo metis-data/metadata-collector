@@ -1,10 +1,13 @@
-const { HTTPS_REQUEST_OPTIONS, ENVIRONMENT, EnvironmentsEnum } = require("../consts");
+const { HTTPS_REQUEST_OPTIONS, ENVIRONMENT, EnvironmentsEnum, API_KEY } = require("../consts");
 const { makeInternalHttpRequest } = require("../http");
 const { createSubLogger } = require("../logging");
+const makeSpan = require('../utilities/span-utility');
+const chuncker = require('../utilities/chunck-utility');
 
 class PlanCollectorService {
     dbClient;
     logger;
+    dbConfig;
 
     constructor(dbConfig, dbClient) {
         this.logger = createSubLogger(this.constructor.name);
@@ -18,7 +21,7 @@ class PlanCollectorService {
             const query = `
             set pg_store_plans.plan_format = 'json';
 
-select query, plan::json, last_call from pg_stat_statements A 
+select query, plan, last_call from pg_stat_statements A 
 join pg_store_plans B on A.queryid = B.queryid_stat_statements
 join pg_database C on B.dbid = C.oid
 where 1=1
@@ -37,14 +40,10 @@ and last_call >= NOW() - interval '1h'
         }
     }
 
-    shapeData(_data, dbConfig) {
+    shapeData(data) {
         try {
             this.logger.info('shapeData - start');
-            const apiKey = process.env?.API_KEY;
-            const { rowsFetched, } = _data;
-            const data = {
-                data: rowsFetched, api_key: apiKey
-            };
+            data = data.map(el => makeSpan({ message: { ...el, plan: el?.plan }, ...this.dbConfig }));
             this.logger.debug('shapeData - data', data);
             this.logger.info('shapeData - end');
             return data;
@@ -59,8 +58,13 @@ and last_call >= NOW() - interval '1h'
             this.logger.info('transferData - start');
             const { host, path, ...rest } = HTTPS_REQUEST_OPTIONS;
             const options = { ...rest, host: `${ENVIRONMENT === EnvironmentsEnum.PRODUCTION ? 'ingest.metisdata.io' : 'ingest-stg.metisdata.io'}`, path: '' };
-            this.logger.debug('transferData - calling makeInternalHttpRequest: ', { data, options });
-            const results = await makeInternalHttpRequest(data, options);
+
+            const promises = [];
+            for (let chuckedData of chuncker(data.map((el) => JSON.stringify(el)))) {
+                this.logger.debug('transferData - calling makeInternalHttpRequest: ', { data, options });
+                promises.push(makeInternalHttpRequest(chuckedData, options));
+            }
+            const results = await Promise.allSettled(promises);
             this.logger.debug('transferData - results: ', results);
             this.logger.info('transferData - end');
         }
@@ -89,8 +93,8 @@ and last_call >= NOW() - interval '1h'
                 this.logger.info('run - start');
                 this.logger.debug('run - calling fetchData');
                 const rowsFetched = await this.fetchData();
-                this.logger.debug('run - calling shapeData with: ', { rowsFetched, dbConfig: this.dbConfig });
-                const data = this.shapeData(rowsFetched, this.dbConfig);
+                this.logger.debug('run - calling shapeData rowsFetched: ', rowsFetched);
+                const data = this.shapeData(rowsFetched);
                 this.logger.debug('run - calling transferData with: ', data);
                 await this.transferData(data);
                 this.logger.info('run - end');
@@ -101,7 +105,6 @@ and last_call >= NOW() - interval '1h'
             this.logger.error('run - error: ', e);
         }
     }
-
 }
 
 module.exports = PlanCollectorService;
