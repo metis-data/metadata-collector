@@ -28,7 +28,7 @@ function getResource() {
 
 function makeSpan(csvItem) {
     let {
-        message: { duration, query, plan, last_call: startTime },
+        message: { query, plan, last_call: startTime, duration: _duration },
         // TODO: ast and extract query op
         action = 'N/A',
         user,
@@ -39,7 +39,7 @@ function makeSpan(csvItem) {
     const spanId = uuidv4();
     const traceId = uuidv4();
 
-    duration = duration ?? ((plan && plan.Plan?.["Execution Time"]) || 1);
+    const duration = Math.ceil(JSON.parse(plan).Plan?.['Execution Time'] || _duration);
 
     return {
         parent_id: null,
