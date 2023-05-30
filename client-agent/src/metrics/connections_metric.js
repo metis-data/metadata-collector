@@ -9,9 +9,7 @@ const ConnectionState = {
     ACTIVE: 'active',
 }
 
-async function fetchData(dbConfig) {
-    let client;
-
+async function fetchData(dbConfig, client) {
     try {
         logger.info('fetchData - start');
 
@@ -20,20 +18,13 @@ async function fetchData(dbConfig) {
         and datname = '${dbConfig.database}'
         group by state, application_name;`
 
-        client = new pg.Client(dbConfig);
-        logger.debug('connecting to DB');
-        await client.connect();
         const { rows } = await client.query(qry);
         logger.debug('fetchData - data: ', rows);
+        logger.info('fetchData - end');
         return rows;
     }
     catch (e) {
         logger.error('fetchData - error: ', e);
-    }
-    finally {
-        await client?.end();
-        logger.debug('connection to the DB is now closed');
-        logger.info('fetchData - end');
     }
 }
 
@@ -79,11 +70,11 @@ async function transferData(...args) {
     }
 }
 
-async function run(dbConfig) {
+async function run(dbConfig, dbClient) {
     try {
         logger.info('run - start');
         logger.debug('run - calling fetchData with: ', dbConfig);
-        const data = await fetchData(dbConfig);
+        const data = await fetchData(dbConfig, dbClient);
         const results = shapeData(data, dbConfig);
         logger.debug('run - calling transferData with: ', results);
         await transferData(...results);

@@ -62,7 +62,7 @@ async function collectQueries(fakeHoursDelta, dbConfigs) {
           }
           const now = new Date();
           now.setHours(now.getHours() - fakeHoursDelta);
-          await processResults(dbConfig, results[dbConfigKey], now.getTime(), fakeHoursDelta !== 0);
+          await processResults(dbConfig, results[dbConfigKey], now.getTime(), fakeHoursDelta !== 0, client);
           logger.info('Processing results done.');
         } catch (err) {
           logger.error('Couldn\'t run queries', err, dbConfigs);
