@@ -4,7 +4,7 @@
   "description": "",
   "main": "metrix.js",
   "scripts": {
-    "start": "node collect-runner.js",
+    "start": "node —-max-old-space-size 2048 collect-runner.js",
     "simulator": "node simulator.js 30 aBJYk0W2ZH5YTBW0smxrz41WLam2rfbw7lNVNmKW",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
