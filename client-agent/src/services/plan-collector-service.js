@@ -79,7 +79,7 @@ and last_call >= NOW() - interval '1h'
             const query = `select true ext_exists from pg_extension where extname = 'pg_store_plans';`
             const { rows } = await this.dbClient.query(query);
             this.logger.info('isActiveMechanism - end');
-            return rows?.[0].ext_exists === true;
+            return rows?.[0]?.ext_exists === true;
         }
         catch (e) {
             this.logger.error('isActiveMechanism - error: ', e);
