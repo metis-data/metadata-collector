@@ -1,6 +1,4 @@
-const pg = require('pg');
 const { makeInternalHttpRequest } = require('../http');
-const { HTTPS_REQUEST_OPTIONS } = require('../consts');
 const { createSubLogger } = require('../logging');
 const logger = createSubLogger('connections_metric');
 
@@ -55,36 +53,38 @@ function shapeData(data, dbConfig) {
     return results;
 }
 
-async function transferData(...args) {
+async function sendResults({ payload, options }) {
     try {
-        logger.info('transferData - start');
-        const data = args.flat(Infinity);
-        const { headers, ...rest } = HTTPS_REQUEST_OPTIONS;
-        const options = { ...rest, headers: { ...headers, 'x-api-version': 'v2' } };
-        logger.debug('transferData - calling makeInternalHttpRequest: ', data, options);
-        await makeInternalHttpRequest(data, options);
-        logger.info('transferData - end');
+        logger.info('sendResults - start');
+        const { data: _data } = payload;
+        const data = _data.flat(Infinity);
+        logger.debug('sendResults - calling makeInternalHttpRequest: ', data, options);
+        return makeInternalHttpRequest(data, options);
     }
     catch (e) {
-        logger.error('transferData - error: ', e);
+        logger.error('sendResults - error: ', e);
     }
 }
 
-async function run(dbConfig, dbClient) {
+async function run({ dbConfig, client }) {
     try {
         logger.info('run - start');
         logger.debug('run - calling fetchData with: ', dbConfig);
-        const data = await fetchData(dbConfig, dbClient);
+        const data = await fetchData(dbConfig, client);
+        logger.debug('run - calling shapeData with: ', { data, dbConfig });
         const results = shapeData(data, dbConfig);
-        logger.debug('run - calling transferData with: ', results);
-        await transferData(...results);
-        logger.info('run - end');
-        return;
+        return results;
     }
     catch (e) {
         logger.error('run - error: ', e);
     }
-
 }
 
-module.exports = run;
+module.exports = {
+    connectionsMetric: {
+        fn: run,
+        exporter: {
+            sendResults,
+        },
+    },
+};

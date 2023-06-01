@@ -82,6 +82,15 @@ const WEB_APP_REQUEST_OPTIONS = {
   timeout: HTTPS_TIMEOUT,
 };
 
+const COLLECTOR_REQUEST_OPTIONS = {
+  host: API_GATEWAY_HOST,
+  port: API_GATEWAY_PORT,
+  path: API_GATEWAY_PATH,
+  method: 'POST',
+  headers: { 'x-api-key': API_KEY, 'x-api-version': 'v2' },
+  timeout: HTTPS_TIMEOUT,
+}
+
 module.exports = {
   isDebug,
   COLLECTOR_VERSION,
@@ -104,4 +113,5 @@ module.exports = {
   IS_HOSTED_ON_AWS_REQUEST_TIMEOUT_IN_SEC,
   DEFAULT_REQUEST_TIMEOUT_IN_SEC,
   CRON_LOCAL_RUNNING_EXP,
+  COLLECTOR_REQUEST_OPTIONS,
 };
