@@ -22,3 +22,13 @@ pg_config:
     provider: app
     url: '/api/pmc/customer-db-config'
   times_a_day: 1
+connections_metric:
+  name: connections_metric
+  exporter:
+    provider: collector
+  times_a_day: 24
+plan_collector:
+  name: plan_collector
+  exporter:
+    provider: collector
+  times_a_day: 24

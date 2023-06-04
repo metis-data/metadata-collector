@@ -17,7 +17,7 @@ const { isHostedOnAws } = require('./utilities/environment-utility');
       });
     }
     else {
-        await app(hostedOnAws);
+      await app(hostedOnAws);
     }
   }
   catch (e) {
