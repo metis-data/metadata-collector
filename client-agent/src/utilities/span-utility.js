@@ -28,7 +28,7 @@ function getResource() {
 
 function makeSpan(csvItem) {
     let {
-        message: { query, plan, last_call: startTime, duration: _duration },
+        message: { query, plan, last_call: startTime, duration: _duration, query_id: queryId },
         // TODO: ast and extract query op
         action = 'N/A',
         user,
@@ -58,7 +58,8 @@ function makeSpan(csvItem) {
             "db.statement.metis": query,
             "db.statement.metis.plan": plan,
             "net.peer.name": host,
-            "net.peer.ip": "unknown"
+            "net.peer.ip": "unknown",
+            "db.queryId": queryId
         },
         status: {
             status_code: "UNSET"
