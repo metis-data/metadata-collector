@@ -59,7 +59,7 @@ function makeSpan(csvItem) {
             "db.statement.metis.plan": plan,
             "net.peer.name": host,
             "net.peer.ip": "unknown",
-            "db.queryId": queryId
+            "db.query.id": queryId
         },
         status: {
             status_code: "UNSET"
