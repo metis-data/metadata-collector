@@ -55,12 +55,13 @@ and last_call >= NOW() - interval '1h'
     async transferData({ payload, options }) {
         try {
             this.logger.info('transferData - start');
-            const { data } = payload;
+            const { data = [] } = payload;
             const promises = [];
-            for (let chuckedData of chuncker(data.map((el) => JSON.stringify(el)))) {
+            for (let chuckedData of chuncker(data?.map((el) => JSON.stringify(el)))) {
                 this.logger.debug('transferData - calling makeInternalHttpRequest: ', { data, options });
                 promises.push(makeInternalHttpRequest(chuckedData, options));
             }
+            this.logger.info('transferData - end');
             return Promise.allSettled(promises);
         }
         catch (e) {
