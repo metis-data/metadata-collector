@@ -19,7 +19,7 @@ tables_size:
     WHERE
     relkind = 'r'
     AND n.nspname NOT IN ('pg_catalog', 'information_schema');
-  times_a_day: 1
+  times_a_day: 24
 index_usage:
   query: SELECT
     sui.schemaname AS schema, sui.relid, sui.relname AS table, sui.indexrelid, sui.indexrelname AS index,
@@ -29,4 +29,4 @@ index_usage:
     JOIN pg_statio_user_indexes AS sio_ui
     ON sui.relid = sio_ui.relid
     AND sui.indexrelid = sio_ui.indexrelid;
-  times_a_day: 6
+  times_a_day: 24
