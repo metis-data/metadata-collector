@@ -38,8 +38,13 @@ function makeSpan(csvItem) {
 
     const spanId = uuidv4();
     const traceId = uuidv4();
-
-    const duration = Math.ceil(JSON.parse(plan).Plan?.['Execution Time'] || _duration);
+    let duration;
+    try {
+        duration = Math.ceil(JSON.parse(plan).Plan?.['Execution Time'] || _duration);
+    }
+    catch (e) {
+        duration = Math.ceil(_duration);
+    }
 
     return {
         parent_id: null,
