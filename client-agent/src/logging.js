@@ -39,7 +39,10 @@ const getError = (msg, meta) => {
 
   if (meta) {
     if (Array.isArray(meta)) {
-      return meta.find((arg) => isError(arg));
+      return meta.find((arg) => {
+        if(isError(arg)) return arg;
+        if ('error' in arg) return arg.error;
+      });
     }
 
     if ('stack' in meta) {
@@ -108,7 +111,11 @@ const createSubLogger = (componentName, logLevel=LogLevelEnum.INFO) => {
       if (!error) {
         Sentry.captureMessage(msg, 'error');
       } else {
-        Sentry.captureException(error);
+        if(error && 'error' in error) {
+          Sentry.captureException(error.error);
+        } else {
+          Sentry.captureException(error);
+        }
       }
 
       winstonLogger.error(msg, ...meta);

@@ -26,7 +26,7 @@ const ACTIONS_FUNCS = {
   available_extensions: availableExtensions,
   pg_config: pgConfig,
   connections_metric: connectionsMetric,
-  plan_collector: planCollector
+  plan_collector: planCollector,
 };
 
 const ACTIONS_DEF = mergeDeep(ACTIONS_YAML, ACTIONS_FUNCS);
@@ -133,8 +133,9 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
         await Promise.allSettled(
           Object.values(actions).map(async ({ exporter, data, success, error }) => {
             if (!success) {
-              return error;
+              throw error;
             }
+
             switch (exporter.provider) {
               case ExportersProvider.APP:
                 return exporter.sendResults({
@@ -144,7 +145,10 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
                     error,
                   },
                   success,
-                  options: { ...ExportersProviderConfig[ExportersProvider.APP].httpOptions, path: exporter.url },
+                  options: {
+                    ...ExportersProviderConfig[ExportersProvider.APP].httpOptions,
+                    path: exporter.url,
+                  },
                 });
               case ExportersProvider.COLLECTOR:
                 return exporter.sendResults({
@@ -154,17 +158,26 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
                     error,
                   },
                   success,
-                  options: { ...ExportersProviderConfig[ExportersProvider.COLLECTOR].httpOptions, path: exporter.url },
+                  options: {
+                    ...ExportersProviderConfig[ExportersProvider.COLLECTOR].httpOptions,
+                    path: exporter.url,
+                  },
                 });
               default:
                 logger.error('unsupported exporter provider');
             }
-
           }),
         ),
     ),
   );
 
+  requestResults.forEach((db) => {
+    db.forEach((actionSetteled) => {
+      if (actionSetteled.status === 'rejected') {
+        logger.error('Action failed', actionSetteled.reason);
+      }
+    });
+  });
   logger.info('Sent actions results.', { requestResults });
 }
 
