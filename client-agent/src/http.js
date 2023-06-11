@@ -41,7 +41,7 @@ function makeInternalHttpRequest(payload, options, numRetries = 0, ignoreStatusC
 
       res.on('end', () => {
         const context = {
-          path: options.path,
+          path: `${options.host}${options.path}`,
           status: res.statusCode,
           requestId: res.headers['x-amzn-requestid'], // When used for our backend api
           traceId: res.headers['x-amzn-trace-id'] || res.headers['x-ray-id'], // When used for API Gateway

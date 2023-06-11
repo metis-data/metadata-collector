@@ -1,12 +1,8 @@
 const { loggingSetup, logger, loggerExit } = require('./logging');
 const {
   API_KEY,
-  API_GATEWAY_HOST,
-  API_GATEWAY_PORT,
-  API_GATEWAY_PATH,
-  WEB_APP_HOST,
-  WEB_APP_PORT,
 } = require('./consts');
+const { getConnectionStrings } = require('./secret');
 
 function exit(msg, code) {
   loggerExit(msg);
@@ -39,18 +35,22 @@ async function setup() {
     exit(`Process Exiting code: ${code}...`);
   });
 
-  const requiredEnvironmentVariables = [
-    [API_KEY, 'API Key'],
-    [API_GATEWAY_HOST, 'API Gateway Host'],
-    [API_GATEWAY_PORT, 'API Gateway Port'],
-    [API_GATEWAY_PATH, 'API Gateway Path'],
-    [WEB_APP_HOST, 'Web app api Host'],
-    [WEB_APP_PORT, 'Web app api port'],
-  ];
-  const wrong = requiredEnvironmentVariables.find((x) => !x[0]);
-  if (wrong) {
-    logger.error(`${wrong[1]} is not defined. Exiting ...`);
-    throw new Error(`Could not setup PMC as expected, ${wrong[1]} is not defined.`);
+  try {
+    DB_CONNECTION_STRINGS = await getConnectionStrings();
+
+    const requiredEnvironmentVariables = [
+      [API_KEY, 'API Key'],
+      [DB_CONNECTION_STRINGS, 'Conenction string'],
+    ];
+  
+    const wrong = requiredEnvironmentVariables.find((x) => !x[0]);
+    if (wrong) {
+      throw new Error(`Could not setup MMC as expected, ${wrong[1]} is not defined.`);
+    }
+    
+  } catch (err) {
+    logger.error('Exiting...', err);
+    process.exit(1);
   }
 }
 

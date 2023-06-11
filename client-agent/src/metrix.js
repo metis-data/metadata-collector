@@ -12,7 +12,6 @@ const { collectActions } = require('./actions');
 const { collectQueries } = require('./queries');
 
 const DB_CONNECT_TIMEOUT = 5000;
-let DB_CONNECTION_STRINGS = null;
 
 // eslint-disable-next-line max-len
 const collectRunner = (fakeHoursDelta, dbConfigs) => {
@@ -27,7 +26,7 @@ async function getDBConfigs() {
     hosts: [],
   });
 
-  return DB_CONNECTION_STRINGS.split(';')
+  return (await getConnectionStrings()).split(';')
     .filter(Boolean)
     .map((dbConnectionString) => {
       const dbConnectionObject = connectionStringParser.parse(dbConnectionString);
@@ -53,12 +52,6 @@ async function getDBConfigs() {
 }
 
 async function run(fakeHoursDelta = 0) {
-  try {
-    DB_CONNECTION_STRINGS = await getConnectionStrings();
-  } catch (err) {
-    logger.error('No connection strings found. Exiting...', err);
-    process.exit(1);
-  }
   const dbConfigs = await getDBConfigs();
 
   const pmcPingResult = await Promise.allSettled(
@@ -73,7 +66,7 @@ async function run(fakeHoursDelta = 0) {
     )),
   );
 
-  logger.debug('PMC Ping result', { pmcPingResult });
+  logger.debug('MMC Ping result', { pmcPingResult });
   // eslint-disable-next-line max-len
   const collectingActionPromises = [collectQueries, collectActions].map(
     collectRunner(fakeHoursDelta, dbConfigs),

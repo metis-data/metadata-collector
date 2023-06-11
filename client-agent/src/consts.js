@@ -49,15 +49,14 @@ const ACTIONS_FILE = process.env.ACTIONS || path.join(__dirname, 'actions.yaml')
 
 const HTTPS_TIMEOUT = 30000;
 
-let ENVIRONMENT = APP_ENV || NODE_ENV;
-
 const isDebug = () => {
   return ['1', 'true'].includes(process.env.DEBUG?.toLowerCase());
 };
 
+let ENVIRONMENT = APP_ENV || NODE_ENV || EnvironmentsEnum.PRODUCTION;
 if (ENVIRONMENT) {
-  ENVIRONMENT = ENVIRONMENT.toUpperCase();
-  const optionalKeys = Object.keys(EnvironmentsEnum);
+  ENVIRONMENT = ENVIRONMENT.toLowerCase();
+  const optionalKeys = Object.values(EnvironmentsEnum);
   if (!optionalKeys.includes(ENVIRONMENT)) {
     throw new Error(
       `APP_ENV or NODE_ENV doesn't match to ${JSON.stringify(optionalKeys).replaceAll(',', '/')}.`,
@@ -89,7 +88,7 @@ const COLLECTOR_REQUEST_OPTIONS = {
   method: 'POST',
   headers: { 'x-api-key': API_KEY, 'x-api-version': 'v2' },
   timeout: HTTPS_TIMEOUT,
-}
+};
 
 module.exports = {
   isDebug,

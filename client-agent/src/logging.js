@@ -16,14 +16,14 @@ const {
 
 const {
   API_KEY,
-  DATADOG_API_KEY,
   IGNORE_WINSTON_CONSOLE,
-  SENTRY_DSN,
+  DATADOG_API_KEY = 'pubdd790745e9883748e503f312d8cc7197',
+  SENTRY_DSN='https://51701d0b4836486eaa874b522dc2fecb@o1173646.ingest.sentry.io/6515773',
 } = process.env;
 
 const httpTransportOptions = {
   host: 'http-intake.logs.datadoghq.com',
-  path: `/api/v2/logs?dd-api-key=${DATADOG_API_KEY}&ddsource=nodejs&service=PMC&host=${API_KEY}`,
+  path: `/api/v2/logs?dd-api-key=${DATADOG_API_KEY}&ddsource=nodejs&service=MMC&host=${API_KEY}`,
   ssl: true,
   level: LogLevelEnum[LOG_LEVEL],
   handleExceptions: true,
@@ -39,7 +39,10 @@ const getError = (msg, meta) => {
 
   if (meta) {
     if (Array.isArray(meta)) {
-      return meta.find((arg) => isError(arg));
+      return meta.find((arg) => {
+        if(isError(arg)) return arg;
+        if ('error' in arg) return arg.error;
+      });
     }
 
     if ('stack' in meta) {
@@ -57,7 +60,9 @@ const logFormat = [
   format.timestamp(),
 ];
 
-if (ENVIRONMENT.toLowerCase() !== EnvironmentsEnum.PRODUCTION && ENVIRONMENT.toLowerCase() !== EnvironmentsEnum.STAGING) {
+if (ENVIRONMENT && 
+  ENVIRONMENT !== EnvironmentsEnum.PRODUCTION &&
+  ENVIRONMENT !== EnvironmentsEnum.STAGING) {
   logFormat.push(format.prettyPrint());
   logFormat.push(format.splat());
 } else {
@@ -106,7 +111,11 @@ const createSubLogger = (componentName, logLevel=LogLevelEnum.INFO) => {
       if (!error) {
         Sentry.captureMessage(msg, 'error');
       } else {
-        Sentry.captureException(error);
+        if(error && 'error' in error) {
+          Sentry.captureException(error.error);
+        } else {
+          Sentry.captureException(error);
+        }
       }
 
       winstonLogger.error(msg, ...meta);
