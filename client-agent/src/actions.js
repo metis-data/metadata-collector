@@ -87,6 +87,7 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
               logger.error(`Action '${action.name}' failed to run`, err);
             }
             const acc = await result;
+            logger.info(`Action ${action.name} has been finished successfuly`);
             return {
               ...acc,
               actions: {
@@ -137,6 +138,7 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
           throw new Error(`Unsupported exporter provider for action: ${action}`);
         } else {
           return exporter.sendResults({
+            action,
             payload: {
               pmcDevice,
               data,

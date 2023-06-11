@@ -15,8 +15,7 @@ class PlanCollector {
   }
 
   async fetchData() {
-    try {
-      const query = `
+    const query = `
             set pg_store_plans.plan_format = 'json';
 
 select query, plan, last_call, B.mean_time as duration, A.queryid as query_id from pg_stat_statements A 
@@ -27,13 +26,10 @@ and datname = '${this.dbConfig.database}'
 and last_call >= NOW() - interval '1h'
 ;`;
 
-      this.logger.debug('fetchData - calling dbClient.query with: ', query);
-      const [_, { rows }] = await this.dbClient.query(query);
-      this.logger.debug('fetchData - rows: ', rows);
-      return rows;
-    } catch (e) {
-      this.logger.error('fetchData - error: ', e);
-    }
+    this.logger.debug('fetchData - calling dbClient.query with: ', query);
+    const [_, { rows }] = await this.dbClient.query(query);
+    this.logger.debug('fetchData - rows: ', rows);
+    return rows;
   }
 
   shapeData(data) {
@@ -67,27 +63,12 @@ and last_call >= NOW() - interval '1h'
     return results.map((result) => result.value);
   }
 
-  async isActiveMechanism() {
-    try {
-      const query = `select true ext_exists from pg_extension where extname = 'pg_store_plans';`;
-      const { rows } = await this.dbClient.query(query);
-      this.logger.debug('isActiveMechanism', { pg_store: rows });
-      return rows?.[0]?.ext_exists === true;
-    } catch (e) {
-      return false;
-    }
-  }
-
   async run({ dbConfig, client }) {
     this.dbConfig = dbConfig;
     this.dbClient = client;
-    if (await this.isActiveMechanism()) {
-      const rowsFetched = await this.fetchData();
-      this.logger.debug('run - calling shapeData rowsFetched: ', rowsFetched);
-      const results = this.shapeData(rowsFetched);
-      this.logger.debug('run - calling transferData with: ', results);
-      return results;
-    }
+    const rowsFetched = await this.fetchData();
+    this.logger.debug('run - calling shapeData rowsFetched: ', rowsFetched);
+    return this.shapeData(rowsFetched);
   }
 }
 
