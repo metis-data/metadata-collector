@@ -57,7 +57,9 @@ const logFormat = [
   format.timestamp(),
 ];
 
-if (ENVIRONMENT.toLowerCase() !== EnvironmentsEnum.PRODUCTION && ENVIRONMENT.toLowerCase() !== EnvironmentsEnum.STAGING) {
+if (ENVIRONMENT && 
+  ENVIRONMENT !== EnvironmentsEnum.PRODUCTION &&
+  ENVIRONMENT !== EnvironmentsEnum.STAGING) {
   logFormat.push(format.prettyPrint());
   logFormat.push(format.splat());
 } else {
