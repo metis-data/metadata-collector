@@ -8,9 +8,12 @@ const { relevant, mergeDeep } = require('./utils');
 const { statStatmentsAction } = require('./actions/stat_statments');
 const { schemaAction } = require('./actions/schema');
 const { availableExtensions } = require('./actions/available_extensions');
+const { connectionsMetric } = require('./actions/connections_metric');
+const { planCollector } = require('./actions/plan_collector');
 const { pgConfig } = require('./actions/pg_config');
-
-const { API_KEY, ACTIONS_FILE, WEB_APP_REQUEST_OPTIONS } = require('./consts');
+const ExportersProviderConfig = require('./models').ExportersProviderConfig;
+const { ACTIONS_FILE } = require('./consts');
+const { ExportersProvider } = require('./models');
 const logger = createSubLogger('actions');
 
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
@@ -22,6 +25,8 @@ const ACTIONS_FUNCS = {
   stat_statements: statStatmentsAction,
   available_extensions: availableExtensions,
   pg_config: pgConfig,
+  connections_metric: connectionsMetric,
+  plan_collector: planCollector,
 };
 
 const ACTIONS_DEF = mergeDeep(ACTIONS_YAML, ACTIONS_FUNCS);
@@ -65,7 +70,7 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
 
         logger.debug(`connected to ${dbConfig.database}`);
 
-        return await theActions.reduce(
+        const results = await theActions.reduce(
           async (result, action) => {
             logger.info(`Running action ${action.name}`);
             const schemaResult = {
@@ -108,6 +113,7 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
             },
           },
         );
+        return results;
       } finally {
         try {
           if (client) {
@@ -121,36 +127,6 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
     }),
   );
 
-  //   {
-  //     "apiKeyId":"XXX",
-  //     "dbName":"XXX",
-  //     "dbHost":"XX.XX.XX.XX",
-  //     "dbPort": "5432",
-  //     "actions":{
-  //        "schemas":{
-  //           "exporter":{
-  //              "provider":"app",
-  //              "url":"/api/db-details"
-  //           },
-  //           "success":true,
-  //           "data":[{...}]
-  //        },
-  //        "stat_statements":{
-  //           "exporter":{
-  //              "provider":"app",
-  //              "url":"/api/pmc/statistics/query"
-  //           },
-  //           "success":false,
-  //           "error":{..}
-  //        }
-  //     },
-  //     "errors":{
-  //        "stat_statements":{...},
-  //        "failed_action_name":{...}
-  //     }
-  //  }
-
-  // TODO: send errors per PMC
   const requestResults = await Promise.all(
     actionsData.map(
       async ({ actions, pmcDevice, errors }) =>
@@ -159,17 +135,35 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
             if (!success) {
               return error;
             }
-
-            if (exporter.provider === 'app') {
-              return exporter.sendResults({
-                payload: {
-                  pmcDevice,
-                  data,
-                  error,
-                },
-                success,
-                options: { ...WEB_APP_REQUEST_OPTIONS, path: exporter.url },
-              });
+            switch (exporter.provider) {
+              case ExportersProvider.APP:
+                return exporter.sendResults({
+                  payload: {
+                    pmcDevice,
+                    data,
+                    error,
+                  },
+                  success,
+                  options: {
+                    ...ExportersProviderConfig[ExportersProvider.APP].httpOptions,
+                    path: exporter.url,
+                  },
+                });
+              case ExportersProvider.COLLECTOR:
+                return exporter.sendResults({
+                  payload: {
+                    pmcDevice,
+                    data,
+                    error,
+                  },
+                  success,
+                  options: {
+                    ...ExportersProviderConfig[ExportersProvider.COLLECTOR].httpOptions,
+                    path: exporter.url,
+                  },
+                });
+              default:
+                logger.error('unsupported exporter provider');
             }
           }),
         ),

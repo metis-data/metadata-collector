@@ -18,7 +18,7 @@ function formatSizeUnits(bytes){
 function makeInternalHttpRequest(payload, options, numRetries = 0, ignoreStatusCodes = [], timeout = DEFAULT_REQUEST_TIMEOUT_IN_SEC) {
   const provider = options.port === 443 ? https : http;
 
-  const strinigyJsonPayload = JSON.stringify(payload);
+  const strinigyJsonPayload = typeof payload === 'string' ? payload : JSON.stringify(payload);
 
   logger.debug("Sending a request", { options, length: formatSizeUnits(strinigyJsonPayload.length) });
   

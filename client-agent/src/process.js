@@ -2,7 +2,6 @@ const { randomUUID } = require('crypto');
 const { makeInternalHttpRequest } = require('./http');
 const { createSubLogger } = require('./logging');
 const logger = createSubLogger('process_queries');
-
 const { COLLECTOR_VERSION, TAGS, HTTPS_REQUEST_OPTIONS } = require('./consts');
 
 async function processRows(dbConfig, rows, timestamp, fake) {
@@ -34,9 +33,8 @@ async function processRows(dbConfig, rows, timestamp, fake) {
   return res;
 }
 
-async function processResults(dbConfig, results, timestamp, fake) {
-  await Promise.all(
-    results.map(async (result) => await processRows(dbConfig, result.rows, timestamp, fake)));
+async function processResults(dbConfig, results, timestamp, fake, dbClient = null) {
+  await Promise.all(results.map(async (result) => await processRows(dbConfig, result.rows, timestamp, fake)))
 }
 
 module.exports = {
