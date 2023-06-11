@@ -35,10 +35,6 @@ function getQueries(fakeHoursDelta) {
 const results = {};
 
 async function collectQueries(fakeHoursDelta, dbConfigs) {
-  if (dbConfigs.length === 0) {
-    logger.error('No connection strings could be parsed');
-    return;
-  }
   const theQueries = getQueries(fakeHoursDelta);
   if (theQueries.length === 0) {
     logger.info('There are no queries to run for this hour.');
@@ -57,15 +53,15 @@ async function collectQueries(fakeHoursDelta, dbConfigs) {
             await client.connect();
             logger.info(`Connected to ${dbConfig.database}`);
             const res = await client.query(bigQuery);
-            logger.info('Obtained query results. Processing results ...');
             results[dbConfigKey] = theQueries.length === 1 ? [res] : res;
           }
           const now = new Date();
           now.setHours(now.getHours() - fakeHoursDelta);
           await processResults(dbConfig, results[dbConfigKey], now.getTime(), fakeHoursDelta !== 0, client);
           logger.info('Processing results done.');
-        } catch (err) {
-          logger.error('Couldn\'t run queries', err, dbConfigs);
+        } catch (error) {
+          const { password, ...dbDetails }= dbConfigs;
+          logger.error('Couldn\'t run queries', error, dbDetails);
           throw err;
         } finally {
           try {

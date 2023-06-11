@@ -13,7 +13,6 @@ const { planCollector } = require('./actions/plan_collector');
 const { pgConfig } = require('./actions/pg_config');
 const ExportersProviderConfig = require('./models').ExportersProviderConfig;
 const { ACTIONS_FILE } = require('./consts');
-const { ExportersProvider } = require('./models');
 const logger = createSubLogger('actions');
 
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
@@ -26,7 +25,7 @@ const ACTIONS_FUNCS = {
   available_extensions: availableExtensions,
   pg_config: pgConfig,
   connections_metric: connectionsMetric,
-  plan_collector: planCollector
+  plan_collector: planCollector,
 };
 
 const ACTIONS_DEF = mergeDeep(ACTIONS_YAML, ACTIONS_FUNCS);
@@ -92,9 +91,7 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
               ...acc,
               actions: {
                 ...acc.actions,
-                ...{
-                  [action.name]: schemaResult,
-                },
+                [action.name]: schemaResult,
               },
               errors: {
                 ...acc.errors,
@@ -128,44 +125,47 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
   );
 
   const requestResults = await Promise.all(
-    actionsData.map(
-      async ({ actions, pmcDevice, errors }) =>
-        await Promise.allSettled(
-          Object.values(actions).map(async ({ exporter, data, success, error }) => {
-            if (!success) {
-              return error;
-            }
-            switch (exporter.provider) {
-              case ExportersProvider.APP:
-                return exporter.sendResults({
-                  payload: {
-                    pmcDevice,
-                    data,
-                    error,
-                  },
-                  success,
-                  options: { ...ExportersProviderConfig[ExportersProvider.APP].httpOptions, path: exporter.url },
-                });
-              case ExportersProvider.COLLECTOR:
-                return exporter.sendResults({
-                  payload: {
-                    pmcDevice,
-                    data,
-                    error,
-                  },
-                  success,
-                  options: { ...ExportersProviderConfig[ExportersProvider.COLLECTOR].httpOptions, path: exporter.url },
-                });
-              default:
-                logger.error('unsupported exporter provider');
-            }
+    actionsData.map(async ({ actions, pmcDevice, errors }) => {
+      const sendResultPerActionPromises = Object.keys(actions).map(async (action) => {
+        const { exporter, data, success, error } = actions[action];
 
-          }),
-        ),
-    ),
+        if (!success) {
+          return error;
+        }
+
+        if (!exporter.provider) {
+          throw new Error(`Unsupported exporter provider for action: ${action}`);
+        } else {
+          return exporter.sendResults({
+            payload: {
+              pmcDevice,
+              data,
+              error,
+            },
+            success,
+            options: {
+              ...ExportersProviderConfig[exporter.provider].httpOptions,
+              path: exporter.url,
+            },
+          });
+        }
+      });
+
+      return await Promise.allSettled(sendResultPerActionPromises);
+    }),
   );
 
-  logger.info('Sent actions results.', { requestResults });
+  try {
+    requestResults.forEach((db) => {
+      db.forEach((actionSetteled) => {
+        if (actionSetteled.status === 'rejected') {
+          logger.error('Action status', actionSetteled.reason);
+        } else {
+          logger.info('Action status', actionSetteled.value);
+        }
+      });
+    });
+  } catch (error) {}
 }
 
 module.exports = {
