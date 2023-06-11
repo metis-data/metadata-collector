@@ -39,14 +39,22 @@ async function setup() {
     exit(`Process Exiting code: ${code}...`);
   });
 
-  const requiredEnvironmentVariables = [
-    [API_KEY, 'API Key'],
-  ];
+  try {
+    DB_CONNECTION_STRINGS = await getConnectionStrings();
 
-  const wrong = requiredEnvironmentVariables.find((x) => !x[0]);
-  if (wrong) {
-    logger.error(`${wrong[1]} is not defined. Exiting ...`);
-    throw new Error(`Could not setup PMC as expected, ${wrong[1]} is not defined.`);
+    const requiredEnvironmentVariables = [
+      [API_KEY, 'API Key'],
+      [DB_CONNECTION_STRINGS, 'Conenction string'],
+    ];
+  
+    const wrong = requiredEnvironmentVariables.find((x) => !x[0]);
+    if (wrong) {
+      throw new Error(`Could not setup PMC as expected, ${wrong[1]} is not defined.`);
+    }
+    
+  } catch (err) {
+    logger.error('Exiting...', err);
+    process.exit(1);
   }
 }
 
