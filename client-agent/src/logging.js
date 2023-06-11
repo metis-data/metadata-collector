@@ -16,9 +16,9 @@ const {
 
 const {
   API_KEY,
-  DATADOG_API_KEY,
   IGNORE_WINSTON_CONSOLE,
-  SENTRY_DSN,
+  DATADOG_API_KEY = 'pubdd790745e9883748e503f312d8cc7197',
+  SENTRY_DSN='https://51701d0b4836486eaa874b522dc2fecb@o1173646.ingest.sentry.io/6515773',
 } = process.env;
 
 const httpTransportOptions = {

@@ -12,7 +12,6 @@ const { collectActions } = require('./actions');
 const { collectQueries } = require('./queries');
 
 const DB_CONNECT_TIMEOUT = 5000;
-let DB_CONNECTION_STRINGS = null;
 
 // eslint-disable-next-line max-len
 const collectRunner = (fakeHoursDelta, dbConfigs) => {
@@ -27,7 +26,7 @@ async function getDBConfigs() {
     hosts: [],
   });
 
-  return DB_CONNECTION_STRINGS.split(';')
+  return (await getConnectionStrings()).split(';')
     .filter(Boolean)
     .map((dbConnectionString) => {
       const dbConnectionObject = connectionStringParser.parse(dbConnectionString);
