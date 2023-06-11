@@ -45,7 +45,7 @@ async function setup() {
   
     const wrong = requiredEnvironmentVariables.find((x) => !x[0]);
     if (wrong) {
-      throw new Error(`Could not setup PMC as expected, ${wrong[1]} is not defined.`);
+      throw new Error(`Could not setup MMC as expected, ${wrong[1]} is not defined.`);
     }
     
   } catch (err) {

@@ -12,10 +12,14 @@ async function getConnectionStrings() {
     DB_CONNECTION_STRINGS = process.env.DB_CONNECTION_STRINGS;
     return DB_CONNECTION_STRINGS;
   }
-  const params = { SecretId: process.env.CONNECTION_STRINGS_SECRET };
-  const command = new GetSecretValueCommand(params);
-  const data = await secretsManager.send(command);
-  DB_CONNECTION_STRINGS = data.SecretString;
+  try{
+    const params = { SecretId: process.env.CONNECTION_STRINGS_SECRET };
+    const command = new GetSecretValueCommand(params);
+    const data = await secretsManager.send(command);
+    DB_CONNECTION_STRINGS = data.SecretString;
+  } catch(error){
+    
+  }
   return DB_CONNECTION_STRINGS;
 }
 
