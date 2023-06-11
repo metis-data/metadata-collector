@@ -1,7 +1,3 @@
-const { AWS_REGION } = process.env;
-const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
-
-const secretsManager = new SecretsManagerClient({ region: AWS_REGION });
 
 let DB_CONNECTION_STRINGS = null;
 
@@ -13,12 +9,17 @@ async function getConnectionStrings() {
     return DB_CONNECTION_STRINGS;
   }
   try{
+    const { AWS_REGION } = process.env;
+    const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
+
+    const secretsManager = new SecretsManagerClient({ region: AWS_REGION });
+
     const params = { SecretId: process.env.CONNECTION_STRINGS_SECRET };
     const command = new GetSecretValueCommand(params);
     const data = await secretsManager.send(command);
     DB_CONNECTION_STRINGS = data.SecretString;
   } catch(error){
-    
+
   }
   return DB_CONNECTION_STRINGS;
 }
