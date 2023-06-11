@@ -55,6 +55,10 @@ async function getDBConfigs() {
 async function run(fakeHoursDelta = 0) {
   try {
     DB_CONNECTION_STRINGS = await getConnectionStrings();
+
+    if(!DB_CONNECTION_STRINGS){
+      throw new Error("Missed connection string");
+    }
   } catch (err) {
     logger.error('No connection strings found. Exiting...', err);
     process.exit(1);

@@ -41,12 +41,8 @@ async function setup() {
 
   const requiredEnvironmentVariables = [
     [API_KEY, 'API Key'],
-    [API_GATEWAY_HOST, 'API Gateway Host'],
-    [API_GATEWAY_PORT, 'API Gateway Port'],
-    [API_GATEWAY_PATH, 'API Gateway Path'],
-    [WEB_APP_HOST, 'Web app api Host'],
-    [WEB_APP_PORT, 'Web app api port'],
   ];
+
   const wrong = requiredEnvironmentVariables.find((x) => !x[0]);
   if (wrong) {
     logger.error(`${wrong[1]} is not defined. Exiting ...`);
