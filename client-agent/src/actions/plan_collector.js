@@ -19,7 +19,7 @@ class PlanCollector {
             set pg_store_plans.plan_format = 'json';
 
 select query, plan, last_call, B.mean_time as duration, A.queryid as query_id from pg_stat_statements A 
-join pg_store_plans B on A.queryid = B.queryid_stat_statements
+join pg_store_plans B on A.queryid = B.queryid
 join pg_database C on B.dbid = C.oid
 where 1=1
 and datname = '${this.dbConfig.database}'
