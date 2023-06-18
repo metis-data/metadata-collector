@@ -60,8 +60,8 @@ async function collectQueries(fakeHoursDelta, dbConfigs) {
           await processResults(dbConfig, results[dbConfigKey], now.getTime(), fakeHoursDelta !== 0, client);
           logger.info('Processing results done.');
         } catch (error) {
-          const { password, ...dbDetails }= dbConfigs;
-          logger.error('Couldn\'t run queries', error, dbDetails);
+          const { password, ...dbDetails }= dbConfig;
+          logger.error('Couldn\'t run queries', {error, dbDetails});
           throw err;
         } finally {
           try {
