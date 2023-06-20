@@ -10,6 +10,7 @@ const { logger } = require('./logging');
 const { getConnectionStrings } = require('./secret');
 const { collectActions } = require('./actions');
 const { collectQueries } = require('./queries');
+const collectMetrics = require('./metrics');
 
 const DB_CONNECT_TIMEOUT = 5000;
 
@@ -68,10 +69,10 @@ async function run(fakeHoursDelta = 0) {
 
   logger.debug('MMC Ping result', { pmcPingResult });
   // eslint-disable-next-line max-len
-  const collectingActionPromises = [collectQueries, collectActions].map(
+  const collectingActionPromises = [collectQueries, collectActions, collectMetrics].map(
     collectRunner(fakeHoursDelta, dbConfigs),
   );
-  
+
   await Promise.allSettled(collectingActionPromises);
 }
 

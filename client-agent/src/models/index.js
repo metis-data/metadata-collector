@@ -14,7 +14,25 @@ const ExportersProviderConfig = {
     },
 }
 
+const CloudProvider = {
+    AWS: 'aws',
+    AZURE: 'azure',
+    GCP: 'gcp'
+}
+
+const CloudResource = {
+    RDS: 'rds',
+}
+
+const MetisEnvironment = {
+    CLOUD: 'cloud',
+    PREM: 'prem'
+}
+
 module.exports = {
+    CloudResource,
+    MetisEnvironment,
     ExportersProvider,
-    ExportersProviderConfig
+    ExportersProviderConfig,
+    CloudProvider,
 }
