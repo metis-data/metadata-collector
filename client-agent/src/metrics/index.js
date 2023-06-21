@@ -28,7 +28,7 @@ class MetricController {
         const results = {};
 
         try {
-            const { metis_environment = '', metis_provider = '', metis_resource = '', provider_metadata: { } } = globalThis['metis_config'];
+            const { metis_environment = '', metis_provider = '', metis_resource = '', provider_metadata = {} } = globalThis['metis_config'];
 
             let provider;
 
