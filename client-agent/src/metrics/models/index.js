@@ -6,6 +6,11 @@ const METRIC_PROVIDER_MAPPER = {
             MetricName: 'CPUUtilization', Unit: 'Percent'
         }
     },
+    DB_LOAD: {
+        [CloudProvider.AWS]: {
+            MetricName: 'DBLoad', Unit: 'None'
+        }
+    },
     DATABASE_CONNECTIONS: {
         [CloudProvider.AWS]: { MetricName: 'DatabaseConnections', Unit: 'Count' }
     },
