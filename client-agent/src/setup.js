@@ -12,30 +12,8 @@ function exit(msg, code) {
   }
 }
 
-function _loadConfigFile() {
-  try {
-    logger.info('_loadConfigFile - start');
-    logger.debug('_loadConfigFile - looking for metis-manifest.json file');
-    const manifest = require('./metis-manifest.json');
-    const { environment, provider, resource, provider_metadata } = manifest;
-    globalThis['metis_config'] = {
-      metis_environment: environment,
-      metis_provider: provider,
-      metis_resource: resource,
-      provider_metadata,
-    }
-    logger.debug(`_loadConfigFile - globalThis['metis_config']: `, globalThis['metis_config']);
-    logger.info('_loadConfigFile - end');
-    return;
-  }
-  catch (e) {
-    logger.error(`${Errors.COULDNT_LOAD_CONFIG_FILE} `, e);
-  }
-}
-
 async function setup() {
   await loggingSetup();
-  _loadConfigFile();
   process.on('uncaughtException', (error, source) => {
     try {
       logger.error('uncaughtException', { error, source });

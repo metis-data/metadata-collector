@@ -1,5 +1,5 @@
 const Errors = require('../config/error');
-const { COLLECTOR_REQUEST_OPTIONS } = require('../consts');
+const { COLLECTOR_REQUEST_OPTIONS, METIS_ENVIRONMENT: metis_environment, METIS_PROVIDER: metis_provider, METIS_RESOURCE: metis_resource, PROVIDER_METADATA: provider_metadata = {} } = require('../consts');
 const { makeInternalHttpRequest } = require('../http');
 const { createSubLogger } = require('../logging');
 const { MetisEnvironment, CloudProvider, CloudResource } = require('../models');
@@ -28,8 +28,6 @@ class MetricController {
         const results = {};
 
         try {
-            const { metis_environment = '', metis_provider = '', metis_resource = '', provider_metadata = {} } = globalThis['metis_config'];
-
             let provider;
 
             if (metis_environment === MetisEnvironment.CLOUD) {
