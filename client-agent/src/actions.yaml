@@ -34,3 +34,9 @@ plan_collector:
     provider: collector
     url: /
   times_a_day: 24
+database_size:
+  name: database_size
+  exporter:
+    provider: collector
+    url: /md-collector
+  times_a_day: 24
