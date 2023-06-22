@@ -26,7 +26,7 @@ connections_metric:
   name: connections_metric
   exporter:
     provider: collector
-    url: /
+    url: /md-collector
   times_a_day: 24
 plan_collector:
   name: plan_collector
