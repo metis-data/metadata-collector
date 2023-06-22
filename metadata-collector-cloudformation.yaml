@@ -6,33 +6,49 @@ Parameters:
     Type: String
     Description: The name of the ECS cluster
     AllowedPattern: "[\\w-]+"
-    MinLength: '1'
+    MinLength: "1"
     ConstraintDescription: The name must contain only lowercase letters, numbers, underscores and hyphens.
     Default: metis-collector
   SubnetId:
     Type: List<AWS::EC2::Subnet::Id>
     Description: Subnet(s) where ECS task will run
-    MinLength: '1'
+    MinLength: "1"
   SecurityGroupId:
     Type: List<AWS::EC2::SecurityGroup::Id>
     Description: The security group(s) of the ECS task
-    MinLength: '1'
+    MinLength: "1"
   MetisAPIKey:
     Type: String
     Description: Your API Key for Metis
-    MinLength: '1'
+    MinLength: "1"
   ConnectionStrings:
     Type: String
     Description: Connection string(s) to your production DB, separated by semicolon (;)
     AllowedPattern: "[^ ]+"
     ConstraintDescription: Connection strings cannot contain spaces.
-    MinLength: '1'
+    MinLength: "1"
     NoEcho: true
+  MetisEnvironment:
+    Type: "String"
+    Description: environment in which the MMC is running
+    AllowedValues: ["cloud", "prem"]
+  MetisProvider:
+    Type: "String"
+    Default: "aws"
+    Description: cloud provider in which the MMC is running
+    AllowedValues: ["aws", "gcp", "azure"]
+  MetisResource:
+    Type: "String"
+    Description: the resource name ex. rds, aurora, documentdb etc.
+    AllowedValues: ["rds"]
+  ProviderMetadata:
+    Type: "String"
+    Description: json schema string in the following convention {"instance_id":"","access_key_id":"","secret_access_key":"","region":""}
 Resources:
   ConnectionStringSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: !Join ['-', [metis-connection-strings, !Ref ClusterName]]
+      Name: !Join ["-", [metis-connection-strings, !Ref ClusterName]]
       Description: "This secret contains the connection string for Metis Production Metadata Collector (including usernames and passwords)."
       SecretString: !Ref ConnectionStrings
   MetisMDCollectorRole: # IAM role for the Fargate task, allowing it to get the docker image and write logs
@@ -64,18 +80,18 @@ Resources:
                   - "logs:PutLogEvents"
                   - "ec2:DescribeSubnets"
                 Resource: "*"
-  ConnectionStringSecretPolicy:  # Based on https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_examples.html
+  ConnectionStringSecretPolicy: # Based on https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_examples.html
     Type: AWS::SecretsManager::ResourcePolicy
     Properties:
       SecretId: !Ref ConnectionStringSecret
       ResourcePolicy:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
-        - Resource: "*"
-          Action: secretsmanager:GetSecretValue
-          Effect: Allow
-          Principal:
-            AWS: !GetAtt MetisMDCollectorRole.Arn
+          - Resource: "*"
+            Action: secretsmanager:GetSecretValue
+            Effect: Allow
+            Principal:
+              AWS: !GetAtt MetisMDCollectorRole.Arn
   MetisMDCollectorCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -106,17 +122,25 @@ Resources:
               Value: !Ref MetisAPIKey
             - Name: CONNECTION_STRINGS_SECRET
               Value: !Ref ConnectionStringSecret
+            - Name: METIS_ENVIRONMENT
+              Value: !Ref MetisEnvironment
+            - Name: METIS_PROVIDER
+              Value: !Ref MetisProvider
+            - Name: METIS_RESOURCE
+              Value: !Ref MetisResource
+            - Name: PROVIDER_METADATA
+              Value: !Ref ProviderMetadata
           LogConfiguration:
             LogDriver: awslogs
             Options:
-              awslogs-group: !Join ['', ['/ecs/', !Ref ClusterName]]
+              awslogs-group: !Join ["", ["/ecs/", !Ref ClusterName]]
               awslogs-region: !Ref "AWS::Region"
               awslogs-stream-prefix: ecs
               awslogs-create-group: true
-      Cpu: '256'
-      Memory: '512'
+      Cpu: "256"
+      Memory: "512"
       # The task definition's name is suffixed with the cluster name, to allow multiple tasks with different parameters (e.g. different VPCs)
-      Family: !Join ['-', [metis-md-collector, !Ref ClusterName]]
+      Family: !Join ["-", [metis-md-collector, !Ref ClusterName]]
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -161,11 +185,11 @@ Resources:
     Properties:
       Description: Triggers Metis metadata collector
       # The event's name is suffixed with the cluster name, to allow multiple tasks with different parameters (e.g. different VPCs)
-      Name: !Join ['-', [MetisMDTrigger, !Ref ClusterName]]
-      ScheduleExpression: 'rate(1 hour)'
+      Name: !Join ["-", [MetisMDTrigger, !Ref ClusterName]]
+      ScheduleExpression: "rate(1 hour)"
       State: ENABLED
       Targets:
-        - Id: '1'
+        - Id: "1"
           Arn: !GetAtt MetisMDCollectorCluster.Arn
           RoleArn: !GetAtt MetisMDCollectorTriggerRole.Arn
           EcsParameters:
