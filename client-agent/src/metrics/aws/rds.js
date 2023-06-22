@@ -1,7 +1,7 @@
 const aws = require('aws-sdk');
 const { createSubLogger } = require('../../logging');
 const logger = createSubLogger('AwsRdsResource');
-const { API_KEY } = require('../../consts');
+const { API_KEY, AWS_REGION: region, AWS_ACCESS_KEY_ID: access_key_id, AWS_SECRET_ACCESS_KEY: secret_access_key } = require('../../consts');
 
 class AwsRdsResource {
     #cloudwatch;
@@ -16,8 +16,7 @@ class AwsRdsResource {
         });
     }
 
-    constructor(providerMetadata, metrics) {
-        const { instance_id, access_key_id, secret_access_key, region } = providerMetadata;
+    constructor(instance_id, metrics) {
         if (!instance_id) {
             logger.error('instanceId is not provided');
             return;

@@ -1,5 +1,5 @@
 const Errors = require('../config/error');
-const { COLLECTOR_REQUEST_OPTIONS, METIS_ENVIRONMENT: metis_environment, METIS_PROVIDER: metis_provider, METIS_RESOURCE: metis_resource, PROVIDER_METADATA: provider_metadata = {} } = require('../consts');
+const { COLLECTOR_REQUEST_OPTIONS, METIS_ENVIRONMENT: metis_environment, PROVIDER_METADATA: provider_metadata = {} } = require('../consts');
 const { makeInternalHttpRequest } = require('../http');
 const { createSubLogger } = require('../logging');
 const { MetisEnvironment, CloudProvider, CloudResource } = require('../models');
@@ -28,41 +28,48 @@ class MetricController {
         const results = {};
 
         try {
-            let provider;
-
             if (metis_environment === MetisEnvironment.CLOUD) {
                 let metrics;
+                const promises = provider_metadata.map(async providerData => {
+                    return new Promise(async (res, rej) => {
+                        let provider;
+                        const { resource, instance_id, provider: cloudProvider } = providerData;
 
-                if (metis_provider === CloudProvider.AWS) {
-                    metrics = Object.keys(METRIC_PROVIDER_MAPPER).map(metric => ({ ...METRIC_PROVIDER_MAPPER?.[metric]?.[CloudProvider.AWS], measurement: metric }));
+                        if (cloudProvider === CloudProvider.AWS) {
+                            metrics = Object.keys(METRIC_PROVIDER_MAPPER).map(metric => ({ ...METRIC_PROVIDER_MAPPER?.[metric]?.[CloudProvider.AWS], measurement: metric }));
 
-                    switch (metis_resource) {
-                        case CloudResource.RDS:
-                            provider = new AwsRdsResource(provider_metadata, metrics);
-                            break;
-                        default:
-                            throw Errors.NOT_SUPPORTED_METIS_RESOURCE;
-                    }
-                }
-                else {
-                    throw Errors.NOT_SUPPORTED_METIS_CLOUD_PROVIDER;
-                }
+                            switch (resource) {
+                                case CloudResource.RDS:
+                                    provider = new AwsRdsResource(instance_id, metrics);
+                                    break;
+                                default:
+                                    throw Errors.NOT_SUPPORTED_METIS_RESOURCE;
+                            }
+                        }
+                        else {
+                            throw Errors.NOT_SUPPORTED_METIS_CLOUD_PROVIDER;
+                        }
+
+                        if (provider) {
+                            logger.debug('collectMetrics - calling provider.collect');
+                            const data = await provider.collect(dbConfigs);
+                            logger.debug('collectMetrics - calling provider.normalize');
+                            const normalizedData = provider.normalize(data);
+                            return res(normalizedData);
+                        }
+                        else {
+                            logger.error('collectMetrics - unsupported provider');
+                            return rej(Errors.COULDNT_COLLECT_METRICS);
+                        }
+                    });
+                });
+                const res = await Promise.allSettled(promises);
+                results.results = res.map(prom => prom.status === 'fulfilled' ? prom.value : [])?.flat(Infinity);
+                results.success = true;
             }
             else {
                 throw Errors.NOT_SUPPORTED_METIS_ENVIRONMENT;
             }
-
-            if (provider) {
-                logger.debug('collectMetrics - calling provider.collect');
-                const data = await provider.collect(dbConfigs);
-                logger.debug('collectMetrics - calling provider.normalize');
-                const normalizedData = provider.normalize(data);
-                results.results = normalizedData;
-            }
-            else {
-                throw Errors.COULDNT_COLLECT_METRICS;
-            }
-            results.success = true;
         }
         catch (e) {
             logger.error('collectMetrics - error: ', e);
@@ -86,7 +93,7 @@ class MetricController {
                 const { results: data } = results;
                 logger.debug('runner - calling sendData data: ', data);
                 await this.#sendData(data);
-                logger.error('runner - end');
+                logger.info('runner - end');
                 return;
             }
             else {
@@ -100,6 +107,5 @@ class MetricController {
 }
 
 const metricController = new MetricController();
-
 
 module.exports = metricController.runner.bind(metricController);
