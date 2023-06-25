@@ -28,6 +28,22 @@ Parameters:
     ConstraintDescription: Connection strings cannot contain spaces.
     MinLength: '1'
     NoEcho: true
+  MetisEnvironment:
+    Type : "String"
+    Description: environment in which the MMC is running
+    AllowedValues : ["cloud", "prem"]
+  AwsAccessKeyId:
+    Type : "String"
+    Description: aws access key id
+  AwsSecretAccessKey:
+    Type : "String"
+    Description: aws secret access key
+  AwsRegion:
+    Type : "String"
+    Description: aws region
+  ProviderMetadata:
+    Type : "String"
+    Description: json string format of array of objects in the following convention '[{"resource":"","instance_id":"","provider":""}]'
 Resources:
   ConnectionStringSecret:
     Type: AWS::SecretsManager::Secret
@@ -106,6 +122,16 @@ Resources:
               Value: !Ref MetisAPIKey
             - Name: CONNECTION_STRINGS_SECRET
               Value: !Ref ConnectionStringSecret
+            - Name: METIS_ENVIRONMENT
+              Value: !Ref MetisEnvironment
+            - Name: AWS_ACCESS_KEY_ID
+              Value: !Ref AwsAccessKeyId
+            - Name: AWS_SECRET_ACCESS_KEY
+              Value: !Ref AwsSecretAccessKey
+            - Name: AWS_REGION
+              Value: !Ref AwsRegion
+            - Name: PROVIDER_METADATA
+              Value: !Ref ProviderMetadata
           LogConfiguration:
             LogDriver: awslogs
             Options:

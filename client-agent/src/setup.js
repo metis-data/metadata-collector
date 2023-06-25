@@ -3,6 +3,7 @@ const {
   API_KEY,
 } = require('./consts');
 const { getConnectionStrings } = require('./secret');
+const Errors = require('./config/error');
 
 function exit(msg, code) {
   loggerExit(msg);
@@ -13,7 +14,6 @@ function exit(msg, code) {
 
 async function setup() {
   await loggingSetup();
-
   process.on('uncaughtException', (error, source) => {
     try {
       logger.error('uncaughtException', { error, source });
@@ -42,12 +42,12 @@ async function setup() {
       [API_KEY, 'API Key'],
       [DB_CONNECTION_STRINGS, 'Conenction string'],
     ];
-  
+
     const wrong = requiredEnvironmentVariables.find((x) => !x[0]);
     if (wrong) {
       throw new Error(`Could not setup MMC as expected, ${wrong[1]} is not defined.`);
     }
-    
+
   } catch (err) {
     logger.error('Exiting...', err);
     process.exit(1);
