@@ -1,5 +1,5 @@
 const Errors = require('../config/error');
-const { METIS_ENVIRONMENT, PROVIDER_METADATA } = require('../consts');
+const { METIS_ENVIRONMENT, METIS_PROVIDER_METADATA } = require('../consts');
 const { createSubLogger } = require('../logging');
 const { MetisEnvironment, CloudProvider } = require('../models');
 const AwsProvider = require('../providers/aws-provider');
@@ -15,7 +15,7 @@ async function run() {
         logger.info('run - start');
         if (METIS_ENVIRONMENT === MetisEnvironment.CLOUD) {
             let provider;
-            const data = PROVIDER_METADATA?.map((providerData) => {
+            const data = METIS_PROVIDER_METADATA?.map((providerData) => {
                 const { instance_id, provider: cloudProvider } = providerData;
                 switch (cloudProvider) {
                     case CloudProvider.AWS:

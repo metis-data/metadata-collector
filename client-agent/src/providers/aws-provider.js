@@ -1,5 +1,5 @@
 const aws = require('aws-sdk');
-const { AWS_REGION, AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID } = require('../consts');
+const { METIS_AWS_REGION, METIS_AWS_SECRET_ACCESS_KEY, METIS_AWS_ACCESS_KEY_ID } = require('../consts');
 const { createSubLogger } = require('../logging');
 
 const logger = createSubLogger('AwsProvider');
@@ -8,23 +8,23 @@ class AwsProvider {
     _aws = aws;
 
     constructor() {
-        if (!AWS_REGION) {
-            logger.error('AWS_REGION is not provided');
+        if (!METIS_AWS_REGION) {
+            logger.error('METIS_AWS_REGION is not provided');
             return;
         }
-        else if (!AWS_SECRET_ACCESS_KEY) {
-            logger.error('AWS_SECRET_ACCESS_KEY is not provided');
+        else if (!METIS_AWS_SECRET_ACCESS_KEY) {
+            logger.error('METIS_AWS_SECRET_ACCESS_KEY is not provided');
             return;
         }
-        else if (!AWS_ACCESS_KEY_ID) {
-            logger.error('AWS_ACCESS_KEY_ID is not provided');
+        else if (!METIS_AWS_ACCESS_KEY_ID) {
+            logger.error('METIS_AWS_ACCESS_KEY_ID is not provided');
             return;
         }
         else {
             this._aws.config.update({
-                region: AWS_REGION, credentials: {
-                    secretAccessKey: AWS_SECRET_ACCESS_KEY,
-                    accessKeyId: AWS_ACCESS_KEY_ID
+                region: METIS_AWS_REGION, credentials: {
+                    secretAccessKey: METIS_AWS_SECRET_ACCESS_KEY,
+                    accessKeyId: METIS_AWS_ACCESS_KEY_ID
                 }
             })
         }

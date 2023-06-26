@@ -1,5 +1,5 @@
 const Errors = require('../config/error');
-const { COLLECTOR_REQUEST_OPTIONS, METIS_ENVIRONMENT: metis_environment, PROVIDER_METADATA: provider_metadata = {} } = require('../consts');
+const { COLLECTOR_REQUEST_OPTIONS, METIS_ENVIRONMENT: metis_environment, METIS_PROVIDER_METADATA: provider_metadata = {} } = require('../consts');
 const { makeInternalHttpRequest } = require('../http');
 const { createSubLogger } = require('../logging');
 const { MetisEnvironment, CloudProvider, CloudResource } = require('../models');

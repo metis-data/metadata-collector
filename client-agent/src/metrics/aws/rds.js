@@ -1,7 +1,7 @@
 const aws = require('aws-sdk');
 const { createSubLogger } = require('../../logging');
 const logger = createSubLogger('AwsRdsResource');
-const { API_KEY, AWS_REGION: region, AWS_ACCESS_KEY_ID: access_key_id, AWS_SECRET_ACCESS_KEY: secret_access_key } = require('../../consts');
+const { API_KEY, METIS_AWS_REGION: region, METIS_AWS_ACCESS_KEY_ID: access_key_id, METIS_AWS_SECRET_ACCESS_KEY: secret_access_key } = require('../../consts');
 
 class AwsRdsResource {
     #cloudwatch;
