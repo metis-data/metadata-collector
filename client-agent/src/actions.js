@@ -10,6 +10,7 @@ const { schemaAction } = require('./actions/schema');
 const { availableExtensions } = require('./actions/available_extensions');
 const { connectionsMetric } = require('./actions/connections_metric');
 const { planCollector } = require('./actions/plan_collector');
+const { dbHostDetails } = require('./actions/db_host_details');
 const { pgConfig } = require('./actions/pg_config');
 const ExportersProviderConfig = require('./models').ExportersProviderConfig;
 const { ACTIONS_FILE } = require('./consts');
@@ -26,6 +27,7 @@ const ACTIONS_FUNCS = {
   pg_config: pgConfig,
   connections_metric: connectionsMetric,
   plan_collector: planCollector,
+  db_host_details: dbHostDetails,
 };
 
 const ACTIONS_DEF = mergeDeep(ACTIONS_YAML, ACTIONS_FUNCS);

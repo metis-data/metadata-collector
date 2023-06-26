@@ -97,11 +97,12 @@ class MetricController {
                 return;
             }
             else {
-                throw results.description;
+                throw new Error(results.description);
             }
         }
         catch (e) {
             logger.error('runner - error: ', e);
+            throw e;
         }
     }
 }
