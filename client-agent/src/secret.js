@@ -1,5 +1,8 @@
 
 let DB_CONNECTION_STRINGS = null;
+const { createSubLogger } = require('./logging');
+const logger = createSubLogger('secret');
+const { AWS_REGION: region } = require('./consts')
 
 async function getConnectionStrings() {
   // The DB_CONNECTION_STRINGS is a semi-colon separated database connection strings. E.g.,
@@ -9,17 +12,16 @@ async function getConnectionStrings() {
     return DB_CONNECTION_STRINGS;
   }
   try{
-    const { AWS_REGION } = process.env;
     const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
 
-    const secretsManager = new SecretsManagerClient({ region: AWS_REGION });
+    const secretsManager = new SecretsManagerClient({ region });
 
     const params = { SecretId: process.env.CONNECTION_STRINGS_SECRET };
     const command = new GetSecretValueCommand(params);
     const data = await secretsManager.send(command);
     DB_CONNECTION_STRINGS = data.SecretString;
   } catch(error){
-
+    logger.error('Couldnt fetch secrets', error);
   }
   return DB_CONNECTION_STRINGS;
 }

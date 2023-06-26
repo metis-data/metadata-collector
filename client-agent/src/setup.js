@@ -36,7 +36,9 @@ async function setup() {
   });
 
   try {
-    DB_CONNECTION_STRINGS = await getConnectionStrings();
+    const DB_CONNECTION_STRINGS = await getConnectionStrings();
+
+    logger.debug(`Connection String: `, DB_CONNECTION_STRINGS);
 
     const requiredEnvironmentVariables = [
       [API_KEY, 'API Key'],
