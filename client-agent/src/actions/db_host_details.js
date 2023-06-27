@@ -1,5 +1,6 @@
 const Errors = require('../config/error');
 const { METIS_ENVIRONMENT, METIS_PROVIDER_METADATA } = require('../consts');
+const { makeInternalHttpRequest } = require('../http');
 const { createSubLogger } = require('../logging');
 const { MetisEnvironment, CloudProvider } = require('../models');
 const AwsProvider = require('../providers/aws-provider');
@@ -7,7 +8,8 @@ const AwsProvider = require('../providers/aws-provider');
 const logger = createSubLogger('dbHostDetails');
 
 async function sendResults({ payload, options }) {
-    return;
+    logger.debug('sendResults - calling makeInternalHttpRequest: ', payload, options);
+    return makeInternalHttpRequest(payload, options);
 }
 
 async function run() {
