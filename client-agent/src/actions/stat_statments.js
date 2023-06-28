@@ -6,10 +6,10 @@ const { makeInternalHttpRequest } = require('../http');
 
 function extractTablesInvolved(ast) {
   return [
-    ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause.length > 0
+    ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause?.length > 0
       ? ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause.map(
-          (el) => el?.RangeVar?.relname,
-        )
+        (el) => el?.RangeVar?.relname,
+      )
       : null,
     ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr?.larg?.JoinExpr?.larg?.RangeVar
       ?.relname,

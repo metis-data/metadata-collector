@@ -10,6 +10,7 @@ const { schemaAction } = require('./actions/schema');
 const { availableExtensions } = require('./actions/available_extensions');
 const { connectionsMetric } = require('./actions/connections_metric');
 const { planCollector } = require('./actions/plan_collector');
+const { dbHostDetails } = require('./actions/db_host_details');
 const { databaseSize } = require('./actions/database_size');
 const { pgConfig } = require('./actions/pg_config');
 const ExportersProviderConfig = require('./models').ExportersProviderConfig;
@@ -27,6 +28,7 @@ const ACTIONS_FUNCS = {
   pg_config: pgConfig,
   connections_metric: connectionsMetric,
   plan_collector: planCollector,
+  db_host_details: dbHostDetails,
   database_size: databaseSize,
 };
 

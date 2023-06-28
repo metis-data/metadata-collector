@@ -34,6 +34,11 @@ plan_collector:
     provider: collector
     url: /
   times_a_day: 24
+db_host_details:
+  name: db_host_details
+  exporter:
+    provider: app
+    url: /api/pmc/db-host-details
 database_size:
   name: database_size
   exporter:
