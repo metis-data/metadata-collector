@@ -11,6 +11,7 @@ const { availableExtensions } = require('./actions/available_extensions');
 const { connectionsMetric } = require('./actions/connections_metric');
 const { planCollector } = require('./actions/plan_collector');
 const { dbHostDetails } = require('./actions/db_host_details');
+const { databaseSize } = require('./actions/database_size');
 const { pgConfig } = require('./actions/pg_config');
 const ExportersProviderConfig = require('./models').ExportersProviderConfig;
 const { ACTIONS_FILE } = require('./consts');
@@ -28,6 +29,7 @@ const ACTIONS_FUNCS = {
   connections_metric: connectionsMetric,
   plan_collector: planCollector,
   db_host_details: dbHostDetails,
+  database_size: databaseSize,
 };
 
 const ACTIONS_DEF = mergeDeep(ACTIONS_YAML, ACTIONS_FUNCS);
@@ -169,7 +171,7 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
         }
       });
     });
-  } catch (error) {}
+  } catch (error) { }
 }
 
 module.exports = {
