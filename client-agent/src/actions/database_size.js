@@ -25,7 +25,7 @@ WHERE datistemplate = false;
 
 function shapeData(data, dbConfig) {
     const results = [];
-    const { database: db, host } = dbConfig;
+    const { database: db, host, port } = dbConfig;
     const timestamp = new Date().getTime() * 1000000;
 
     data.forEach((row) => {
@@ -34,7 +34,7 @@ function shapeData(data, dbConfig) {
             value: database_size,
             metricName: 'DATABASE_SIZE',
             timestamp,
-            tags: { db, host, oid, database_name, database_size_pretty }
+            tags: { db, host, oid, port,database_name, database_size_pretty }
         });
     });
     logger.debug('shapeData - results: ', results);
