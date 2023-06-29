@@ -19,6 +19,7 @@ async function fetchData(dbConfig, client) {
     return rows;
   } catch (e) {
     logger.error('fetchData - error: ', e);
+    throw e;
   }
 }
 
