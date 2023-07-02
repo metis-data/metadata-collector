@@ -7,7 +7,7 @@ const { makeInternalHttpRequest } = require('../http');
 function extractTablesInvolved(ast) {
   return [
     ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause?.length > 0
-      ? ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause.map(
+      ? ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause?.map(
         (el) => el?.RangeVar?.relname,
       )
       : null,
@@ -19,7 +19,7 @@ function extractTablesInvolved(ast) {
     ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.RangeVar?.relname,
     ast?.RawStmt?.stmt?.InsertStmt?.relation?.relname,
     ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.length > 0
-      ? ast?.RawStmt?.stmt?.SelectStmt?.fromClause.map((el) => el?.RangeVar?.relname)
+      ? ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.map((el) => el?.RangeVar?.relname)
       : null,
   ]
     .flat(Infinity)
