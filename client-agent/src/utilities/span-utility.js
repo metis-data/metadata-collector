@@ -8,7 +8,7 @@ function getResource() {
         return resource;
     }
 
-    const vendor = "nodejs";
+    const vendor = "pg_store_plans";
 
     // get host name
     let hostName = vendor;
