@@ -20,6 +20,7 @@ WHERE datistemplate = false;
         return rows;
     } catch (e) {
         logger.error('fetchData - error: ', e);
+        throw e;
     }
 }
 
@@ -34,7 +35,7 @@ function shapeData(data, dbConfig) {
             value: database_size,
             metricName: 'DATABASE_SIZE',
             timestamp,
-            tags: { db, host, oid, port,database_name, database_size_pretty }
+            tags: { db, host, oid, port, database_name, database_size_pretty }
         });
     });
     logger.debug('shapeData - results: ', results);
