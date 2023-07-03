@@ -76,7 +76,7 @@ class AwsRdsResource {
     normalize(data) {
         const results = data.map(el => {
             const { Datapoints, Label, db, host, apiKey, measurement } = el;
-            const _data = Datapoints.map(el => {
+            const _data = Datapoints?.map(el => {
                 const { Average, Timestamp, Unit } = el;
                 const tags = {
                     unit: Unit,
