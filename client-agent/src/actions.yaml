@@ -46,3 +46,9 @@ database_size:
     provider: collector
     url: /md-collector
   times_a_day: 24
+pg_database_metrics:
+  name: pg_database_metrics
+  exporter:
+    provider: collector
+    url: /md-collector
+  times_a_day: 24
