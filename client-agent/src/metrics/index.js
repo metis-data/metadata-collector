@@ -24,7 +24,7 @@ class MetricController {
       logger.info('sendData - end');
       return res;
     } catch (e) {
-      logger.error('sendData - error: ', e);
+      logger.error('sendData - error', e);
       throw e;
     }
   }
@@ -79,11 +79,11 @@ class MetricController {
         throw new Error(Errors.NOT_SUPPORTED_METIS_ENVIRONMENT);
       }
     } catch (e) {
-      logger.error('collectMetrics - error: ', e);
+      logger.error('collectMetrics - error', e);
       results.success = false;
       results.error = e;
     } finally {
-      logger.debug('collectMetrics - results: ', results);
+      logger.debug('collectMetrics - results ', results);
       logger.info('collectMetrics - end');
       return results;
     }
@@ -93,13 +93,13 @@ class MetricController {
     logger.info('runner - start');
     logger.debug('runner - calling collectMetrics');
     const results = await this.#collectMetrics(connections);
-    logger.debug('runner - collectMetrics results: ', results);
+    logger.debug('runner - collectMetrics results', results);
     if (results.success) {
       const { results: data } = results;
       if (Array.isArray(data) && data.length === 0) {
         logger.warn('runner - sucessfuly end with no results!', connections);
       } else {
-        logger.debug('runner - calling sendData data: ', data);
+        logger.debug('runner - calling sendData data', data);
         await this.#sendData(data);
         logger.info('runner - end');
         return;

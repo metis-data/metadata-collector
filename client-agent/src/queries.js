@@ -41,7 +41,7 @@ async function collectQueries(fakeHoursDelta, connections) {
     return;
   }
   const bigQuery = theQueries.map((q) => q.query).join('; ');
-  await Promise.allSettled(
+  return await Promise.allSettled(
     connections.map(
       // PostgresDatabase class
       async (connection) => {
@@ -49,7 +49,6 @@ async function collectQueries(fakeHoursDelta, connections) {
           const dbConfigKey = JSON.stringify(connection.dbConfig);
           if (!(dbConfigKey in results)) {
             for await (const client of connection.clientGenerator()) {
-              logger.info(`Got client from provider for: ${JSON.stringify(connection.dbConfig)}`);
               const res = await client.query(bigQuery);
               results[dbConfigKey] = theQueries.length === 1 ? [res] : res;
               const now = new Date();

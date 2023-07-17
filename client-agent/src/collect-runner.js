@@ -11,19 +11,17 @@ const { isHostedOnAws } = require('./utilities/environment-utility');
 (async () => {
   try {
     const hostedOnAws = await isHostedOnAws();
-      await app(false);
-
-    // if (!hostedOnAws) {
-    //   const cron = require('node-cron');
-    //   cron.schedule(CRON_LOCAL_RUNNING_EXP, async () => {
-    //     await app(hostedOnAws);
-    //   }, {
-    //     runOnInit: true
-    //   });
-    // }
-    // else {
-    //   await app(hostedOnAws);
-    // }
+    if (!hostedOnAws) {
+      const cron = require('node-cron');
+      cron.schedule(CRON_LOCAL_RUNNING_EXP, async () => {
+        await app(hostedOnAws);
+      }, {
+        runOnInit: true
+      });
+    }
+    else {
+      await app(hostedOnAws);
+    }
     wtf.dump();
   }
   catch (e) {
@@ -34,18 +32,16 @@ const { isHostedOnAws } = require('./utilities/environment-utility');
 
 async function app(hostedOnAws) {
   return setup()
-    .then((connections)=>{
-      return run(0, connections)
-    })
-    .catch((e) => logger.error('Runner has failed', e))
-    .finally(() => {
-
+    .then(async (connections) => run(0, connections))
+    .then(() => {
       if (isDebug()) {
         wtf.dump();
       }
 
-      // if (hostedOnAws) {
-      //   process.exit(0);
-      // }
-    });
+      if (hostedOnAws) {
+        process.exit(0);
+      }
+    })
+    .catch((e) => logger.error('Runner has failed', e))
+    ;
 }

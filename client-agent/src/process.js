@@ -29,11 +29,7 @@ async function processRows(databaseConnection, rows, timestamp, fake) {
       metricsData.push(r);
     });
   });
-  return await makeInternalHttpRequest(metricsData, { ...HTTPS_REQUEST_OPTIONS, headers: {
-      ...(HTTPS_REQUEST_OPTIONS.headers || {}),
-      "x-api-version": 'v1'
-    }
-  });
+  return await makeInternalHttpRequest(metricsData, HTTPS_REQUEST_OPTIONS);
 }
 
 async function processResults(connection, results, timestamp, fake) {

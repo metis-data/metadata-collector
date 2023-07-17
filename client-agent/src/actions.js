@@ -163,6 +163,8 @@ async function collectActions(fakeHoursDelta, connections) {
         }
       });
     });
+
+    return { actionsData, requestResults };
   } catch (error) {}
 }
 

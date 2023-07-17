@@ -75,7 +75,7 @@ const HTTPS_REQUEST_OPTIONS = {
   port: API_GATEWAY_PORT,
   path: API_GATEWAY_PATH,
   method: 'POST',
-  headers: { 'x-api-key': API_KEY },
+  headers: { 'x-api-key': API_KEY, 'x-api-version': 'v1' },
   timeout: HTTPS_TIMEOUT,
 };
 

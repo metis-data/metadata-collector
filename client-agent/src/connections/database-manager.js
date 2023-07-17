@@ -48,9 +48,9 @@ class PostgresDatabase extends Database {
 
   async connect() {
     try {
-      logger.debug(`Trying to connect to ${this.database} ...`);
+      logger.debug(`Trying to connect to ${JSON.stringify(this)} ...`);
       const client = await this.pool.connect();
-      logger.debug(`connected to ${this.database}`);
+      logger.debug(`connected to ${JSON.stringify(this)}`);
       return client;
     } catch (error) {
       logger.error('Error connecting to PostgreSQL:', error);

@@ -123,20 +123,23 @@ class AwsRdsResource {
       const results = await Promise.allSettled(
         connections.map(async (connection) => {
           // PostgresDatabase class
-          const { database: db, host } = connection.dbConfig;
+          const { database: db, host, port } = connection.dbConfig;
           const query = this.#fetch();
           const promiseArr = await Promise.allSettled(query);
           return promiseArr.map((el) => {
             if (el.status === 'rejected') {
               throw el.reason;
             } else {
-              return { ...el.value, db, host, apiKey: API_KEY };
+              return { ...el.value, db, host, port, apiKey: API_KEY };
             }
           });
         }),
       );
       // TODO: all rejected fetch items should be logged!
-      const data = results.filter((prom) => prom.status === 'fulfilled').map((prom) => prom.value);
+      const data = results
+        ?.filter((prom) => prom.status === 'fulfilled')
+        .map((prom) => prom.value)
+        .flat(Infinity);
       logger.debug('collect - data: ', data);
       logger.info('collect - end');
       return data;
