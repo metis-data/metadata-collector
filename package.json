@@ -1,9 +1,11 @@
 {
   "devDependencies": {
     "eslint": "^8.17.0",
-    "eslint-config-airbnb": "^19.0.4"
+    "eslint-config-airbnb": "^19.0.4",
+    "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@metis-data/slow-query-log": "^0.0.3",
     "connection-string-parser": "^1.0.4",
     "node-sql-parser": "^4.6.6"
   }
