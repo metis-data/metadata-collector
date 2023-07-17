@@ -100,9 +100,9 @@ class MetricController {
         logger.warn('runner - sucessfuly end with no results!', connections);
       } else {
         logger.debug('runner - calling sendData data', data);
-        await this.#sendData(data);
+        const response = await this.#sendData(data);
         logger.info('runner - end');
-        return;
+        return response;
       }
     } else {
       throw results?.error || new Error('Couldnt collect metrics from provider');

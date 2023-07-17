@@ -14,9 +14,7 @@ const DatabaseConnectionsManager = require('./connections/database-manager');
 const collectRunnerAsync = async (fakeHoursDelta, connections, additionalCollectors) => {
   // eslint-disable-next-line max-len
   const collectingActionPromises = [collectQueries, collectActions, collectMetrics, ...(additionalCollectors||[])].map(
-    (collectFn) => {
-      collectFn(fakeHoursDelta, connections).catch((e) => logger.error("Couldn't run collect runner.", e));
-    },
+    (collectFn) => collectFn(fakeHoursDelta, connections).catch((e) => logger.error("Couldn't run collect runner.", e)),
   );
 
   return await Promise.allSettled(collectingActionPromises);

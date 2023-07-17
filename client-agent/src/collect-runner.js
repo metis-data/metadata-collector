@@ -22,7 +22,6 @@ const { isHostedOnAws } = require('./utilities/environment-utility');
     else {
       await app(hostedOnAws);
     }
-    wtf.dump();
   }
   catch (e) {
     logger.error('error: ', e);
@@ -32,7 +31,11 @@ const { isHostedOnAws } = require('./utilities/environment-utility');
 
 async function app(hostedOnAws) {
   return setup()
-    .then(async (connections) => run(0, connections))
+    .then(async (connections) => {
+      const response = await run(0, connections);
+      await connections.closeAllConnections();
+      return response;
+    })
     .then(() => {
       if (isDebug()) {
         wtf.dump();

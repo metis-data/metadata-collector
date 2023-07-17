@@ -83,7 +83,7 @@ class PostgresDatabase extends Database {
   async close() {
     try {
       await this.poolEndFnAsync();
-      logger.info('Pool has been closed.');
+      logger.debug('Pool has been closed.');
     } catch (error) {
       logger.error('Error closing pool:', error);
     }
@@ -137,7 +137,7 @@ class DatabaseConnectionsManager {
 
   async closeAllConnections() {
     const result = await Promise.allSettled(
-      this.connections.values().map(async (databaseManager) => await databaseManager.close()),
+      this.getDatabases().map(async (databaseManager) => await databaseManager.close()),
       // todo: log if some of the connection couldnt be close
     );
     this.connections.clear();

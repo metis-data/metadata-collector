@@ -24,10 +24,16 @@ function getQueries(fakeHoursDelta) {
       .map((key) => QUERIES[key]);
   }
   const qs = [];
-  process.argv.slice(2).forEach((q) => { if (q in QUERIES) { qs.push(QUERIES[q]); } });
+  process.argv.slice(2).forEach((q) => {
+    if (q in QUERIES) {
+      qs.push(QUERIES[q]);
+    }
+  });
   if (qs.length < process.argv.length - 2) {
     const nonEligableQueries = process.argv.slice(2).filter((q) => !(q in QUERIES));
-    throw Error(`Error running the CLI. The following are not eligible queries: ${nonEligableQueries}`);
+    throw Error(
+      `Error running the CLI. The following are not eligible queries: ${nonEligableQueries}`,
+    );
   }
   return qs;
 }
@@ -41,7 +47,7 @@ async function collectQueries(fakeHoursDelta, connections) {
     return;
   }
   const bigQuery = theQueries.map((q) => q.query).join('; ');
-  return await Promise.allSettled(
+  const responses = await Promise.allSettled(
     connections.map(
       // PostgresDatabase class
       async (connection) => {
@@ -53,13 +59,19 @@ async function collectQueries(fakeHoursDelta, connections) {
               results[dbConfigKey] = theQueries.length === 1 ? [res] : res;
               const now = new Date();
               now.setHours(now.getHours() - fakeHoursDelta);
-              const response = await processResults(connection, results[dbConfigKey], now.getTime(), fakeHoursDelta !== 0);
-              logger.info('Processing results done.', {response, dbConfig: connection.dbConfig});
+              const response = await processResults(
+                connection,
+                results[dbConfigKey],
+                now.getTime(),
+                fakeHoursDelta !== 0,
+              );
+              logger.info('Processing results done.', { response, dbConfig: connection.dbConfig });
+              return response;
             }
           }
         } catch (error) {
-          const { password, ...dbDetails }= connections;
-          logger.error('Couldn\'t run queries', error, dbDetails);
+          const { password, ...dbDetails } = connections;
+          logger.error("Couldn't run queries", error, dbDetails);
           throw error;
         }
       },
@@ -67,6 +79,10 @@ async function collectQueries(fakeHoursDelta, connections) {
   );
 
   logger.info('Collection is done.');
+
+  return responses
+    .map((responsePromise) => (responsePromise.status === 'fulfilled' ? responsePromise.value : []))
+    ?.flat(Infinity);
 }
 
 module.exports = {

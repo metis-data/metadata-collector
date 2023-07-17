@@ -24,7 +24,6 @@ FROM pg_stat_database;
         `;
 
         const { rows } = await client.query(qry);
-        logger.debug('fetchData - data: ', rows);
         return rows;
     } catch (e) {
         logger.error('fetchData - error: ', e);
@@ -52,7 +51,6 @@ function shapeData(data, dbConfig) {
         });
     });
 
-    logger.debug('shapeData - results: ', results);
     return results;
 }
 

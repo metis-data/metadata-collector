@@ -88,7 +88,7 @@ async function collectActions(fakeHoursDelta, connections) {
             logger.error(`Action '${action.name}' failed to run`, err);
           }
           const acc = await result;
-          logger.info(`Action ${action.name} has been finished successfuly`);
+          logger.debug(`Action ${action.name} has been finished successfuly`);
           return {
             ...acc,
             actions: {
@@ -164,7 +164,12 @@ async function collectActions(fakeHoursDelta, connections) {
       });
     });
 
-    return { actionsData, requestResults };
+    return {
+      actionsData,
+      requestResults: requestResults
+        .map((prom) => (prom.status === 'fulfilled' ? prom.value : []))
+        ?.flat(Infinity),
+    };
   } catch (error) {}
 }
 
