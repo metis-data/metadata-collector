@@ -61,73 +61,58 @@ function getActions(fakeHoursDelta) {
   return actions;
 }
 
-async function collectActions(fakeHoursDelta, dbConfigs) {
+async function collectActions(fakeHoursDelta, connections) {
   const theActions = getActions(fakeHoursDelta);
   if (!theActions.length) return;
   const actionsData = await Promise.all(
-    dbConfigs.map(async (dbConfig) => {
-      let client;
-      try {
-        client = new pg.Client(dbConfig);
-        logger.debug(`Trying to connect to ${dbConfig.database} ...`);
-
-        await client.connect();
-
-        logger.debug(`connected to ${dbConfig.database}`);
-
-        const results = await theActions.reduce(
-          async (result, action) => {
-            logger.info(`Running action ${action.name}`);
-            const schemaResult = {
-              exporter: action.exporter,
-              success: true,
-              data: undefined,
-              error: undefined,
-            };
-            try {
-              const actionResult = await action.fn({ dbConfig, client });
+    // PostgresDatabase class
+    connections.map(async (connection) => {
+      const results = await theActions.reduce(
+        async (result, action) => {
+          logger.debug(`Running action ${action.name}`);
+          const schemaResult = {
+            actionName: action,
+            exporter: action.exporter,
+            success: true,
+            data: undefined,
+            error: undefined,
+          };
+          try {
+            for await (const client of connection.clientGenerator()) {
+              const actionResult = await action.fn({ dbConfig: connection.dbConfig, client });
               schemaResult.data = actionResult;
-            } catch (err) {
-              schemaResult.success = false;
-              schemaResult.error = err;
-              logger.error(`Action '${action.name}' failed to run`, err);
             }
-            const acc = await result;
-            logger.info(`Action ${action.name} has been finished successfuly`);
-            return {
-              ...acc,
-              actions: {
-                ...acc.actions,
-                [action.name]: schemaResult,
-              },
-              errors: {
-                ...acc.errors,
-                ...(schemaResult.error && {
-                  [action.name]: schemaResult.error,
-                }),
-              },
-            };
-          },
-          {
-            pmcDevice: {
-              db_name: dbConfig.database,
-              db_host: dbConfig.host,
-              port: dbConfig.port?.toString() ?? '5432',
-              rdbms: 'postgres',
-            },
-          },
-        );
-        return results;
-      } finally {
-        try {
-          if (client) {
-            await client.end();
-            logger.debug('connection has been closed.');
+          } catch (err) {
+            schemaResult.success = false;
+            schemaResult.error = err;
+            logger.error(`Action '${action.name}' failed to run`, err);
           }
-        } catch (e) {
-          logger.error('connection could not be closed: ', e);
-        }
-      }
+          const acc = await result;
+          logger.info(`Action ${action.name} has been finished successfuly`);
+          return {
+            ...acc,
+            actions: {
+              ...acc.actions,
+              [action.name]: schemaResult,
+            },
+            errors: {
+              ...acc.errors,
+              ...(schemaResult.error && {
+                [action.name]: schemaResult.error,
+              }),
+            },
+          };
+        },
+        {
+          pmcDevice: {
+            db_name: connection.database,
+            db_host: connection.host,
+            port: connection.port?.toString() ?? '5432',
+            rdbms: 'postgres',
+          },
+        },
+      );
+      return results;
     }),
   );
 
@@ -143,7 +128,7 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
         if (!exporter.provider) {
           throw new Error(`Unsupported exporter provider for action: ${action}`);
         } else {
-          return exporter.sendResults({
+          const exporterResult = await exporter.sendResults({
             action,
             payload: {
               pmcDevice,
@@ -156,6 +141,11 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
               path: exporter.url,
             },
           });
+
+          return {
+            actionName: action,
+            exporterResult,
+          };
         }
       });
 
@@ -167,13 +157,13 @@ async function collectActions(fakeHoursDelta, dbConfigs) {
     requestResults.forEach((db) => {
       db.forEach((actionSetteled) => {
         if (actionSetteled.status === 'rejected') {
-          logger.error('Action status', actionSetteled.reason);
+          logger.info('Action status for failed', actionSetteled.reason);
         } else {
-          logger.info('Action status', actionSetteled.value);
+          logger.info('Action status for fulfilled', actionSetteled.value);
         }
       });
     });
-  } catch (error) { }
+  } catch (error) {}
 }
 
 module.exports = {

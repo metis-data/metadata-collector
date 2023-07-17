@@ -2,8 +2,8 @@ const { loggingSetup, logger, loggerExit } = require('./logging');
 const {
   API_KEY,
 } = require('./consts');
-const { getConnectionStrings } = require('./secret');
-const Errors = require('./config/error');
+const { getConnectionConfigs, getConnectionStrings } = require('./connections/utils');
+const DatabaseConnectionsManager = require('./connections/database-manager');
 
 function exit(msg, code) {
   loggerExit(msg);
@@ -36,18 +36,26 @@ async function setup() {
   });
 
   try {
-    DB_CONNECTION_STRINGS = await getConnectionStrings();
+    const DB_CONNECTION_STRINGS = await getConnectionStrings();
 
     const requiredEnvironmentVariables = [
       [API_KEY, 'API Key'],
       [DB_CONNECTION_STRINGS, 'Conenction string'],
     ];
 
+    
     const wrong = requiredEnvironmentVariables.find((x) => !x[0]);
     if (wrong) {
-      throw new Error(`Could not setup MMC as expected, ${wrong[1]} is not defined.`);
+      throw new Error(`Could not setup MMC as expected, ${wrong[1]} is missing.`);
     }
 
+    const databaseConnectionsManager = await DatabaseConnectionsManager.create();
+    
+    if (databaseConnectionsManager.connections.size === 0) {
+      throw new Error(`Could not setup MMC as expected, database schema are worngֿ\n Value: ${DB_CONNECTION_STRINGS}`);
+    }
+
+    return databaseConnectionsManager;
   } catch (err) {
     logger.error('Exiting...', err);
     process.exit(1);
