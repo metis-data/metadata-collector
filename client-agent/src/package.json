@@ -4,6 +4,7 @@
   "description": "",
   "main": "collect-runner.js",
   "scripts": {
+    "debug": "node --inspect=0.0.0.0:9229 --max-old-space-size=2048 collect-runner.js",
     "start": "node --max-old-space-size=2048 collect-runner.js",
     "simulator": "node simulator.js 30 aBJYk0W2ZH5YTBW0smxrz41WLam2rfbw7lNVNmKW",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,9 +13,8 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.169.0",
-    "@metis-data/db-details": "2.5.3-beta.0",
+    "@metis-data/db-details": "2.6.1-beta.0",
     "@sentry/node": "^7.2.0",
-    "@types/amqplib": "^0.8.2",
     "aws-sdk": "^2.1415.0",
     "axios": "^1.3.4",
     "connection-string-parser": "^1.0.4",
@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@typescript-eslint/parser": "^5.52.0",
+    "@types/amqplib": "^0.8.2",
     "eslint": "^8.34.0",
     "prettier": "^2.8.4",
     "typescript": "^4.9.5"

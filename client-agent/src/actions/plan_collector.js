@@ -24,7 +24,6 @@ and last_call >= NOW() - interval '1h'
 
     this.logger.debug('fetchData - calling dbClient.query with: ', query);
     const [_, { rows }] = await client.query(query);
-    this.logger.debug('fetchData - rows: ', rows);
     return rows;
   }
 
@@ -40,7 +39,10 @@ and last_call >= NOW() - interval '1h'
     const { data = [] } = payload;
     const promises = [];
     for (let chuckedData of chuncker(data?.map((el) => JSON.stringify(el)))) {
-      this.logger.debug('transferData - calling makeInternalHttpRequest: ', { data, options });
+      this.logger.debug('transferData - calling makeInternalHttpRequest: ', {
+        chuckedData,
+        options,
+      });
       promises.push(makeInternalHttpRequest(chuckedData, options));
     }
     const results = await Promise.allSettled(promises);
@@ -58,8 +60,14 @@ and last_call >= NOW() - interval '1h'
   }
 
   async run({ dbConfig, client }) {
+    const query = `SELECT count(*) as counter FROM pg_extension WHERE extname = 'pg_store_plans';`;
+    const { rows } = await client.query(query);
+    if (rows[0].counter === '0') {
+      this.logger.info("pg_store_plans isn't installed");
+      return [];
+    }
     const rowsFetched = await this.fetchData({ dbConfig, client });
-    this.logger.debug('run - calling shapeData rowsFetched: ', rowsFetched);
+
     return this.shapeData({ dbConfig, client, data: rowsFetched });
   }
 }

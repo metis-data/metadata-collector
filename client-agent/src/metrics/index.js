@@ -14,19 +14,11 @@ const logger = createSubLogger('MetricController');
 
 class MetricController {
   async #sendData(data) {
-    try {
-      logger.info('sendData - start');
-      logger.debug('sendData - calling makeInternalHttpRequest', {
-        data,
-        COLLECTOR_REQUEST_OPTIONS,
-      });
-      const res = await makeInternalHttpRequest(data, COLLECTOR_REQUEST_OPTIONS);
-      logger.info('sendData - end');
-      return res;
-    } catch (e) {
-      logger.error('sendData - error', e);
-      throw e;
-    }
+    logger.debug('sendData - calling makeInternalHttpRequest', {
+      COLLECTOR_REQUEST_OPTIONS,
+    });
+    const res = await makeInternalHttpRequest(data, COLLECTOR_REQUEST_OPTIONS);
+    return res;
   }
 
   async #collectMetrics(connections) {
@@ -65,7 +57,6 @@ class MetricController {
               const normalizedData = provider.normalize(data);
               return res(normalizedData);
             } else {
-              logger.error('collectMetrics - unsupported provider');
               return rej(new Error(Errors.COULDNT_COLLECT_METRICS));
             }
           });
@@ -79,29 +70,22 @@ class MetricController {
         throw new Error(Errors.NOT_SUPPORTED_METIS_ENVIRONMENT);
       }
     } catch (e) {
-      logger.error('collectMetrics - error', e);
       results.success = false;
       results.error = e;
     } finally {
-      logger.debug('collectMetrics - results ', results);
       logger.info('collectMetrics - end');
       return results;
     }
   }
 
   async runner(_, connections) {
-    logger.info('runner - start');
-    logger.debug('runner - calling collectMetrics');
     const results = await this.#collectMetrics(connections);
-    logger.debug('runner - collectMetrics results', results);
     if (results.success) {
       const { results: data } = results;
       if (Array.isArray(data) && data.length === 0) {
         logger.warn('runner - sucessfuly end with no results!', connections);
       } else {
-        logger.debug('runner - calling sendData data', data);
         const response = await this.#sendData(data);
-        logger.info('runner - end');
         return response;
       }
     } else {

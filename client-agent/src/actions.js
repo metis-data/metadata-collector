@@ -85,7 +85,7 @@ async function collectActions(fakeHoursDelta, connections) {
           } catch (err) {
             schemaResult.success = false;
             schemaResult.error = err;
-            logger.error(`Action '${action.name}' failed to run`, err);
+            logger.error(`Action '${action.name}' failed to run`, { error: err });
           }
           const acc = await result;
           logger.debug(`Action ${action.name} has been finished successfuly`);
@@ -156,8 +156,10 @@ async function collectActions(fakeHoursDelta, connections) {
   try {
     requestResults.forEach((db) => {
       db.forEach((actionSetteled) => {
-        if (actionSetteled.status === 'rejected') {
-          logger.info('Action status for failed', actionSetteled.reason);
+        if (actionSetteled.status === 'rejected' || actionSetteled.value instanceof Error) {
+          logger.info('Action status for failed', {
+            error: actionSetteled?.reason || actionSetteled.value,
+          });
         } else {
           logger.info('Action status for fulfilled', actionSetteled.value);
         }

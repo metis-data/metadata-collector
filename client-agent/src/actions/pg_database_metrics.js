@@ -3,8 +3,7 @@ const { createSubLogger } = require('../logging');
 const logger = createSubLogger('pgDatabaseMetrics');
 
 async function fetchData(dbConfig, client) {
-    try {
-        const qry = `
+    const qry = `
         SELECT 
 	datid as dbid, 
   datname as db_name, 
@@ -23,12 +22,8 @@ async function fetchData(dbConfig, client) {
 FROM pg_stat_database;
         `;
 
-        const { rows } = await client.query(qry);
-        return rows;
-    } catch (e) {
-        logger.error('fetchData - error: ', e);
-        throw e;
-    }
+    const { rows } = await client.query(qry);
+    return rows;
 }
 
 function shapeData(data, dbConfig) {
@@ -57,14 +52,12 @@ function shapeData(data, dbConfig) {
 async function sendResults({ payload, options }) {
     const { data: _data } = payload;
     const data = _data.flat(Infinity);
-    logger.debug('sendResults - calling makeInternalHttpRequest: ', data, options);
     return makeInternalHttpRequest(data, options);
 }
 
 async function run({ dbConfig, client }) {
     logger.debug('run - calling fetchData with: ', dbConfig);
     const data = await fetchData(dbConfig, client);
-    logger.debug('run - calling shapeData with: ', { data, dbConfig });
     const results = shapeData(data, dbConfig);
     return results;
 }

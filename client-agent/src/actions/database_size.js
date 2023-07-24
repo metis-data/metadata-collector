@@ -4,7 +4,6 @@ const logger = createSubLogger('database_size');
 
 
 async function fetchData(dbConfig, client) {
-    try {
         const qry = `
         SELECT
  oid,
@@ -16,12 +15,7 @@ WHERE datistemplate = false;
         `;
 
         const { rows } = await client.query(qry);
-        logger.debug('fetchData - data: ', rows);
         return rows;
-    } catch (e) {
-        logger.error('fetchData - error: ', e);
-        throw e;
-    }
 }
 
 function shapeData(data, dbConfig) {
@@ -45,16 +39,15 @@ function shapeData(data, dbConfig) {
 async function sendResults({ payload, options }) {
     const { data: _data } = payload;
     const data = _data.flat(Infinity);
-    logger.debug('sendResults - calling makeInternalHttpRequest: ', data, options);
+    logger.debug('sendResults - calling makeInternalHttpRequest: ', { options });
     return makeInternalHttpRequest(data, options);
 }
 
 async function run({ dbConfig, client }) {
-    logger.debug('run - calling fetchData with: ', dbConfig);
+    logger.debug('run - calling fetchData');
     const data = await fetchData(dbConfig, client);
-    logger.debug('run - calling shapeData with: ', { data, dbConfig });
-    const results = shapeData(data, dbConfig);
-    return results;
+    logger.debug('run - calling shapeData');
+    return shapeData(data, dbConfig);
 }
 
 module.exports = {
