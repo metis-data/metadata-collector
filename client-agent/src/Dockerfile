@@ -2,11 +2,6 @@ FROM node:lts-alpine3.18
 
 RUN apk add --update gcc g++ make python3 bash git gcompat dumb-init
 WORKDIR /app
-COPY ["package.json", "package-lock.json*", ".npmrc", "./"]
-
-COPY .npmrc /app/.npmrc
-RUN npm ci --production --loglevel verbose 
-RUN rm .npmrc && unset NPM_TOKEN
 
 ARG DATADOG_API_KEY
 ARG SENTRY_DSN
@@ -20,6 +15,9 @@ RUN ["/bin/sh", "-c", ": ${SENTRY_DSN:?Build argument needs to be set and not nu
 ENV DATADOG_API_KEY=$DATADOG_API_KEY
 ENV SENTRY_DSN=$SENTRY_DSN
 
+COPY ["package.json", "package-lock.json*", ".npmrc", "./"]
+RUN npm ci --production --loglevel verbose 
+RUN rm .npmrc && unset NPM_TOKEN
 COPY . .
 
 ENTRYPOINT [ "dumb-init" ]
