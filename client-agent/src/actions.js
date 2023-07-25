@@ -157,11 +157,14 @@ async function collectActions(fakeHoursDelta, connections) {
     requestResults.forEach((db) => {
       db.forEach((actionSetteled) => {
         if (actionSetteled.status === 'rejected' || actionSetteled.value instanceof Error) {
-          logger.info('Action status for failed', {
+          logger.info('Action status is failed', {
             error: actionSetteled?.reason || actionSetteled.value,
           });
         } else {
-          logger.info('Action status for fulfilled', actionSetteled.value);
+          logger.info(
+            `Action status is fulfilled for ${actionSetteled.value.actionName}`,
+            actionSetteled.value,
+          );
         }
       });
     });

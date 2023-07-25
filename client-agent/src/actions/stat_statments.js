@@ -70,7 +70,19 @@ const action = async ({ dbConfig, client }) => {
   return sanitizedData;
 };
 
-const sendResults = async ({ payload, options }) => makeInternalHttpRequest(payload, options, 0);
+const sendResults = async ({ payload, options }) => {
+  if (error) {
+    logger.warn('Stats statements sending data when there is an error for action');
+    return;
+  }
+
+  if (!Array.isArray(payload) && payload.length > 0) {
+    logger.warn('Stats statments has empty result');
+    return;
+  }
+
+  return makeInternalHttpRequest(payload, options, 0);
+};
 
 module.exports = {
   statStatmentsAction: {

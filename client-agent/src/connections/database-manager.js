@@ -6,17 +6,17 @@ const logger = createSubLogger('database-manager');
 
 class Database {
   constructor(connectionString) {
-    this.connectionString = connectionString;
+    this.connectionString = this._addApplicationName(connectionString);
   }
 
-  static addApplicationName(connectionString) {
+  _addApplicationName(connectionString) {
     const parsedConnectionString = new URL(connectionString);
     parsedConnectionString.searchParams.set('application_name', 'MMC');
     const modifiedConnectionString = parsedConnectionString.toString();
     return modifiedConnectionString;
   }
 
-  async _connect() {
+  async connect() {
     throw new Error('Method not implemented');
   }
 
@@ -33,14 +33,16 @@ class PostgresDatabase extends Database {
   static provider = 'postgres';
 
   constructor(connectionString) {
-    super(Database.addApplicationName(connectionString));
+    super(connectionString);
 
     this.pool = new Pool({ connectionString: this.connectionString });
 
     const { password, ...sanitizedConfig } = parsePostgresConnection(connectionString);
     this.dbConfig = sanitizedConfig;
-    Object.assign(this, this.dbConfig);
     this.poolEndFnAsync = promisify(this.pool.end).bind(this.pool);
+    Object.freeze(this.dbConfig);
+    Object.assign(this, this.dbConfig);
+    Object.freeze(this);
   }
   toJSON() {
     return this.dbConfig;
