@@ -32,7 +32,7 @@ function shapeData(data, dbConfig) {
             tags: { db, host, oid, port, database_name, database_size_pretty }
         });
     });
-    logger.debug('shapeData - results: ', results);
+    logger.debug('shapeData has finished');
     return results;
 }
 

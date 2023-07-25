@@ -3,8 +3,9 @@ const pg = require('pg');
 const yaml = require('js-yaml');
 const process = require('process');
 
+const { SilentError } = require('./config/error');
 const { createSubLogger } = require('./logging');
-const { relevant, mergeDeep } = require('./utils');
+const { relevant, mergeDeep, isEmpty } = require('./utils');
 const { statStatmentsAction } = require('./actions/stat_statments');
 const { schemaAction } = require('./actions/schema');
 const { availableExtensions } = require('./actions/available_extensions');
@@ -16,6 +17,7 @@ const { pgDatabaseMetrics } = require('./actions/pg_database_metrics');
 const { pgConfig } = require('./actions/pg_config');
 const ExportersProviderConfig = require('./models').ExportersProviderConfig;
 const { ACTIONS_FILE } = require('./consts');
+const { instance } = require('./connections/database-manager');
 const logger = createSubLogger('actions');
 
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
@@ -85,7 +87,9 @@ async function collectActions(fakeHoursDelta, connections) {
           } catch (err) {
             schemaResult.success = false;
             schemaResult.error = err;
-            logger.error(`Action '${action.name}' failed to run`, { error: err });
+            if (err && !(err instanceof SilentError)) {
+              logger.error(`Action '${action.name}' failed to run`, { error: err });
+            }
           }
           const acc = await result;
           logger.debug(`Action ${action.name} has been finished successfuly`);
@@ -127,26 +131,35 @@ async function collectActions(fakeHoursDelta, connections) {
 
         if (!exporter.provider) {
           throw new Error(`Unsupported exporter provider for action: ${action}`);
-        } else {
-          const exporterResult = await exporter.sendResults({
-            action,
-            payload: {
-              pmcDevice,
-              data,
-              error,
-            },
-            success,
-            options: {
-              ...ExportersProviderConfig[exporter.provider].httpOptions,
-              path: exporter.url,
-            },
-          });
+        }
+
+        if (isEmpty(data)) {
+          logger.warn('Action has been finished without data!', { action, data });
 
           return {
             actionName: action,
-            exporterResult,
+            exporterResult: {},
           };
         }
+
+        const exporterResult = await exporter.sendResults({
+          action,
+          payload: {
+            pmcDevice,
+            data,
+            error,
+          },
+          success,
+          options: {
+            ...ExportersProviderConfig[exporter.provider].httpOptions,
+            path: exporter.url,
+          },
+        });
+
+        return {
+          actionName: action,
+          exporterResult,
+        };
       });
 
       return await Promise.allSettled(sendResultPerActionPromises);
@@ -161,10 +174,7 @@ async function collectActions(fakeHoursDelta, connections) {
             error: actionSetteled?.reason || actionSetteled.value,
           });
         } else {
-          logger.info(
-            `Action status is fulfilled for ${actionSetteled.value.actionName}`,
-            actionSetteled.value,
-          );
+          logger.info('Action status for fulfilled', actionSetteled.value);
         }
       });
     });

@@ -1,4 +1,4 @@
-const Errors = require('../config/error');
+const { Errors, SilentError } = require('../config/error');
 const {
   COLLECTOR_REQUEST_OPTIONS,
   METIS_ENVIRONMENT: metis_environment,
@@ -67,7 +67,7 @@ class MetricController {
           ?.flat(Infinity);
         results.success = true;
       } else {
-        throw new Error(Errors.NOT_SUPPORTED_METIS_ENVIRONMENT);
+        throw new SilentError(Errors.NOT_SUPPORTED_METIS_ENVIRONMENT);
       }
     } catch (e) {
       results.success = false;

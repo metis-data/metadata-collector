@@ -3,6 +3,7 @@ const { parseAsync } = require('pgsql-parser');
 const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
 const { makeInternalHttpRequest } = require('../http');
+const { isEmpty } = require('../utils');
 
 function extractTablesInvolved(ast) {
   return [
@@ -70,13 +71,13 @@ const action = async ({ dbConfig, client }) => {
   return sanitizedData;
 };
 
-const sendResults = async ({ payload, options }) => {
+const sendResults = async ({ payload, options, error }) => {
   if (error) {
     logger.warn('Stats statements sending data when there is an error for action');
     return;
   }
 
-  if (!Array.isArray(payload) && payload.length > 0) {
+  if (isEmpty(payload)) {
     logger.warn('Stats statments has empty result');
     return;
   }

@@ -23,8 +23,8 @@ const { isHostedOnAws } = require('./utilities/environment-utility');
       await app(hostedOnAws);
     }
   }
-  catch (e) {
-    logger.error('error: ', e);
+  catch (error) {
+    logger.error('Runner cant continue: ', { error });
     process.exit(1);
   }
 })()
