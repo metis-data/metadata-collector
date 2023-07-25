@@ -23,8 +23,7 @@ and last_call >= NOW() - interval '1h'
 ;`;
 
     this.logger.debug('fetchData - calling dbClient.query with: ', query);
-    const results = await client.query(query);
-    const [_, { rows }] = results;
+    const [_, { rows }] = await client.query(query);
     return rows;
   }
 
