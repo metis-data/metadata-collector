@@ -1,0 +1,76 @@
+version: '3'
+services:
+  grafana:
+    container_name: grafana
+    restart: unless-stopped
+    image: 'grafana/grafana:latest'
+    ports:
+      - '4000:3000'
+    volumes:
+      - grafana-storage:/var/lib/grafana/
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards/:/etc/dashboards/
+    depends_on:
+      - rds_exporter
+    environment:
+      - 'GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME:-admin}'
+      - 'GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}'
+      - 'GF_AUTH_ANONYMOUS_ENABLED=true'
+      - 'GF_AUTH_BASIC_ENABLED=false'
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - '9090:9090'
+    expose:
+      - 9090
+    command:
+      - '--config.file=/tmp/prometheus.yml'
+    volumes:
+      - prometheus-data:/prometheus
+      - './prometheus.yml:/tmp/prometheus.yml:ro'
+    networks:
+      - monitoring
+
+  rds_exporter:
+    image: ghcr.io/percona/rds_exporter:2.35.0
+    restart: unless-stopped
+    container_name: rds_exporter
+    ports:
+      - '9042:9042'
+    depends_on:
+      - prometheus
+    volumes:
+      - '~/.aws/credentials:/root/.aws/credentials:ro'
+      - './rds_exporter/:/etc/rds_exporter/:ro'
+    networks:
+      - monitoring
+
+  yace:
+    image: ghcr.io/nerdswords/yet-another-cloudwatch-exporter:v0.53.0
+    restart: unless-stopped
+    container_name: yace
+    ports:
+      - '8080:8080'
+    expose:
+      - 8080
+    command:
+      - -listen-address=:8080
+      - -config.file=/tmp/config.yml
+    depends_on:
+      - prometheus
+    volumes:
+      - '$HOME/.aws/credentials:/exporter/.aws/credentials:ro'
+      - ./yace.yaml:/tmp/config.yml
+    networks:
+      - monitoring
+volumes:
+  grafana-storage: null
+  prometheus-data: null
+
+networks:
+  monitoring:
+    driver: bridge
