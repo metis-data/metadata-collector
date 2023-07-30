@@ -11,6 +11,7 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards/:/etc/dashboards/
     depends_on:
+      - prometheus
       - yace
     environment:
       - 'GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME:-admin}'
@@ -46,8 +47,6 @@ services:
     command:
       - -listen-address=:8080
       - -config.file=/tmp/config.yml
-    depends_on:
-      - prometheus
     volumes:
       - '$HOME/.aws/credentials:/exporter/.aws/credentials:ro'
       - ./yace.yaml:/tmp/config.yml
