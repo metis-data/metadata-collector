@@ -8,19 +8,13 @@ const ConnectionState = {
 };
 
 async function fetchData(dbConfig, client) {
-  try {
-    const qry = `SELECT state, count(*)::int, application_name FROM pg_stat_activity
+  const qry = `SELECT state, count(*)::int, application_name FROM pg_stat_activity
         where datid is not null
         and datname = '${dbConfig.database}'
         group by state, application_name;`;
 
-    const { rows } = await client.query(qry);
-    logger.debug('fetchData - data: ', rows);
-    return rows;
-  } catch (e) {
-    logger.error('fetchData - error: ', e);
-    throw e;
-  }
+  const { rows } = await client.query(qry);
+  return rows;
 }
 
 function shapeData(data, dbConfig) {

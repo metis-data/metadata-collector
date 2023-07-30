@@ -4,17 +4,13 @@ const makeSpan = require('../utilities/span-utility');
 const chuncker = require('../utilities/chunck-utility');
 
 class PlanCollector {
-  dbClient;
   logger;
-  dbConfig;
 
-  constructor(dbConfig, dbClient) {
+  constructor() {
     this.logger = createSubLogger(this.constructor.name);
-    this.dbConfig = dbConfig;
-    this.dbClient = dbClient;
   }
 
-  async fetchData() {
+  async fetchData({ dbConfig, client }) {
     const query = `
             set pg_store_plans.plan_format = 'json';
 
@@ -22,21 +18,18 @@ select query, plan, last_call, B.mean_time as duration, A.queryid as query_id fr
 join pg_store_plans B on A.queryid = B.queryid
 join pg_database C on B.dbid = C.oid
 where 1=1
-and datname = '${this.dbConfig.database}'
+and datname = '${dbConfig.database}'
 and last_call >= NOW() - interval '1h'
 ;`;
 
     this.logger.debug('fetchData - calling dbClient.query with: ', query);
-    const [_, { rows }] = await this.dbClient.query(query);
-    this.logger.debug('fetchData - rows: ', rows);
+    const [_, { rows }] = await client.query(query);
     return rows;
   }
 
-  shapeData(data) {
+  shapeData({ dbConfig, data }) {
     try {
-      data = data.map((el) => makeSpan({ message: { ...el, plan: el?.plan }, ...this.dbConfig }));
-      this.logger.debug('shapeData - data', data);
-      return data;
+      return data.map((el) => makeSpan({ message: { ...el, plan: el?.plan }, ...dbConfig }));
     } catch (e) {
       this.logger.error('shapeData - error: ', e);
     }
@@ -46,7 +39,10 @@ and last_call >= NOW() - interval '1h'
     const { data = [] } = payload;
     const promises = [];
     for (let chuckedData of chuncker(data?.map((el) => JSON.stringify(el)))) {
-      this.logger.debug('transferData - calling makeInternalHttpRequest: ', { data, options });
+      this.logger.debug('transferData - calling makeInternalHttpRequest: ', {
+        chuckedData,
+        options,
+      });
       promises.push(makeInternalHttpRequest(chuckedData, options));
     }
     const results = await Promise.allSettled(promises);
@@ -64,17 +60,22 @@ and last_call >= NOW() - interval '1h'
   }
 
   async run({ dbConfig, client }) {
-    this.dbConfig = dbConfig;
-    this.dbClient = client;
-    const rowsFetched = await this.fetchData();
-    this.logger.debug('run - calling shapeData rowsFetched: ', rowsFetched);
-    return this.shapeData(rowsFetched);
+    const query = `SELECT count(*) as counter FROM pg_extension WHERE extname = 'pg_store_plans';`;
+    const result = await client.query(query);
+    if (result?.rows[0]?.counter === '0') {
+      this.logger.info("pg_store_plans isn't installed");
+      return [];
+    }
+    const rowsFetched = await this.fetchData({ dbConfig, client });
+
+    return this.shapeData({ dbConfig, client, data: rowsFetched });
   }
 }
 
 const planCollector = new PlanCollector();
 
 module.exports = {
+  PlanCollector,
   planCollector: {
     fn: planCollector.run.bind(planCollector),
     exporter: {
