@@ -11,7 +11,7 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards/:/etc/dashboards/
     depends_on:
-      - rds_exporter
+      - yace
     environment:
       - 'GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME:-admin}'
       - 'GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}'
