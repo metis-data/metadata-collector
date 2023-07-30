@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 10s
+  scrape_timeout: 9s
+
+scrape_configs:
+  - job_name: "yace"
+    static_configs:
+    - targets: ["yace:8080"]
+      labels:
+        apikey: '<API_KEY_HERE>'
+    
+  # - job_name: 'prometheus'
+  #   static_configs:
+  #     - targets: ['localhost:9090']
+
+  # - job_name: rds-basic
+  #   metrics_path: /basic
+  #   honor_labels: true
+  #   static_configs:
+  #     - targets:
+  #         - rds_exporter:9042
