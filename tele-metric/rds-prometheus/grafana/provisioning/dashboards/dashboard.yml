@@ -7,3 +7,4 @@ providers:
     options:
       path: '/etc/dashboards'
       foldersFromFilesStructure: true
+      

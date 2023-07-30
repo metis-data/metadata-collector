@@ -18,7 +18,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -29,9 +28,9 @@
       },
       "description": "",
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 6,
+        "h": 5,
+        "w": 6,
+        "x": 9,
         "y": 0
       },
       "id": 14,
@@ -41,10 +40,11 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "[![metis](https://static-asserts-public.s3.eu-central-1.amazonaws.com/metis-min-logo.png)](https://www.app.metisdata.io/)\n",
+        "content": "[![metis](https://static-asserts-public.s3.eu-central-1.amazonaws.com/metis-min-logo.png)](https://app.metisdata.io/)\n",
         "mode": "markdown"
       },
-      "pluginVersion": "10.0.3",
+      "pluginVersion": "10.0.0",
+      "transparent": true,
       "type": "text"
     },
     {
@@ -53,12 +53,199 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 5
       },
       "id": 13,
       "panels": [],
       "title": "Metrics",
       "type": "row"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFE396EC0B189D67"
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "hiddenSeries": false,
+      "id": 8,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [
+        {
+          "targetBlank": true,
+          "title": "Metis",
+          "url": "https://app.metisdata.io/projects/${apiKey}/"
+        }
+      ],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "10.0.0",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFE396EC0B189D67"
+          },
+          "expr": "aws_rds_database_connections_average{dimension_DBInstanceIdentifier=~\"$dbInstance\"}",
+          "interval": "",
+          "legendFormat": "{{dimension_DBInstanceIdentifier}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "DB Connections",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFE396EC0B189D67"
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "hiddenSeries": false,
+      "id": 9,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [
+        {
+          "title": "Metis",
+          "url": "https://app.metisdata.io/projects/${apiKey}/"
+        }
+      ],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "10.0.0",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFE396EC0B189D67"
+          },
+          "editorMode": "code",
+          "expr": "aws_rds_cpuutilization_maximum{dimension_DBInstanceIdentifier=~\"$dbInstance\"}",
+          "interval": "",
+          "legendFormat": "{{label_name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "CPU Utilization",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "percent",
+          "logBase": 1,
+          "max": "100",
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
     },
     {
       "datasource": {
@@ -122,14 +309,14 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 9
+        "y": 15
       },
       "id": 2,
       "links": [
         {
           "targetBlank": true,
           "title": "Metis",
-          "url": "http://app.metisdata.io"
+          "url": "https://app.metisdata.io/projects/${apiKey}/"
         }
       ],
       "options": {
@@ -187,7 +374,7 @@
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 9
+        "y": 15
       },
       "hiddenSeries": false,
       "id": 3,
@@ -206,7 +393,7 @@
         {
           "targetBlank": true,
           "title": "Metis",
-          "url": "http://app.metisdata.io"
+          "url": "https://app.metisdata.io/projects/${apiKey}/"
         }
       ],
       "nullPointMode": "null",
@@ -214,7 +401,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.0.3",
+      "pluginVersion": "10.0.0",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -289,7 +476,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 9
+        "y": 15
       },
       "hiddenSeries": false,
       "id": 4,
@@ -307,7 +494,7 @@
       "links": [
         {
           "title": "Metis",
-          "url": "http://app.metisdata.io"
+          "url": "https://app.metisdata.io/projects/${apiKey}/"
         }
       ],
       "nullPointMode": "null",
@@ -315,7 +502,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.0.3",
+      "pluginVersion": "10.0.0",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -390,7 +577,7 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 18
+        "y": 24
       },
       "hiddenSeries": false,
       "id": 5,
@@ -408,7 +595,7 @@
       "links": [
         {
           "title": "",
-          "url": "http://app.metisdata.io"
+          "url": "https://app.metisdata.io/projects/${apiKey}/"
         }
       ],
       "nullPointMode": "null",
@@ -416,7 +603,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.0.3",
+      "pluginVersion": "10.0.0",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -482,7 +669,7 @@
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 18
+        "y": 24
       },
       "hiddenSeries": false,
       "id": 6,
@@ -500,7 +687,7 @@
       "links": [
         {
           "title": "Metis",
-          "url": "http://app.metisdata.io"
+          "url": "https://app.metisdata.io/projects/${apiKey}/"
         }
       ],
       "nullPointMode": "null",
@@ -508,7 +695,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.0.3",
+      "pluginVersion": "10.0.0",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -574,7 +761,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 18
+        "y": 24
       },
       "hiddenSeries": false,
       "id": 7,
@@ -594,7 +781,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.0.3",
+      "pluginVersion": "10.0.0",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -658,196 +845,9 @@
       "fillGradient": 0,
       "gridPos": {
         "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 27
-      },
-      "hiddenSeries": false,
-      "id": 8,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [
-        {
-          "targetBlank": true,
-          "title": "Metis",
-          "url": "http://app.metisdata.io"
-        }
-      ],
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "10.0.3",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFE396EC0B189D67"
-          },
-          "expr": "aws_rds_database_connections_average{dimension_DBInstanceIdentifier=~\"$dbInstance\"}",
-          "interval": "",
-          "legendFormat": "{{dimension_DBInstanceIdentifier}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeRegions": [],
-      "title": "DB Connections",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "mode": "time",
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "logBase": 1,
-          "show": true
-        },
-        {
-          "format": "short",
-          "logBase": 1,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFE396EC0B189D67"
-      },
-      "fill": 0,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 27
-      },
-      "hiddenSeries": false,
-      "id": 9,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [
-        {
-          "title": "Metis",
-          "url": "http://app.metisdata.io"
-        }
-      ],
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "10.0.3",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFE396EC0B189D67"
-          },
-          "editorMode": "code",
-          "expr": "aws_rds_cpuutilization_maximum{dimension_DBInstanceIdentifier=~\"$dbInstance\"}",
-          "interval": "",
-          "legendFormat": "{{label_name}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeRegions": [],
-      "title": "CPU Utilization",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "mode": "time",
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "percent",
-          "logBase": 1,
-          "max": "100",
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "logBase": 1,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFE396EC0B189D67"
-      },
-      "fill": 0,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
         "w": 8,
         "x": 0,
-        "y": 36
+        "y": 33
       },
       "hiddenSeries": false,
       "id": 10,
@@ -866,7 +866,7 @@
         {
           "targetBlank": true,
           "title": "Metis",
-          "url": "http://app.metisdata.io"
+          "url": "https://app.metisdata.io/projects/${apiKey}/"
         }
       ],
       "nullPointMode": "null",
@@ -874,7 +874,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.0.3",
+      "pluginVersion": "10.0.0",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -950,7 +950,7 @@
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 36
+        "y": 33
       },
       "hiddenSeries": false,
       "id": 11,
@@ -968,7 +968,7 @@
       "links": [
         {
           "title": "Metis",
-          "url": "http://app.metisdata.io"
+          "url": "https://app.metisdata.io/projects/${apiKey}/"
         }
       ],
       "nullPointMode": "null",
@@ -976,7 +976,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.0.3",
+      "pluginVersion": "10.0.0",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -1052,7 +1052,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 36
+        "y": 33
       },
       "hiddenSeries": false,
       "id": 12,
@@ -1070,7 +1070,7 @@
       "links": [
         {
           "title": "Metis",
-          "url": "http://app.metisdata.io"
+          "url": "https://app.metisdata.io/projects/${apiKey}/"
         }
       ],
       "nullPointMode": "null",
@@ -1078,7 +1078,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.0.3",
+      "pluginVersion": "10.0.0",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -1174,6 +1174,32 @@
         "tagsQuery": "",
         "type": "query",
         "useTags": false
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "0k6fLBcZYo5xKC9h7lgB4aBoeaVkWjCS3oReEWKA",
+          "value": "0k6fLBcZYo5xKC9h7lgB4aBoeaVkWjCS3oReEWKA"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFE396EC0B189D67"
+        },
+        "definition": "label_values(apikey)",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "apiKey",
+        "options": [],
+        "query": {
+          "query": "label_values(apikey)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
@@ -1183,8 +1209,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Metis RDS v2",
+  "title": "Metis RDS",
   "uid": "c8e1d751-123e-49aa-a37c-0faceb927922",
-  "version": 3,
+  "version": 1,
   "weekStart": ""
 }

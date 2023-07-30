@@ -35,20 +35,6 @@ services:
     networks:
       - monitoring
 
-  # rds_exporter:
-  #   image: ghcr.io/percona/rds_exporter:2.35.0
-  #   restart: unless-stopped
-  #   container_name: rds_exporter
-  #   ports:
-  #     - '9042:9042'
-  #   depends_on:
-  #     - prometheus
-  #   volumes:
-  #     - '~/.aws/credentials:/root/.aws/credentials:ro'
-  #     - './rds_exporter/:/etc/rds_exporter/:ro'
-  #   networks:
-  #     - monitoring
-
   yace:
     image: ghcr.io/nerdswords/yet-another-cloudwatch-exporter:v0.53.0
     restart: unless-stopped

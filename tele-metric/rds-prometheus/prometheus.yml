@@ -6,6 +6,8 @@ scrape_configs:
   - job_name: "yace"
     static_configs:
     - targets: ["yace:8080"]
+      labels:
+        apikey: '0k6fLBcZYo5xKC9h7lgB4aBoeaVkWjCS3oReEWKA'
     
   # - job_name: 'prometheus'
   #   static_configs:
