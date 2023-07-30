@@ -1,0 +1,1 @@
+docker-compose -p tele-metric -f ./rds-prometheus/docker-compose.yaml up
