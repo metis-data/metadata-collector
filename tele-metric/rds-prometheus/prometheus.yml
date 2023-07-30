@@ -7,7 +7,7 @@ scrape_configs:
     static_configs:
     - targets: ["yace:8080"]
       labels:
-        apikey: '5KauFohR2zaOxXLN2EimDmZEHRBTwKX4DG8E1wR5'
+        apikey: '<API_KEY_HERE>'
     
   # - job_name: 'prometheus'
   #   static_configs:
