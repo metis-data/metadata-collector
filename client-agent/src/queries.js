@@ -24,60 +24,65 @@ function getQueries(fakeHoursDelta) {
       .map((key) => QUERIES[key]);
   }
   const qs = [];
-  process.argv.slice(2).forEach((q) => { if (q in QUERIES) { qs.push(QUERIES[q]); } });
+  process.argv.slice(2).forEach((q) => {
+    if (q in QUERIES) {
+      qs.push(QUERIES[q]);
+    }
+  });
   if (qs.length < process.argv.length - 2) {
     const nonEligableQueries = process.argv.slice(2).filter((q) => !(q in QUERIES));
-    throw Error(`Error running the CLI. The following are not eligible queries: ${nonEligableQueries}`);
+    throw Error(
+      `Error running the CLI. The following are not eligible queries: ${nonEligableQueries}`,
+    );
   }
   return qs;
 }
 
 const results = {};
 
-async function collectQueries(fakeHoursDelta, dbConfigs) {
+async function collectQueries(fakeHoursDelta, connections) {
   const theQueries = getQueries(fakeHoursDelta);
   if (theQueries.length === 0) {
     logger.info('There are no queries to run for this hour.');
     return;
   }
   const bigQuery = theQueries.map((q) => q.query).join('; ');
-  await Promise.allSettled(
-    dbConfigs.map(
-      async (dbConfig) => {
-        let client = null;
+  const responses = await Promise.allSettled(
+    connections.map(
+      // PostgresDatabase class
+      async (connection) => {
         try {
-          const dbConfigKey = JSON.stringify(dbConfig) + bigQuery;
+          const dbConfigKey = JSON.stringify(connection.dbConfig);
           if (!(dbConfigKey in results)) {
-            client = new pg.Client(dbConfig);
-            logger.info(`Trying to connect to ${dbConfig.database} ...`);
-            await client.connect();
-            logger.info(`Connected to ${dbConfig.database}`);
-            const res = await client.query(bigQuery);
-            results[dbConfigKey] = theQueries.length === 1 ? [res] : res;
-          }
-          const now = new Date();
-          now.setHours(now.getHours() - fakeHoursDelta);
-          await processResults(dbConfig, results[dbConfigKey], now.getTime(), fakeHoursDelta !== 0, client);
-          logger.info('Processing results done.');
-        } catch (error) {
-          const { password, ...dbDetails }= dbConfigs;
-          logger.error('Couldn\'t run queries', error, dbDetails);
-          throw err;
-        } finally {
-          try {
-            if (client) {
-              await client.end();
-              logger.debug('connection has been closed.');
+            for await (const client of connection.clientGenerator()) {
+              const res = await client.query(bigQuery);
+              results[dbConfigKey] = theQueries.length === 1 ? [res] : res;
+              const now = new Date();
+              now.setHours(now.getHours() - fakeHoursDelta);
+              const response = await processResults(
+                connection,
+                results[dbConfigKey],
+                now.getTime(),
+                fakeHoursDelta !== 0,
+              );
+              logger.info('Processing results done.', { response, dbConfig: connection.dbConfig });
+              return response;
             }
-          } catch (e) {
-            logger.error('connection could not be closed.', e);
           }
+        } catch (error) {
+          const { password, ...dbDetails } = connections;
+          logger.error("Couldn't run queries", error, dbDetails);
+          throw error;
         }
       },
     ),
   );
 
   logger.info('Collection is done.');
+
+  return responses
+    .map((responsePromise) => (responsePromise.status === 'fulfilled' ? responsePromise.value : []))
+    ?.flat(Infinity);
 }
 
 module.exports = {

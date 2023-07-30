@@ -1,3 +1,5 @@
+const connectionParser = require('connection-string-parser');
+
 const getPackageVersion = () => {
   if (process.env.npm_package_version) {
     return process.env.npm_package_version;
@@ -48,7 +50,18 @@ function mergeDeep(target, ...sources) {
   return mergeDeep(target, ...sources);
 }
 
+const isEmpty = (objectName) => {
+  for (let prop in objectName) {
+    if (objectName.hasOwnProperty(prop)) {
+      return false;
+    }
+  }
+  return true;
+};
+
+
 module.exports = {
+  isEmpty,
   relevant,
   getPackageVersion,
   mergeDeep,

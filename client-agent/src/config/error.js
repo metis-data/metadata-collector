@@ -7,4 +7,21 @@ const Errors = Object.freeze({
     NOT_SUPPORTED_METIS_RESOURCE: 'NOT_SUPPORTED_METIS_RESOURCE',
 });
 
-module.exports = Errors;
+class MetricError extends Error {
+
+    constructor(message) {
+        super(message)
+    }
+}
+
+class SilentError extends MetricError {
+    constructor(message) {
+        super(message)
+    }
+}
+
+module.exports = {
+    Errors,
+    MetricError,
+    SilentError,
+};

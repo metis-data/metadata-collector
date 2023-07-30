@@ -1,9 +1,9 @@
 const { dbDetailsFactory } = require('@metis-data/db-details');
 const { makeInternalHttpRequest } = require('../http');
 
-const action = async ({dbConfig}) => {
+const action = async ({dbConfig: _, client}) => {
   const schemaDetailsObject = dbDetailsFactory('postgres');
-  return schemaDetailsObject.getDbDetails(dbConfig);
+  return schemaDetailsObject.getDbDetails(client);
 };
 
 const sendResults = async ({ payload, options }) => makeInternalHttpRequest(payload, options, 0);

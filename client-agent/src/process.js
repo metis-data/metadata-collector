@@ -4,7 +4,8 @@ const { createSubLogger } = require('./logging');
 const logger = createSubLogger('process_queries');
 const { COLLECTOR_VERSION, TAGS, HTTPS_REQUEST_OPTIONS } = require('./consts');
 
-async function processRows(dbConfig, rows, timestamp, fake) {
+// databaseConnection: PostgresDatabase 
+async function processRows(databaseConnection, rows, timestamp, fake) {
   const metricsData = [];
   rows.forEach((row) => {
     const valueNames = Object.keys(row).filter((key) => !TAGS.has(key));
@@ -22,19 +23,17 @@ async function processRows(dbConfig, rows, timestamp, fake) {
         }
       }
       TAGS.forEach((tag) => { if (row[tag]) r[tag] = row[tag]; });
-      r.db = dbConfig.database;
-      r.host = dbConfig.host;
+      r.db = databaseConnection.database;
+      r.host = databaseConnection.host;
       r.version = COLLECTOR_VERSION;
       metricsData.push(r);
     });
   });
-  const res = await makeInternalHttpRequest(metricsData, HTTPS_REQUEST_OPTIONS);
-  logger.info(`Sent query results for ${dbConfig.host}`, { res });
-  return res;
+  return await makeInternalHttpRequest(metricsData, HTTPS_REQUEST_OPTIONS);
 }
 
-async function processResults(dbConfig, results, timestamp, fake, dbClient = null) {
-  await Promise.all(results.map(async (result) => await processRows(dbConfig, result.rows, timestamp, fake)))
+async function processResults(connection, results, timestamp, fake) {
+  return await Promise.all(results.map(async (result) => await processRows(connection, result.rows, timestamp, fake)))
 }
 
 module.exports = {

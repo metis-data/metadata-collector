@@ -1,5 +1,5 @@
 function* chuncker(data, limit = 200000) {
-    if (!data) {
+    if (!data || (Array.isArray(data) && data.length === 0)) {
         return [];
     }
 
