@@ -115,7 +115,7 @@ class DatabaseConnectionsManager {
 
   createDatabaseManager(connectionString) {
     if (this.connections.has(connectionString)) {
-      throw new Error(`Database manager with name already exists`);
+      return this.connections.get(connectionString);
     }
 
     const databaseManager = new PostgresDatabase(connectionString);
