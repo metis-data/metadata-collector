@@ -1,9 +1,8 @@
 const main = require('./collect-runner');
 
 class App {
-    constructor() { }
 
-    async start() {
+    start() {
         main();
         return;
     }

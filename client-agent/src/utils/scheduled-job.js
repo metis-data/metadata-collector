@@ -2,7 +2,7 @@ const { createSubLogger } = require("../logging");
 const logger = createSubLogger('scheduled-task');
 
 class ScheduledJob {
-    PERIOD_IN_MINUTES = 60;
+    PERIOD_IN_MINUTES;
     timer;
     task;
 
