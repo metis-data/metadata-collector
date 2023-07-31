@@ -1,0 +1,21 @@
+{
+  "name": "metis-md-collector",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "@influxdata/influxdb-client": "^1.26.0",
+    "@sentry/serverless": "^7.1.1",
+    "lambda-local": "^2.0.3",
+    "mocha": "^10.2.0",
+    "pino": "^7.0.5"
+  },
+  "scripts": {
+    "start:dev": "lambda-local -l ./index.js -h handler --envfile ./tests/test.env --watch 80 &",
+    "stop:dev": "kill -9 $(lsof -i:80 -t)",
+    "start:test": "docker-compose up -d --build --wait",
+    "test": "npm run start:test && mocha --timeout 10000 ./tests/**/*.spec.js "
+  },
+  "author": "",
+  "license": "ISC"
+}
