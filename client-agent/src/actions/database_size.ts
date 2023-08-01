@@ -50,11 +50,12 @@ async function run({ dbConfig, client }: any) {
     return shapeData(data, dbConfig);
 }
 
-export default {
-    databaseSize: {
+ export default {
         fn: run,
         exporter: {
             sendResults,
-        },
-    },
+        }
 };
+
+
+

@@ -62,10 +62,8 @@ async function run({ dbConfig, client }: any) {
 }
 
 export default {
-  connectionsMetric: {
     fn: run,
     exporter: {
       sendResults,
-    },
-  },
+    }
 };

@@ -86,10 +86,8 @@ const sendResults = async ({ payload, options, error }: any) => {
 };
 
 export default {
-  statStatmentsAction: {
     fn: action,
     exporter: {
       sendResults,
-    },
-  },
+    }
 };

@@ -1,22 +1,21 @@
-const fs = require('fs');
-const pg = require('pg');
-const yaml = require('js-yaml');
-const process = require('process');
+import fs = require('fs');
+import yaml = require('js-yaml');
+import process = require('process');
 
-const { SilentError } = require('./config/error');
-const { createSubLogger } = require('./logging');
+import { SilentError } from './config/error';
+import { createSubLogger } from './logging';
 import { relevant, mergeDeep, isEmpty } from './utils';
-const { statStatmentsAction } = require('./actions/stat_statments');
-const { schemaAction } = require('./actions/schema');
-const { availableExtensions } = require('./actions/available_extensions');
-const { connectionsMetric } = require('./actions/connections_metric');
-const { planCollector } = require('./actions/plan_collector');
-const { dbHostDetails } = require('./actions/db_host_details');
-const { databaseSize } = require('./actions/database_size');
-const { pgDatabaseMetrics } = require('./actions/pg_database_metrics');
-const { pgConfig } = require('./actions/pg_config');
+import  statStatmentsAction  from './actions/stat_statments';
+import schemaAction  from './actions/schema';
+import  availableExtensions  from './actions/available_extensions';
+import  connectionsMetric  from './actions/connections_metric';
+import  planCollector  from './actions/plan_collector';
+import dbHostDetails  from './actions/db_host_details';
+import  databaseSize  from './actions/database_size';
+import  pgDatabaseMetrics  from './actions/pg_database_metrics';
+import  pgConfig  from './actions/pg_config';
 const ExportersProviderConfig = require('./models').ExportersProviderConfig;
-const { ACTIONS_FILE } = require('./consts');
+import { ACTIONS_FILE } from './consts';
 const logger = createSubLogger('actions');
 
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
@@ -80,6 +79,7 @@ async function collectActions(fakeHoursDelta: any, connections: any) {
           };
           try {
             for await (const client of connection.clientGenerator()) {
+            
               const actionResult = await action.fn({ dbConfig: connection.dbConfig, client });
               schemaResult.data = actionResult;
             }
@@ -87,6 +87,7 @@ async function collectActions(fakeHoursDelta: any, connections: any) {
             schemaResult.success = false;
             schemaResult.error = err;
             if (err && !(err instanceof SilentError)) {
+              console.log(err)
               logger.error(`Action '${action.name}' failed to run`, { error: err });
             }
           }
@@ -187,6 +188,6 @@ async function collectActions(fakeHoursDelta: any, connections: any) {
   } catch (error) {}
 }
 
-export default {
+export  {
   collectActions,
 };

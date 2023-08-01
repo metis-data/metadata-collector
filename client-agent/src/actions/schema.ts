@@ -9,10 +9,8 @@ const action = async ({dbConfig: _, client}: any) => {
 const sendResults = async ({ payload, options }: any) => makeInternalHttpRequest(payload, options, 0);
 
 export default {
-  schemaAction: {
     fn: action,
     exporter: {
       sendResults,
-    },
-  },
+    }
 };

@@ -1,12 +1,12 @@
 require('dotenv').config();
-const { makeInternalHttpRequest } = require('./http');
-const { WEB_APP_REQUEST_OPTIONS } = require('./consts');
-const { logger } = require('./logging');
-const { getConnectionConfigs } = require('./connections/utils');
-const { collectActions } = require('./actions');
-const { collectQueries } = require('./queries');
-const { collectMetrics } = require('./metrics');
-const { SilentError } = require('./config/error');
+import { makeInternalHttpRequest } from './http';
+import { WEB_APP_REQUEST_OPTIONS } from './consts';
+import { logger } from './logging';
+import { getConnectionConfigs } from './connections/utils';
+import { collectActions } from './actions';
+import { collectQueries } from './queries';
+import { collectMetrics } from './metrics';
+import { SilentError } from './config/error';
 
 // eslint-disable-next-line max-len
 const collectRunnerAsync = async (fakeHoursDelta: any, connections: any, additionalCollectors: any) => {

@@ -40,10 +40,8 @@ async function run() {
 }
 
 export default  {
-  dbHostDetails: {
     fn: run,
     exporter: {
       sendResults: sendResults,
-    },
-  },
+    }
 };

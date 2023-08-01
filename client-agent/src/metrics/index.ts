@@ -91,7 +91,7 @@ class MetricController {
 }
 
 const metricController = new MetricController();
-
-export default {
-  collectMetrics: metricController.runner.bind(metricController),
+const collectMetrics = metricController.runner.bind(metricController);
+export  {
+  collectMetrics
 };

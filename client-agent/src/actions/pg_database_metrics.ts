@@ -63,10 +63,8 @@ async function run({ dbConfig, client }: any) {
 }
 
 export default {
-    pgDatabaseMetrics: {
         fn: run,
         exporter: {
             sendResults,
-        },
-    },
+        }
 };

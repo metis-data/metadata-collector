@@ -76,10 +76,8 @@ const planCollector = new PlanCollector();
 
 export default {
   PlanCollector,
-  planCollector: {
     fn: planCollector.run.bind(planCollector),
     exporter: {
       sendResults: planCollector.transferData.bind(planCollector),
-    },
-  },
+    }
 };

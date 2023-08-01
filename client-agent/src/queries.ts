@@ -85,6 +85,6 @@ async function collectQueries(fakeHoursDelta: any, connections: any) {
     ?.flat(Infinity);
 }
 
-export default {
+export  {
   collectQueries,
 };
