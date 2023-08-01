@@ -13,6 +13,7 @@ async function getConnectionStrings() {
   // The DB_CONNECTION_STRINGS is a semi-colon separated database connection strings. E.g.,
   // export DB_CONNECTION_STRINGS=postgresql://postgres:postgres@1.2.3.4/example_db_name_pg;postgresql://user1234:password1234@www.sitename.com/db_name_1234
   if (process.env.DB_CONNECTION_STRINGS) {
+    logger.info(`The connection string load succesfully: ${process.env.DB_CONNECTION_STRINGS}`)
     DB_CONNECTION_STRINGS = process.env.DB_CONNECTION_STRINGS;
     return DB_CONNECTION_STRINGS;
   }

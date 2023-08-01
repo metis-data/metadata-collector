@@ -1,16 +1,15 @@
-const fs = require('fs');
-const process = require('process');
-const pg = require('pg');
-const yaml = require('js-yaml');
+import fs = require('fs');
+import process = require('process');
+import yaml = require('js-yaml');
 
-const { createSubLogger } = require('./logging');
+import { createSubLogger } from './logging';
 const logger = createSubLogger('queries');
-const { processResults } = require('./process');
-const { relevant } = require('./utils');
-const { QUERIES_FILE } = require('./consts');
+import { processResults } from './process';
+import { relevant } from './utils';
+import { QUERIES_FILE } from './consts';
 
 const queriesFileContents = fs.readFileSync(QUERIES_FILE, 'utf8');
-const QUERIES = yaml.load(queriesFileContents);
+const QUERIES: any = yaml.load(queriesFileContents);
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 
 function getQueries(fakeHoursDelta: any) {
@@ -35,6 +34,7 @@ function getQueries(fakeHoursDelta: any) {
       `Error running the CLI. The following are not eligible queries: ${nonEligableQueries}`,
     );
   }
+  logger.info(qs)
   return qs;
 }
 

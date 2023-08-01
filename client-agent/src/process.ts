@@ -34,6 +34,6 @@ async function processResults(connection: any, results: any, timestamp: any, fak
   return await Promise.all(results.map(async (result: any) => await processRows(connection, result.rows, timestamp, fake)))
 }
 
-export default {
+export  {
   processResults,
 };

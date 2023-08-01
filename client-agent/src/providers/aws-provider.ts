@@ -4,7 +4,7 @@ const { createSubLogger } = require('../logging');
 
 const logger = createSubLogger('AwsProvider');
 
-class AwsProvider {
+export class AwsProvider {
     _aws = aws;
 
     constructor() {
@@ -66,4 +66,3 @@ class AwsProvider {
     }
 }
 
-export default AwsProvider;

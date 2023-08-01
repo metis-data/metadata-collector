@@ -1,9 +1,5 @@
 import { Errors, SilentError } from '../config/error';
-const {
-  COLLECTOR_REQUEST_OPTIONS,
-  METIS_ENVIRONMENT: metis_environment,
-  METIS_PROVIDER_METADATA: provider_metadata = {},
-} = require('../consts');
+import { COLLECTOR_REQUEST_OPTIONS, METIS_ENVIRONMENT, METIS_PROVIDER_METADATA} from '../consts';
 import { makeInternalHttpRequest } from '../http';
 import { createSubLogger } from '../logging';
 import { MetisEnvironment, CloudProvider, CloudResource } from '../models';
@@ -26,9 +22,9 @@ class MetricController {
     const results: any = {};
 
     try {
-      if (metis_environment === MetisEnvironment.CLOUD) {
+      if (METIS_ENVIRONMENT.toLowerCase() === MetisEnvironment.CLOUD) {
         let metrics;
-        const promises = provider_metadata.map(async (providerData: any) => {
+        const promises = METIS_PROVIDER_METADATA.map(async (providerData: any) => {
           return new Promise(async (res, rej) => {
             let provider;
             const { resource, instance_id, provider: cloudProvider } = providerData;
@@ -63,7 +59,7 @@ class MetricController {
         });
         const res = await Promise.allSettled(promises);
         results.results = res
-          .map((prom) => (prom.status === 'fulfilled' ? prom.value : []))
+          .map((prom: any) => (prom.status === 'fulfilled' ? prom.value : []))
           ?.flat(Infinity);
         results.success = true;
       } else {

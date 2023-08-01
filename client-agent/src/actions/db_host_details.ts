@@ -1,9 +1,9 @@
-const { Errors, SilentError } = require('../config/error');
-const { METIS_ENVIRONMENT, METIS_PROVIDER_METADATA } = require('../consts');
-const { makeInternalHttpRequest } = require('../http');
-const { createSubLogger } = require('../logging');
-const { MetisEnvironment, CloudProvider } = require('../models');
-const AwsProvider = require('../providers/aws-provider');
+import { Errors, SilentError } from '../config/error';
+import { METIS_ENVIRONMENT, METIS_PROVIDER_METADATA } from '../consts';
+import { makeInternalHttpRequest } from '../http';
+import { createSubLogger } from '../logging';
+import { MetisEnvironment, CloudProvider } from '../models';
+import {AwsProvider}from '../providers/aws-provider';
 
 const logger = createSubLogger('dbHostDetails');
 

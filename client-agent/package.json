@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "@types/amqplib": "^0.8.2",
+    "@types/js-yaml": "^4.0.5",
     "@types/pg": "^8.10.2",
     "@types/wtfnode": "^0.7.0",
     "@typescript-eslint/parser": "^5.52.0",
