@@ -11,20 +11,23 @@ const queriesFileContents = fs.readFileSync(QUERIES_FILE, 'utf8');
 const QUERIES = yaml.load(queriesFileContents);
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 
-const takeAction = async (connectionString, database) => {
+const takeAction = async (connectionString, dbName) => {
     try {
         logger.info('takeAction - start');
         const metisApiKey = consts.API_KEY;
         const metisExportUrl = consts.API_GATEWAY_HOST;
         // TODO: think about a service name convention
-        const serviceName = `${database}-pmc`;
+        const serviceName = `${dbName}-pmc`;
 
         logger.debug('takeAction - calling new MetisSqlCollector');
         const metis = new MetisSqlCollector({
             connectionString,
             metisApiKey,
             metisExportUrl,
-            serviceName
+            serviceName,
+            dbName,
+            byTrace: false,
+            autoRun: false,
         });
 
         logger.debug('takeAction - calling metis.run');
