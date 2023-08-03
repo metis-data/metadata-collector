@@ -3,6 +3,12 @@ const { parsePostgresConnection, getConnectionStrings } = require('./utils');
 const { Pool } = require('pg');
 const { createSubLogger } = require('../logging');
 const logger = createSubLogger('database-manager');
+const MetisSqlCollector = require('@metis-data/slow-query-log').MetisSqlCollector;
+const consts = require('../consts');
+
+const getHttpSchema = (port) => {
+  return port === 443 ? 'https://' : port === 80 ? 'http://' : null;
+};
 
 class Database {
   constructor(connectionString) {
@@ -40,10 +46,32 @@ class PostgresDatabase extends Database {
     const { password, ...sanitizedConfig } = parsePostgresConnection(connectionString);
     this.dbConfig = sanitizedConfig;
     this.poolEndFnAsync = promisify(this.pool.end).bind(this.pool);
+
     Object.freeze(this.dbConfig);
     Object.assign(this, this.dbConfig);
+    this._initSlowQueryLog(connectionString);
     Object.freeze(this);
   }
+
+  _initSlowQueryLog(connectionString) {
+    const metisApiKey = consts.API_KEY;
+    const metisExportUrl = new URL(getHttpSchema(consts.API_GATEWAY_PORT) + consts.API_GATEWAY_HOST)
+      .href;
+    // TODO: think about a service name convention
+    const serviceName = `${this.database}-pmc`;
+
+    logger.debug('takeAction - calling new MetisSqlCollector');
+    this.metisSqlCollector = new MetisSqlCollector({
+      connectionString,
+      metisApiKey,
+      metisExportUrl,
+      serviceName,
+      dbName: this.database,
+      byTrace: false,
+      autoRun: false,
+    });
+  }
+
   toJSON() {
     return this.dbConfig;
   }
