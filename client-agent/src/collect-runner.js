@@ -1,7 +1,7 @@
 require('events').EventEmitter.prototype._maxListeners = 70;
 require('events').defaultMaxListeners = 70;
 const wtf = require('wtfnode');
-const { isDebug } = require('./consts');
+const { isDebug, SQL_PLAN_COLLECTOR_INTERVAL } = require('./consts');
 const { logger } = require('./logging');
 const { run } = require('./metrix');
 const { setup } = require('./setup');
@@ -64,7 +64,7 @@ async function main() {
         logger.error('planCollectionJob - error: ', e);
         return false;
       }
-    }, 1);
+    }, SQL_PLAN_COLLECTOR_INTERVAL);
 
     await Promise.allSettled([scheduledJob.start(), planCollectionJob.start()]);
 
