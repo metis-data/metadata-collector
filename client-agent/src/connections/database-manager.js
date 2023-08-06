@@ -61,6 +61,7 @@ class PostgresDatabase extends Database {
     const serviceName = `${this.database}-pmc`;
 
     logger.debug('takeAction - calling new MetisSqlCollector');
+    const _logger = createSubLogger('MetisSqlCollector');
     this.metisSqlCollector = new MetisSqlCollector({
       connectionString,
       metisApiKey,
@@ -69,6 +70,8 @@ class PostgresDatabase extends Database {
       dbName: this.database,
       byTrace: false,
       autoRun: false,
+      logger: _logger,
+      debug: true
     });
   }
 
