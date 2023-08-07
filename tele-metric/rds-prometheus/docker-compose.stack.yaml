@@ -7,7 +7,7 @@ services:
     ports:
       - '4000:3000'
     volumes:
-      - grafana-storage:/var/lib/grafana/
+      - grafana-vol:/var/lib/grafana/
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards/:/etc/dashboards/
     depends_on:
@@ -32,7 +32,7 @@ services:
     command:
       - '--config.file=/tmp/prometheus.yml'
     volumes:
-      - prometheus-data:/prometheus
+      - prometheus-vol:/prometheus
       - './prometheus.yml:/tmp/prometheus.yml:ro'
     networks:
       - monitoring
@@ -54,8 +54,8 @@ services:
     networks:
       - monitoring
 volumes:
-  grafana-storage: null
-  prometheus-data: null
+  grafana-vol: null
+  prometheus-vol: null
 
 networks:
   monitoring:

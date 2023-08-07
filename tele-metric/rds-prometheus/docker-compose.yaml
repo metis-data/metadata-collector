@@ -14,6 +14,9 @@ services:
     volumes:
       - '$HOME/.aws/credentials:/exporter/.aws/credentials:ro'
       - ./yace.yaml:/tmp/config.yml
+    environment:  # Add environment section to pass the AWS credentials
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
     networks:
       - monitoring
 
