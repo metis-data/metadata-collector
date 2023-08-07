@@ -49,20 +49,4 @@ async function app(hostedOnAws) {
     .catch((e) => logger.error('error:', e));
 }
 
-// Graceful shutdown
-const gracefulShutdown = () => {
-  logger.warn('Received SIGTERM. Starting graceful shutdown...');
-  
-  // Close the PostgreSQL connection pool
-  pool.end()
-    .then(() => {
-      console.log('PostgreSQL connection pool closed.');
-      process.exit(0);
-    })
-    .catch(err => {
-      console.error('Error closing PostgreSQL connection pool:', err);
-      process.exit(1); // Exit with an error code to indicate a problem
-    });
-};
-
 module.exports = app;
