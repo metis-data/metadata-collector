@@ -148,3 +148,5 @@ dist
 client-agent/src/.env.prod
 **/.vscode
 .vscode/
+
+metadata-collector.iml

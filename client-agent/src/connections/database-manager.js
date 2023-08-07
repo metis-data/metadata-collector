@@ -125,15 +125,14 @@ class PostgresDatabase extends Database {
 class DatabaseConnectionsManager {
   static instance;
   constructor() {
-    if (DatabaseConnectionsManager.instance) {
-      return DatabaseConnectionsManager.instance;
-    }
-
     this.connections = new Map();
     DatabaseConnectionsManager.instance = this;
   }
 
   static async create() {
+    if (DatabaseConnectionsManager.instance) {
+      return DatabaseConnectionsManager.instance;
+    }
     const databaseConnectionsManager = new DatabaseConnectionsManager();
     const dbConnectionStrings = (await getConnectionStrings()).split(';').filter(Boolean);
 
