@@ -40,12 +40,10 @@ const ACTIONS_DEF = mergeDeep(ACTIONS_YAML, ACTIONS_FUNCS);
 
 function getActions(fakeHoursDelta) {
   const now = new Date();
-  now.setHours(now.getHours() - fakeHoursDelta);
-  const currentMinutes = now.getMinutes();
-  const currentHour = IGNORE_CURRENT_TIME ? 0 : now.getHours();
+  const currentMinutes = (now.getHours() * 60) + now.getMinutes();
   if (process.argv.length === 2) {
     return Object.keys(ACTIONS_DEF)
-      .filter((key) => relevant(ACTIONS_DEF[key].times_a_day, currentHour, currentMinutes))
+      .filter((key) => relevant(ACTIONS_DEF[key].times_a_day, currentMinutes))
       .map((key) => ACTIONS_DEF[key]);
   }
   const actions = [];
@@ -92,7 +90,7 @@ async function collectActions(fakeHoursDelta, connections) {
             }
           }
           const acc = await result;
-          logger.debug(`Action ${action.name} has been finished successfuly`);
+          logger.debug(`Action ${action.name} has been finished successfully`);
           return {
             ...acc,
             actions: {

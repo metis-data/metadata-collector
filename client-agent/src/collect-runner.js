@@ -19,8 +19,6 @@ async function app(hostedOnAws) {
       logger.debug('app is about to run');
       const response = await run(0, _connections);
       logger.debug('app has completed the running');
-      logger.debug('app - calling connections.closeAllConnections');
-      await _connections.closeAllConnections();
       return response;
     })
     .then(() => {
@@ -48,7 +46,7 @@ async function main() {
         logger.error('scheduledJob - error: ', e);
         return false;
       }
-    }, 60);
+    }, 1);
 
     const planCollectionJob = new ScheduledJob(async () => {
       try {
