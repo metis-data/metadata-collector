@@ -90,6 +90,9 @@ if [ "$has_arguments" -eq 1 ]; then
 else
     # We would like to set ap METIS API 
     $script_dir/rds-prometheus/configure_prom.sh
-    docker-compose -p tele-metric -f "$script_dir/rds-prometheus/docker-compose.yaml" up -d yace grafana prometheus
+    docker-compose -p tele-metric \
+    -f "$script_dir/rds-prometheus/docker-compose.yaml" \
+    -f "$script_dir/rds-prometheus/docker-compose.stack.yaml" \
+    up -d yace grafana prometheus
 fi
 
