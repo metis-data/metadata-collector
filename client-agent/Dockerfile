@@ -64,7 +64,3 @@ CMD [ "npm","start" ]
 # # USER node
 
 # CMD ["dumb-init", "npm", "start"]
-
-
-
-

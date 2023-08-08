@@ -15,11 +15,10 @@ const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 function getQueries(fakeHoursDelta: any) {
   const now = new Date();
   now.setHours(now.getHours() - fakeHoursDelta);
-  const currentMinutes = now.getMinutes();
   const currentHour = IGNORE_CURRENT_TIME ? 0 : now.getHours();
   if (process.argv.length === 2) {
     return Object.keys(QUERIES)
-      .filter((key) => relevant(QUERIES[key].times_a_day, currentHour, currentMinutes))
+      .filter((key) => relevant(QUERIES[key].times_a_day, currentHour))
       .map((key) => QUERIES[key]);
   }
   const qs: any = [];

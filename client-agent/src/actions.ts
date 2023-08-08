@@ -15,7 +15,7 @@ import  databaseSize  from './actions/database_size';
 import  pgDatabaseMetrics  from './actions/pg_database_metrics';
 import  pgConfig  from './actions/pg_config';
 const ExportersProviderConfig = require('./models').ExportersProviderConfig;
-import { ACTIONS_FILE } from './consts';
+const { ACTIONS_FILE } = require('./consts');
 const logger = createSubLogger('actions');
 
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
