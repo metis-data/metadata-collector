@@ -1,6 +1,6 @@
 {
   "name": "client-agent",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "",
   "main": "collect-runner.js",
   "scripts": {
@@ -14,7 +14,6 @@
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.169.0",
     "@metis-data/db-details": "2.6.1-beta.0",
-    "@metis-data/slow-query-log": "^0.0.6",
     "@sentry/node": "^7.2.0",
     "@types/node": "^20.4.5",
     "aws-sdk": "^2.1415.0",

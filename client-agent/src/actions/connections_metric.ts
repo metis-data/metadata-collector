@@ -8,10 +8,9 @@ const ConnectionState = {
 };
 
 async function fetchData(dbConfig: any, client: any) {
-  const qry = `SELECT state, count(*)::int, application_name FROM pg_stat_activity
+  const qry = `SELECT state, count(*)::int FROM pg_stat_activity
         where datid is not null
-        and datname = '${dbConfig.database}'
-        group by state, application_name;`;
+        group by state;`;
 
   const { rows } = await client.query(qry);
   return rows;

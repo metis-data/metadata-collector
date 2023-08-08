@@ -9,13 +9,13 @@ const getPackageVersion = () => {
   return require('./package.json').version;
 };
 
-function relevant(timesADay: any, hour: any, minutes: any) {
+function relevant(timesADay: any, minutes: any) {
   const floatTimesADay = parseFloat(timesADay);
   if (!floatTimesADay || floatTimesADay < 0) {
     return false;
   }
-  const every = Math.round(24 / floatTimesADay);
-  return hour % every === 0 || (minutes === 0 && ((hour + 23) % 24) % every === 0);
+  const every = Math.round(1440 / floatTimesADay);
+  return minutes % every === 0;
 }
 
 /**

@@ -1,7 +1,7 @@
 require('events').EventEmitter.prototype._maxListeners = 70;
 require('events').defaultMaxListeners = 70;
 import wtf = require('wtfnode');
-import {isDebug}  from './consts';
+import {isDebug, SQL_PLAN_COLLECTOR_INTERVAL}  from './consts';
 import { logger } from './logging';
 import { run } from './metrix';
 import { setup } from './setup';
@@ -19,8 +19,6 @@ async function app(hostedOnAws?: any) {
       logger.debug('app is about to run');
       const response = await run(0, _connections, undefined);
       logger.debug('app has completed the running');
-      logger.debug('app - calling connections.closeAllConnections');
-      await _connections.closeAllConnections();
       return response;
     })
     .then(() => {
@@ -35,10 +33,9 @@ async function app(hostedOnAws?: any) {
     .catch((e: any) => logger.error('app has failed', e));
 }
 
-export const main = async () => {
+export async function main() {
   try {
-
-    const scheduledFunction = async () => {
+    const scheduledJob = new ScheduledJob(async () => {
       try {
         logger.info('scheduledJob - start');
         const results = await app();
@@ -49,9 +46,7 @@ export const main = async () => {
         logger.error('scheduledJob - error: ', e);
         return false;
       }
-    }
-
-    const scheduledJob = new ScheduledJob(scheduledFunction, 60);
+    }, 1);
 
     const planCollectionJob = new ScheduledJob(async () => {
       try {
@@ -67,7 +62,7 @@ export const main = async () => {
         logger.error('planCollectionJob - error: ', e);
         return false;
       }
-    }, 1);
+    }, SQL_PLAN_COLLECTOR_INTERVAL);
 
     await Promise.allSettled([scheduledJob.start(), planCollectionJob.start()]);
 
