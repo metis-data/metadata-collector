@@ -6,8 +6,11 @@ const logger = createSubLogger('database-manager');
 const MetisSqlCollector = require('@metis-data/slow-query-log').MetisSqlCollector;
 const consts = require('../consts');
 
-const getHttpSchema = (port) => {
-  return port === 443 ? 'https://' : port === 80 ? 'http://' : null;
+const getHttpProtocol = (port: number) => {
+  const HTTP = 'http://';
+  const HTTPS = 'https://';
+
+  return port === 443 ? HTTPS : port === 80 ? HTTP : null;
 };
 
 export class Database {
@@ -42,7 +45,9 @@ export class Database {
 
 export class PostgresDatabase extends Database {
   static provider = 'postgres';
- 
+  database: any;
+  metisSqlCollector: any;
+  
   constructor(connectionString: any) {
     super(connectionString);
 
@@ -58,9 +63,9 @@ export class PostgresDatabase extends Database {
     Object.freeze(this);
   }
 
-  _initSlowQueryLog(connectionString) {
+  _initSlowQueryLog(connectionString: string) {
     const metisApiKey = consts.API_KEY;
-    const metisExportUrl = new URL(getHttpSchema(consts.API_GATEWAY_PORT) + consts.API_GATEWAY_HOST)
+    const metisExportUrl = new URL(getHttpProtocol(consts.API_GATEWAY_PORT) + consts.API_GATEWAY_HOST)
       .href;
     // TODO: think about a service name convention
     const serviceName = `${this.database}-pmc`;
