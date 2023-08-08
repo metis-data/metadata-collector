@@ -23,7 +23,7 @@ async function app(hostedOnAws) {
         }
       }, ACTION_INTERVAL);
 
-      const planCollectionJob = new ScheduledJob(async () => {
+      const slowQueryLogJob = new ScheduledJob(async () => {
         try {
           const results = await slowQueryLogPlanCollector(0, connections);
           return results || true;
@@ -34,7 +34,7 @@ async function app(hostedOnAws) {
         }
       }, SQL_PLAN_COLLECTOR_INTERVAL);
 
-      return Promise.allSettled([scheduledJob.start(), planCollectionJob.start()]);
+      return Promise.allSettled([scheduledJob.start(), slowQueryLogJob.start()]);
       
     })
     .then(() => {
