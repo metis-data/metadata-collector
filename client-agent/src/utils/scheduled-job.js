@@ -16,7 +16,7 @@ class ScheduledJob {
             const start = process.hrtime();
             const results = await this.task();
             const end = process.hrtime(start);
-            logger.info(`task execution took ${end[0]} sec`);
+            logger.debug(`task execution took ${end[0]} sec`);
 
             let ms;
 
@@ -27,7 +27,7 @@ class ScheduledJob {
                 ms = 0;
             }
 
-            logger.info(`will run in ${Math.round(ms / 60000)} minutes`);
+            logger.debug(`will run in ${Math.round(ms / 60000)} minutes`);
             this.timer = setTimeout(this.start.bind(this), ms);
             return results;
         }

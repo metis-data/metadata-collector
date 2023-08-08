@@ -8,11 +8,8 @@ const logger = createSubLogger('slow-query-log');
 
 const takeAction = async (connection) => {
     try {
-        logger.debug('takeAction - calling metis.run');
         const results = await connection.metisSqlCollector.run() || true;
-
         logger.debug('takeAction - results: ', results);
-        logger.info('takeAction - end');
         return results;
     }
     catch (e) {
