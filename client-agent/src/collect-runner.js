@@ -12,7 +12,7 @@ async function app(hostedOnAws = false) {
   logger.info('app is staring');
   return setup()
     .then(async (_connections) => {
-      const runAll = true;
+      let runAll = true;
       const runnerJob = new ScheduledJob(async () => {
         try {
           logger.info('runnerJob - start');
