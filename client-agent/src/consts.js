@@ -50,6 +50,7 @@ if (LOG_LEVEL) {
 
 const API_GATEWAY_PORT = parseInt(process.env.API_GATEWAY_PORT || 443, 10);
 const SQL_PLAN_COLLECTOR_INTERVAL = parseInt(process.env.SQL_PLAN_COLLECTOR_INTERVAL_IN_MIN || 1);
+const ACTION_INTERVAL = parseInt(process.env.ACTION_INTERVAL_IN_MIN || 1);
 const WEB_APP_PORT = parseInt(process.env.WEB_APP_PORT || 443, 10);
 const QUERIES_FILE = process.env.QUERIES_FILE || path.join(__dirname, 'queries.yaml');
 const ACTIONS_FILE = process.env.ACTIONS || path.join(__dirname, 'actions.yaml');
@@ -127,4 +128,5 @@ module.exports = {
   METIS_AWS_REGION,
   METIS_PROVIDER_METADATA: JSON.parse(METIS_PROVIDER_METADATA),
   SQL_PLAN_COLLECTOR_INTERVAL,
+  ACTION_INTERVAL,
 };

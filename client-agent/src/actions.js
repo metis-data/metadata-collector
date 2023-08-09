@@ -38,31 +38,20 @@ const ACTIONS_FUNCS = {
 
 const ACTIONS_DEF = mergeDeep(ACTIONS_YAML, ACTIONS_FUNCS);
 
-function getActions(fakeHoursDelta) {
+function getActions(runAll = false) {
   const now = new Date();
-  const currentMinutes = (now.getHours() * 60) + now.getMinutes();
-  if (process.argv.length === 2) {
-    return Object.keys(ACTIONS_DEF)
-      .filter((key) => relevant(ACTIONS_DEF[key].times_a_day, currentMinutes))
-      .map((key) => ACTIONS_DEF[key]);
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  if (runAll) {
+    return Object.values(ACTIONS_DEF);
   }
-  const actions = [];
-  process.argv.slice(2).forEach((action) => {
-    if (action in ACTIONS_DEF) {
-      actions.push(ACTIONS_DEF[action]);
-    }
-  });
-  if (actions.length < process.argv.length - 2) {
-    const nonEligableActions = process.argv.slice(2).filter((action) => !(action in ACTIONS_DEF));
-    throw Error(
-      `Error running the CLI. The following are not eligible Actions: ${nonEligableActions}`,
-    );
-  }
-  return actions;
+  return Object.keys(ACTIONS_DEF)
+    .filter((key) => relevant(ACTIONS_DEF[key].times_a_day, currentMinutes))
+    .map((key) => ACTIONS_DEF[key]);
 }
 
-async function collectActions(fakeHoursDelta, connections) {
-  const theActions = getActions(fakeHoursDelta);
+async function collectActions(runAll, connections) {
+  const theActions = getActions(runAll);
   if (!theActions.length) return;
   const actionsData = await Promise.all(
     // PostgresDatabase class

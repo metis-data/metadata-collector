@@ -2,7 +2,6 @@ require('dotenv').config();
 const { makeInternalHttpRequest } = require('./http');
 const { WEB_APP_REQUEST_OPTIONS } = require('./consts');
 
-
 const { logger } = require('./logging');
 const { getConnectionConfigs } = require('./connections/utils');
 const { collectActions } = require('./actions');
@@ -12,7 +11,7 @@ const DatabaseConnectionsManager = require('./connections/database-manager');
 const { SilentError } = require('./config/error');
 
 // eslint-disable-next-line max-len
-const collectRunnerAsync = async (fakeHoursDelta, connections, additionalCollectors) => {
+const collectRunnerAsync = async (runAll, connections, additionalCollectors) => {
   // eslint-disable-next-line max-len
   const collectingActionPromises = [
     collectQueries,
@@ -24,7 +23,7 @@ const collectRunnerAsync = async (fakeHoursDelta, connections, additionalCollect
     logger.info(`Collector ${collectorName} has been started.`);
     let collectorResult = {};
     try {
-      collectorResult = await collectFn(fakeHoursDelta, connections);
+      collectorResult = await collectFn(runAll, connections);
     } catch (error) {
       if (error && !(error instanceof SilentError)) {
         logger.error(`Collector ${collectorName} has failed.`, { error });
@@ -39,7 +38,7 @@ const collectRunnerAsync = async (fakeHoursDelta, connections, additionalCollect
   return await Promise.allSettled(collectingActionPromises);
 };
 
-async function run(fakeHoursDelta = 0, connections, additionalCollectors) {
+async function run(runAll, connections, additionalCollectors) {
   const dbConfigs = await getConnectionConfigs();
 
   const pmcPingResult = await Promise.allSettled(
@@ -58,7 +57,7 @@ async function run(fakeHoursDelta = 0, connections, additionalCollectors) {
 
   logger.debug('MMC Ping result', { pmcPingResult });
 
-  return await collectRunnerAsync(fakeHoursDelta, connections, additionalCollectors);
+  return await collectRunnerAsync(runAll, connections, additionalCollectors);
 }
 
 module.exports = {
