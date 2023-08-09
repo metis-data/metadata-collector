@@ -10,36 +10,13 @@ import slowQueryLogPlanCollector from './slow-query-log';
 
 let connections: any;
 
-async function app(hostedOnAws?: any) {
-  logger.info('app is staring');
+export async function main(hostedOnAws?: any) {
   return setup()
     .then(async (_connections: any) => {
-      connections = _connections;
-      logger.debug('app setup has completed');
-      logger.debug('app is about to run');
-      const response = await run(0, _connections, undefined);
-      logger.debug('app has completed the running');
-      return response;
-    })
-    .then(() => {
-      if (isDebug()) {
-        wtf.dump();
-      }
-      logger.info('app has finished execution');
-      if (hostedOnAws) {
-        process.exit(0);
-      }
-    })
-    .catch((e: any) => logger.error('app has failed', e));
-}
-
-export async function main() {
-  try {
+   
     const scheduledJob = new ScheduledJob(async () => {
       try {
-        logger.info('scheduledJob - start');
-        const results = await app();
-        logger.info('scheduledJob - end');
+        const results = await run(0, connections, undefined);
         return results || true;
       }
       catch (e) {
@@ -50,10 +27,6 @@ export async function main() {
 
     const planCollectionJob = new ScheduledJob(async () => {
       try {
-        logger.info('planCollectionJob - start');
-        if (!connections) {
-          connections = await setup();
-        }
         const results = await slowQueryLogPlanCollector(0, connections);
         logger.info('planCollectionJob - end');
         return results || true;
@@ -66,11 +39,17 @@ export async function main() {
 
     await Promise.allSettled([scheduledJob.start(), planCollectionJob.start()]);
 
-  }
-  catch (e) {
-    logger.error('error: ', e);
-  }
+    })
+    .then(() => {
+      if (isDebug()) {
+        wtf.dump();
+      }
+      logger.info('app has finished execution');
+      if (hostedOnAws) {
+        process.exit(0);
+      }
+    })
+    .catch((e: any) => logger.error('app has failed', e));
 }
-
 
 
