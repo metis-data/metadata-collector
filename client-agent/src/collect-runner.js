@@ -8,34 +8,38 @@ const { setup } = require('./setup');
 const ScheduledJob = require('./utils/scheduled-job');
 const slowQueryLogPlanCollector = require('./slow-query-log');
 
-
-async function app(hostedOnAws) {
+async function app(hostedOnAws = false) {
   logger.info('app is staring');
   return setup()
     .then(async (_connections) => {
-      const scheduledJob = new ScheduledJob(async () => {
+      const runAll = true;
+      const runnerJob = new ScheduledJob(async () => {
         try {
-          return (await run(0, _connections)) || true;
-        }
-        catch (e) {
-          logger.error('scheduledJob - error: ', e);
+          logger.info('runnerJob - start');
+
+          const result = await run(runAll, _connections);
+
+          runAll = false;
+
+          return result || true;
+        } catch (e) {
+          logger.error('runnerJob - error: ', e);
           return false;
         }
       }, ACTION_INTERVAL);
 
       const slowQueryLogJob = new ScheduledJob(async () => {
         try {
-          const results = await slowQueryLogPlanCollector(0, connections);
+          logger.info('planCollectionJob - start');
+          const results = await slowQueryLogPlanCollector(_connections);
           return results || true;
-        }
-        catch (e) {
+        } catch (e) {
           logger.error('planCollectionJob - error: ', e);
           return false;
         }
       }, SQL_PLAN_COLLECTOR_INTERVAL);
 
-      return Promise.allSettled([scheduledJob.start(), slowQueryLogJob.start()]);
-      
+      runnerJob.start(), slowQueryLogJob.start();
     })
     .then(() => {
       if (isDebug()) {
