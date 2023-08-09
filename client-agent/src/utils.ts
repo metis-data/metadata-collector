@@ -10,11 +10,12 @@ const getPackageVersion = () => {
 };
 
 function relevant(timesADay: any, minutes: any) {
+  const DAY_IN_MINUTES = 1440;
   const floatTimesADay = parseFloat(timesADay);
   if (!floatTimesADay || floatTimesADay < 0) {
     return false;
   }
-  const every = Math.round(1440 / floatTimesADay);
+  const every = Math.round(DAY_IN_MINUTES / floatTimesADay);
   return minutes % every === 0;
 }
 

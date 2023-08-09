@@ -1,0 +1,54 @@
+schemas:
+  name: schemas
+  exporter:
+    provider: app
+    url: '/api/db-details'
+  times_a_day: 24
+stat_statements:
+  name: stat_statements
+  exporter:
+    provider: app
+    url: '/api/pmc/statistics/query'
+  times_a_day: 24
+available_extensions:
+  name: available_extensions
+  exporter:
+    provider: app
+    url: '/api/pmc/customer-db-extension'
+  times_a_day: 24
+pg_config:
+  name: pg_config
+  exporter:
+    provider: app
+    url: '/api/pmc/customer-db-config'
+  times_a_day: 24
+connections_metric:
+  name: connections_metric
+  exporter:
+    provider: collector
+    url: /md-collector
+  times_a_day: 24
+plan_collector:
+  name: plan_collector
+  exporter:
+    provider: collector
+    url: /
+  times_a_day: 24
+db_host_details:
+  name: db_host_details
+  exporter:
+    provider: app
+    url: /api/pmc/db-host-details
+  times_a_day: 24
+database_size:
+  name: database_size
+  exporter:
+    provider: collector
+    url: /md-collector
+  times_a_day: 24
+pg_database_metrics:
+  name: pg_database_metrics
+  exporter:
+    provider: collector
+    url: /md-collector
+  times_a_day: 1440

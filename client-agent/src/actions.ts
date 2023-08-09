@@ -15,7 +15,7 @@ import  databaseSize  from './actions/database_size';
 import  pgDatabaseMetrics  from './actions/pg_database_metrics';
 import  pgConfig  from './actions/pg_config';
 const ExportersProviderConfig = require('./models').ExportersProviderConfig;
-const { ACTIONS_FILE } = require('./consts');
+const { ACTIONS_FILE, DEBUG } = require('./consts');
 const logger = createSubLogger('actions');
 
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
@@ -39,24 +39,9 @@ const ACTIONS_DEF = mergeDeep(ACTIONS_YAML, ACTIONS_FUNCS);
 function getActions(fakeHoursDelta: any) {
   const now = new Date();
   const currentMinutes = (now.getHours() * 60) + now.getMinutes();
-  if (process.argv.length === 2) {
-    return Object.keys(ACTIONS_DEF)
-      .filter((key) => relevant(ACTIONS_DEF[key].times_a_day, currentMinutes))
+  return Object.keys(ACTIONS_DEF)
+      .filter((key) => DEBUG ? true : relevant(ACTIONS_DEF[key].times_a_day, currentMinutes))
       .map((key) => ACTIONS_DEF[key]);
-  }
-  const actions: any = [];
-  process.argv.slice(2).forEach((action: any) => {
-    if (action in ACTIONS_DEF) {
-      actions.push(ACTIONS_DEF[action]);
-    }
-  });
-  if (actions.length < process.argv.length - 2) {
-    const nonEligableActions = process.argv.slice(2).filter((action: any) => !(action in ACTIONS_DEF));
-    throw Error(
-      `Error running the CLI. The following are not eligible Actions: ${nonEligableActions}`,
-    );
-  }
-  return actions;
 }
 
 async function collectActions(fakeHoursDelta: any, connections: any) {

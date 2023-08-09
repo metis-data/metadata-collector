@@ -5,7 +5,8 @@
   "main": "collect-runner.js",
   "scripts": {
     "build": "tsc && cpy 'src/**/*.yaml' dist",
-    "start": "node dist/src/app.js",
+    "start": "npx ts-node ./src/app.ts",
+    "prod": "node ./dist/src/app.js",
     "simulator": "node simulator.js 30 aBJYk0W2ZH5YTBW0smxrz41WLam2rfbw7lNVNmKW",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -39,6 +40,7 @@
     "eslint": "^8.34.0",
     "nodemon": "^3.0.1",
     "prettier": "^2.8.4",
+    "ts-node": "^10.9.1",
     "typescript": "^4.9.5"
   }
 }
