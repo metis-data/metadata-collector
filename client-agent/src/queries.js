@@ -13,35 +13,23 @@ const queriesFileContents = fs.readFileSync(QUERIES_FILE, 'utf8');
 const QUERIES = yaml.load(queriesFileContents);
 const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 
-function getQueries(fakeHoursDelta) {
+function getQueries(runAll = false) {
   const now = new Date();
-  now.setHours(now.getHours() - fakeHoursDelta);
-  const currentMinutes = now.getMinutes();
-  const currentHour = IGNORE_CURRENT_TIME ? 0 : now.getHours();
-  if (process.argv.length === 2) {
-    return Object.keys(QUERIES)
-      .filter((key) => relevant(QUERIES[key].times_a_day, currentHour, currentMinutes))
-      .map((key) => QUERIES[key]);
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  if (runAll) {
+    return Object.values(QUERIES);
   }
-  const qs = [];
-  process.argv.slice(2).forEach((q) => {
-    if (q in QUERIES) {
-      qs.push(QUERIES[q]);
-    }
-  });
-  if (qs.length < process.argv.length - 2) {
-    const nonEligableQueries = process.argv.slice(2).filter((q) => !(q in QUERIES));
-    throw Error(
-      `Error running the CLI. The following are not eligible queries: ${nonEligableQueries}`,
-    );
-  }
-  return qs;
+
+  return Object.keys(QUERIES)
+    .filter((key) => relevant(QUERIES[key].times_a_day, currentMinutes))
+    .map((key) => QUERIES[key]);
 }
 
 const results = {};
 
-async function collectQueries(fakeHoursDelta, connections) {
-  const theQueries = getQueries(fakeHoursDelta);
+async function collectQueries(runAll, connections) {
+  const theQueries = getQueries(runAll);
   if (theQueries.length === 0) {
     logger.info('There are no queries to run for this hour.');
     return;
@@ -58,12 +46,10 @@ async function collectQueries(fakeHoursDelta, connections) {
               const res = await client.query(bigQuery);
               results[dbConfigKey] = theQueries.length === 1 ? [res] : res;
               const now = new Date();
-              now.setHours(now.getHours() - fakeHoursDelta);
               const response = await processResults(
                 connection,
                 results[dbConfigKey],
                 now.getTime(),
-                fakeHoursDelta !== 0,
               );
               logger.info('Processing results done.', { response, dbConfig: connection.dbConfig });
               return response;
