@@ -46,6 +46,10 @@ jobs:
           registry-type: public
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true # Ignore the failure of a step and avoid terminating the job.
+        with:
+          key: docker-cache-{hash}
+          restore-keys: |
+            docker-cache-
 
         # remove 
       - name: Set outputs
@@ -69,7 +73,7 @@ jobs:
           PACKAGE_JSON_HASH_TAG=$(shasum package.json | awk '{ print $1 }' | cut -c1-8)
           CUSTOM_TAG="${{ inputs.docker_image_tag }}"
           
-          TAGS=("$COMMIT_SHA_TAG", "$PACKAGE_JSON_HASH_TAG", "$CUSTOM_TAG", )
+          TAGS=("$COMMIT_SHA_TAG" "$PACKAGE_JSON_HASH_TAG" "$CUSTOM_TAG")
 
           if [ -n "$IS_LATEST" ] && [ "$IS_LATEST" = "true" ]; then
             TAGS+=("latest")
