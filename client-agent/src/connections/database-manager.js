@@ -40,7 +40,9 @@ class PostgresDatabase extends Database {
 
   constructor(connectionString) {
     super(connectionString);
-    this._isSlowQueryLogReady = false;
+    this._state = {
+      _isSlowQueryLogReady: false,
+    };
 
     this.pool = new Pool({ connectionString: this.connectionString });
 
@@ -93,12 +95,12 @@ class PostgresDatabase extends Database {
 
   async collectSpansFromSlowQueryLog() {
     for await (const client of this.clientGenerator()) {
-      if (!this._isSlowQueryLogReady) {
+      if (!this._state._isSlowQueryLogReady) {
         await this._metisSqlCollector.setup(client);
-        this._isSlowQueryLogReady = true;
+        this._state._isSlowQueryLogReady = true;
       }
 
-      await this._metisSqlCollector.run();
+      await this._metisSqlCollector.run(client);
     }
   }
 
