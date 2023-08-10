@@ -44,17 +44,21 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1.5.1
         with:
           registry-type: public
+
+      # remove 
+      - name: Set outputs
+        id: vars
+        run: |
+          echo "hashc=$(echo "${GITHUB_REF}" | sed 's/[^a-zA-Z]//g' | cut -c1-20)"  >> $GITHUB_OUTPUT
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true # Ignore the failure of a step and avoid terminating the job.
         with:
-          key: docker-cache-{hash}
+          key: docker-cache-${{ steps.vars.outputs.hashc }}-${{ hashFiles('package.json') }}
           restore-keys: |
-            docker-cache-
-
-        # remove 
-      - name: Set outputs
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+            docker-cache-${{ steps.vars.outputs.hashc }}
+            
 
       - name: build and deploy
         id: build-and-deploy
@@ -89,7 +93,7 @@ jobs:
           done
 
 
-          echo "tag=$COMMIT_SHA_TAG" >> $GITHUB_ENV
+          echo "tag=$COMMIT_SHA_TAG" >> $GITHUB_OUTPUT
 
       - name: create cloud formation
         env:
