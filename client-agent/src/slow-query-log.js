@@ -2,11 +2,11 @@ const { createSubLogger } = require('./logging');
 
 const logger = createSubLogger('slow-query-log');
 
-const takeAction = async (connection) => {
+const takeActionPerConnection = async (connection) => {
   try {
-    const results = (await connection.metisSqlCollector.run()) || true;
-    logger.debug('takeAction - results: ', results);
-    return results;
+      const results = await connection.collectSpansFromSlowQueryLog() || false;
+      logger.debug('takeAction - results: ', results);
+      return results;
   } catch (e) {
     logger.error('Slow query log error: ', e);
     return false;
@@ -14,7 +14,7 @@ const takeAction = async (connection) => {
 };
 
 async function collectPlans(connections) {
-  const promiseArr = connections.map(takeAction);
+  const promiseArr = connections.map(takeActionPerConnection);
 
   const responses = await Promise.allSettled(promiseArr);
 
