@@ -8,7 +8,7 @@ const { setup } = require('./setup');
 const ScheduledJob = require('./utils/scheduled-job');
 const slowQueryLogPlanCollector = require('./slow-query-log');
 
-async function app(hostedOnAws = false) {
+async function main(hostedOnAws = false) {
   logger.info('app is staring');
   return setup()
     .then(async (_connections) => {
@@ -53,4 +53,4 @@ async function app(hostedOnAws = false) {
     .catch((e) => logger.error('error:', e));
 }
 
-module.exports = app;
+module.exports = main;
