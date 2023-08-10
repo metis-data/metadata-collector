@@ -66,10 +66,10 @@ jobs:
 
 
           COMMIT_SHA_TAG=$(git rev-parse --short HEAD)
-          PACKAGE_JSON_HASH_TAG=$(shasum package.json | awk '{ print $1 }')
+          PACKAGE_JSON_HASH_TAG=$(shasum package.json | awk '{ print $1 }' | cut -c1-8)
           CUSTOM_TAG="${{ inputs.docker_image_tag }}"
           
-          TAGS=("$COMMIT_SHA_TAG" "$PACKAGE_JSON_HASH_TAG", "$CUSTOM_TAG", )
+          TAGS=("$COMMIT_SHA_TAG", "$PACKAGE_JSON_HASH_TAG", "$CUSTOM_TAG", )
 
           if [ -n "$IS_LATEST" ] && [ "$IS_LATEST" = "true" ]; then
             TAGS+=("latest")
