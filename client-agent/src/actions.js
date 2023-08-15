@@ -15,12 +15,11 @@ const { dbHostDetails } = require('./actions/db_host_details');
 const { databaseSize } = require('./actions/database_size');
 const { pgDatabaseMetrics } = require('./actions/pg_database_metrics');
 const { pgConfig } = require('./actions/pg_config');
+const queries = require('./actions/queries');
 const ExportersProviderConfig = require('./models').ExportersProviderConfig;
 const { ACTIONS_FILE } = require('./consts');
-const { instance } = require('./connections/database-manager');
 const logger = createSubLogger('actions');
 
-const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 const actionsFileContents = fs.readFileSync(ACTIONS_FILE, 'utf8');
 const ACTIONS_YAML = yaml.load(actionsFileContents);
 
@@ -34,6 +33,7 @@ const ACTIONS_FUNCS = {
   db_host_details: dbHostDetails,
   database_size: databaseSize,
   pg_database_metrics: pgDatabaseMetrics,
+  ...queries,
 };
 
 const ACTIONS_DEF = mergeDeep(ACTIONS_YAML, ACTIONS_FUNCS);
@@ -51,7 +51,8 @@ function getActions(runAll = false) {
 }
 
 async function collectActions(runAll, connections) {
-  const theActions = getActions(runAll);
+  const theActions = getActions(runAll).filter((action) => action.name);
+
   if (!theActions.length) return;
   const actionsData = await Promise.all(
     // PostgresDatabase class
