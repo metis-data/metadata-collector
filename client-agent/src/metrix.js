@@ -5,16 +5,13 @@ const { WEB_APP_REQUEST_OPTIONS } = require('./consts');
 const { logger } = require('./logging');
 const { getConnectionConfigs } = require('./connections/utils');
 const { collectActions } = require('./actions');
-const { collectQueries } = require('./queries');
 const { collectMetrics } = require('./metrics');
-const DatabaseConnectionsManager = require('./connections/database-manager');
 const { SilentError } = require('./config/error');
 
 // eslint-disable-next-line max-len
 const collectRunnerAsync = async (runAll, connections, additionalCollectors) => {
   // eslint-disable-next-line max-len
   const collectingActionPromises = [
-    collectQueries,
     collectActions,
     collectMetrics,
     ...(additionalCollectors || []),

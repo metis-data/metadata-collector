@@ -146,7 +146,6 @@ dist
 
 .idea/
 client-agent/src/.env.prod
-**/.vscode
-.vscode/
-
-metadata-collector.iml
+.vscode/launch.json
+.vscode/settings.json
+.vscode/tasks.json
