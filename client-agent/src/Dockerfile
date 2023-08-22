@@ -18,7 +18,7 @@ ENV SENTRY_DSN=$SENTRY_DSN
 COPY ["package.json", "package-lock.json*", ".npmrc", "./"]
 RUN npm ci --production --loglevel verbose 
 RUN rm .npmrc && unset NPM_TOKEN
-RUN npm i --save @metis-data/slow-query-log@0.1.8
+RUN npm i --save @metis-data/slow-query-log@0.1.9
 COPY . .
 
 ENTRYPOINT [ "dumb-init" ]
