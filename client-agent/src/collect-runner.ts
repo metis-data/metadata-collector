@@ -6,7 +6,7 @@ import { logger } from './logging';
 import { run } from './metrix';
 import { setup } from './setup';
 import ScheduledJob  from './utils/scheduled-job';
-import slowQueryLogPlanCollector from './slow-query-log';
+import collectPlans from './slow-query-log';
 
 async function main(hostedOnAws = false) {
   logger.info('app is staring');
@@ -30,11 +30,11 @@ async function main(hostedOnAws = false) {
 
       const slowQueryLogJob = new ScheduledJob(async () => {
         try {
-          logger.info('planCollectionJob - start');
-          const results = await slowQueryLogPlanCollector(_connections);
+          logger.info('slow query log plan - CollectionJob - start');
+          const results = await collectPlans(_connections);
           return results || true;
         } catch (e) {
-          logger.error('planCollectionJob - error: ', e);
+          logger.error('slow query log plan - planCollectionJob - error: ', e);
           return false;
         }
       }, SQL_PLAN_COLLECTOR_INTERVAL);
