@@ -14,6 +14,7 @@ import dbHostDetails  from './actions/db_host_details';
 import  databaseSize  from './actions/database_size';
 import  pgDatabaseMetrics  from './actions/pg_database_metrics';
 import  pgConfig  from './actions/pg_config';
+const queries = require('./actions/queries');
 const ExportersProviderConfig = require('./models').ExportersProviderConfig;
 const { ACTIONS_FILE, DEBUG } = require('./consts');
 const logger = createSubLogger('actions');

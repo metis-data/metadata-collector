@@ -15,7 +15,7 @@
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.169.0",
     "@metis-data/db-details": "2.6.1-beta.0",
-    "@metis-data/slow-query-log": "^0.0.22",
+    "@metis-data/slow-query-log": "^0.1.13",
     "@sentry/node": "^7.2.0",
     "@types/node": "^20.4.5",
     "aws-sdk": "^2.1415.0",

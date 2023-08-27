@@ -47,7 +47,9 @@ export class PostgresDatabase extends Database {
   static provider = 'postgres';
   database: any;
   metisSqlCollector: any;
-  
+  _state: any; 
+  _metisSqlCollector: any;
+
   constructor(connectionString: any) {
     super(connectionString);
     this._state = {

@@ -1,4 +1,4 @@
-import { main }  from './collect-runner';
+import  main   from './collect-runner';
 
 class App {
 

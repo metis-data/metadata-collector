@@ -54,4 +54,4 @@ async function main(hostedOnAws = false) {
     .catch((e) => logger.error('error:', e));
 }
 
-module.exports = main;
+export default main;
