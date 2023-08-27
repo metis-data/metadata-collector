@@ -12,27 +12,6 @@ function exit(msg: any, code: any) {
 
 async function setup() {
   await loggingSetup();
-  process.on('uncaughtException', (error, source) => {
-    try {
-      logger.error('uncaughtException', { error, source });
-    } catch (err) {
-      /* If logger is failing too, there is nothing we would like to do */
-    }
-    exit('Uncaught Exception Exiting ...', 1);
-  });
-
-  process.on('SIGINT', () => {
-    exit('SIGINT signal received, exiting ...', 1);
-  });
-
-  process.on('SIGTERM', () => {
-    exit('SIGTERM signal received, exiting ...', 1);
-  });
-
-  process.on('exit', (code: any) => {
-    exit(`Process Exiting code: ${code}...`, code);
-  });
-
   try {
     const DB_CONNECTION_STRINGS = await getConnectionStrings();
 
@@ -52,6 +31,43 @@ async function setup() {
     if (databaseConnectionsManager.connections.size === 0) {
       throw new Error(`Could not setup MMC as expected, database schema are worngֿ\n Value: ${DB_CONNECTION_STRINGS}`);
     }
+
+    const gracefulShutdown = (signal: any, code: any) => {
+      logger.warn(`Received ${signal} signal. Starting graceful shutdown...`);
+  
+      // Close the PostgreSQL connection pool
+      databaseConnectionsManager.closeAllConnections()
+        .then(() => {
+          logger.info('PostgreSQL connection pool closed.');
+          exit(code || 0, code);
+        })
+        .catch((err: any) => {
+          logger.error('Error closing PostgreSQL connection pool:', err);
+          exit(1, code);
+        });
+    };
+
+    process.on('uncaughtException', (error, source) => {
+      try {
+        logger.error(`Uncaught exception. Starting shutdown...`, { error, source });
+      } catch (err) {
+        /* If logger is failing too, there is nothing we would like to do */
+      }
+      gracefulShutdown('uncaughtException', 1)
+    });
+
+    process.on('SIGINT', () => {
+      gracefulShutdown('SIGINT', 1);
+    });
+
+    process.on('SIGTERM', () => {
+      gracefulShutdown('SIGTERM', 1);
+    });
+
+    process.on('exit', (code) => {
+      exit(`Process Exiting code: ${code}...`, code);
+    });
+
 
     return databaseConnectionsManager;
   } catch (err) {

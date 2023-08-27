@@ -9,10 +9,9 @@ import { collectMetrics } from './metrics';
 import { SilentError } from './config/error';
 
 // eslint-disable-next-line max-len
-const collectRunnerAsync = async (fakeHoursDelta: any, connections: any, additionalCollectors: any) => {
+const collectRunnerAsync = async (runAll: any, connections: any, additionalCollectors: any) => {
   // eslint-disable-next-line max-len
   const collectingActionPromises = [
-    collectQueries,
     collectActions,
     collectMetrics,
     ...(additionalCollectors || []),
@@ -21,7 +20,7 @@ const collectRunnerAsync = async (fakeHoursDelta: any, connections: any, additio
     logger.info(`Collector ${collectorName} has been started.`);
     let collectorResult = {};
     try {
-      collectorResult = await collectFn(fakeHoursDelta, connections);
+      collectorResult = await collectFn(runAll, connections);
     } catch (error) {
       if (error && !(error instanceof SilentError)) {
         logger.error(`Collector ${collectorName} has failed.`, { error });
@@ -36,8 +35,8 @@ const collectRunnerAsync = async (fakeHoursDelta: any, connections: any, additio
   return await Promise.allSettled(collectingActionPromises);
 };
 
-async function run(fakeHoursDelta = 0, connections: any, additionalCollectors: any) {
-  const dbConfigs: any = await getConnectionConfigs();
+async function run(runAll: any, connections: any, additionalCollectors: any) {
+  const dbConfigs = await getConnectionConfigs();
 
   const pmcPingResult = await Promise.allSettled(
     dbConfigs.map(({ database: db_name, host: db_host, port }: any) =>
@@ -55,7 +54,7 @@ async function run(fakeHoursDelta = 0, connections: any, additionalCollectors: a
 
   logger.debug('MMC Ping result', { pmcPingResult });
 
-  return await collectRunnerAsync(fakeHoursDelta, connections, additionalCollectors);
+  return await collectRunnerAsync(runAll, connections, additionalCollectors);
 }
 
 export  {

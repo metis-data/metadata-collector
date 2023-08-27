@@ -18,7 +18,6 @@ const ExportersProviderConfig = require('./models').ExportersProviderConfig;
 const { ACTIONS_FILE, DEBUG } = require('./consts');
 const logger = createSubLogger('actions');
 
-const IGNORE_CURRENT_TIME = process.env.IGNORE_CURRENT_TIME === 'true';
 const actionsFileContents = fs.readFileSync(ACTIONS_FILE, 'utf8');
 const ACTIONS_YAML = yaml.load(actionsFileContents);
 
@@ -32,20 +31,26 @@ const ACTIONS_FUNCS = {
   db_host_details: dbHostDetails,
   database_size: databaseSize,
   pg_database_metrics: pgDatabaseMetrics,
+  ...queries,
 };
 
 const ACTIONS_DEF = mergeDeep(ACTIONS_YAML, ACTIONS_FUNCS);
 
-function getActions(fakeHoursDelta: any) {
+function getActions(runAll = false) {
   const now = new Date();
-  const currentMinutes = (now.getHours() * 60) + now.getMinutes();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  if (runAll) {
+    return Object.values(ACTIONS_DEF);
+  }
   return Object.keys(ACTIONS_DEF)
-      .filter((key) => DEBUG ? true : relevant(ACTIONS_DEF[key].times_a_day, currentMinutes))
-      .map((key) => ACTIONS_DEF[key]);
+    .filter((key) => relevant(ACTIONS_DEF[key].times_a_day, currentMinutes))
+    .map((key) => ACTIONS_DEF[key]);
 }
 
-async function collectActions(fakeHoursDelta: any, connections: any) {
-  const theActions: any = getActions(fakeHoursDelta);
+async function collectActions(runAll: any, connections: any) {
+  const theActions = getActions(runAll).filter((action) => action.name);
+
   if (!theActions.length) return;
   const actionsData = await Promise.all(
     // PostgresDatabase class

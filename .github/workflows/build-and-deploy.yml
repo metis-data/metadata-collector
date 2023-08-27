@@ -44,8 +44,21 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1.5.1
         with:
           registry-type: public
+
+      # remove 
+      - name: Set outputs
+        id: vars
+        run: |
+          echo "hashc=$(echo "${GITHUB_REF}" | sed 's/[^a-zA-Z]//g' | cut -c1-20)"  >> $GITHUB_OUTPUT
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true # Ignore the failure of a step and avoid terminating the job.
+        with:
+          key: docker-cache-${{ steps.vars.outputs.hashc }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            docker-cache-${{ steps.vars.outputs.hashc }}
+            
 
       - name: build and deploy
         id: build-and-deploy
@@ -59,11 +72,28 @@ jobs:
             --build-arg SENTRY_DSN=${{ secrets.SENTRY_DSN }} \
             -q -t $REGISTRY/o2c0x5x8/metis-md-collector .)
 
-          TAG=$( if [ $IS_LATEST = true ]; then echo "latest"; elif [ "${{inputs.docker_image_tag}}" != "" ]; then echo "${{inputs.docker_image_tag}}"; else shasum package.json | awk '{ print $1 }'; fi )
 
-          docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
-          docker push $REGISTRY/o2c0x5x8/metis-md-collector:$TAG
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          COMMIT_SHA_TAG=$(git rev-parse --short HEAD)
+          PACKAGE_JSON_HASH_TAG=$(shasum package.json | awk '{ print $1 }' | cut -c1-8)
+          CUSTOM_TAG="${{ inputs.docker_image_tag }}"
+          
+          TAGS=("commit-$COMMIT_SHA_TAG" "hash-$PACKAGE_JSON_HASH_TAG" "$CUSTOM_TAG")
+
+          if [ -n "$IS_LATEST" ] && [ "$IS_LATEST" = "true" ]; then
+            TAGS+=("latest")
+          fi
+
+          for tag in "${TAGS[@]}"; do
+            if [ -n "$tag" ]; then
+                docker tag $DOCKER_ID $REGISTRY/o2c0x5x8/metis-md-collector:$tag
+                docker push $REGISTRY/o2c0x5x8/metis-md-collector:$tag
+            else
+              echo "Skipping empty tag: $tag"
+            fi
+          done
+
+
+          echo "tag=$COMMIT_SHA_TAG" >> $GITHUB_OUTPUT
 
       - name: create cloud formation
         env:

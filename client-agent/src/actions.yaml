@@ -27,7 +27,7 @@ connections_metric:
   exporter:
     provider: collector
     url: /md-collector
-  times_a_day: 24
+  times_a_day: 1440
 plan_collector:
   name: plan_collector
   exporter:
@@ -52,3 +52,15 @@ pg_database_metrics:
     provider: collector
     url: /md-collector
   times_a_day: 1440
+tables_size:
+  name: tables_size
+  exporter:
+    provider: collector
+    url: /md-collector
+  times_a_day: 24
+index_usage:
+  name: index_usage
+  exporter:
+    provider: collector
+    url: /md-collector
+  times_a_day: 24

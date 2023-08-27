@@ -50,6 +50,9 @@ export class PostgresDatabase extends Database {
   
   constructor(connectionString: any) {
     super(connectionString);
+    this._state = {
+      _isSlowQueryLogReady: false,
+    };
 
     this.pool = new Pool({ connectionString: this.connectionString });
 
@@ -72,7 +75,7 @@ export class PostgresDatabase extends Database {
 
     logger.debug('takeAction - calling new MetisSqlCollector');
     const _logger = createSubLogger('MetisSqlCollector');
-    this.metisSqlCollector = new MetisSqlCollector({
+    this._metisSqlCollector = new MetisSqlCollector({
       connectionString,
       metisApiKey,
       metisExportUrl,
@@ -81,7 +84,7 @@ export class PostgresDatabase extends Database {
       byTrace: false,
       autoRun: false,
       logger: _logger,
-      debug: true
+      debug: consts.isDebug(),
     });
   }
 
@@ -97,6 +100,17 @@ export class PostgresDatabase extends Database {
     } catch (error) {
       logger.error('Error connecting to PostgreSQL:', error);
       throw error;
+    }
+  }
+
+  async collectSpansFromSlowQueryLog() {
+    for await (const client of this.clientGenerator()) {
+      if (!this._state._isSlowQueryLogReady) {
+        await this._metisSqlCollector.setup(client);
+        this._state._isSlowQueryLogReady = true;
+      }
+
+      await this._metisSqlCollector.run(client);
     }
   }
 
@@ -159,7 +173,9 @@ export class DatabaseConnectionsManager {
       return this.connections.get(connectionString);
     }
 
+    // TODO: Factory
     const databaseManager = new PostgresDatabase(connectionString);
+
     this.connections.set(connectionString, databaseManager);
     return databaseManager;
   }

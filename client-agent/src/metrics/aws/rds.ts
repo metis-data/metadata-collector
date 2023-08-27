@@ -30,13 +30,13 @@ export class AwsRdsResource {
       logger.info('instanceId is not provided');
       return;
     } else if (!access_key_id) {
-      logger.info('access_key_id is not provided');
+      logger.warn('access_key_id is not provided');
       return;
     } else if (!secret_access_key) {
-      logger.info('secret_access_key is not provided');
+      logger.warn('secret_access_key is not provided');
       return;
     } else if (!region) {
-      logger.info('region is not provided');
+      logger.warn('region is not provided');
       return;
     } else {
       this.region = region;

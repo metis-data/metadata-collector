@@ -1,25 +1,46 @@
 require('events').EventEmitter.prototype._maxListeners = 70;
 require('events').defaultMaxListeners = 70;
 import wtf = require('wtfnode');
-import {isDebug, SQL_PLAN_COLLECTOR_INTERVAL}  from './consts';
+import {ACTION_INTERVAL, isDebug, SQL_PLAN_COLLECTOR_INTERVAL}  from './consts';
 import { logger } from './logging';
 import { run } from './metrix';
 import { setup } from './setup';
 import ScheduledJob  from './utils/scheduled-job';
 import slowQueryLogPlanCollector from './slow-query-log';
 
-let connections: any;
-
-async function app(hostedOnAws?: any) {
+async function main(hostedOnAws = false) {
   logger.info('app is staring');
   return setup()
-    .then(async (_connections: any) => {
-      connections = _connections;
-      logger.debug('app setup has completed');
-      logger.debug('app is about to run');
-      const response = await run(0, _connections, undefined);
-      logger.debug('app has completed the running');
-      return response;
+    .then(async (_connections) => {
+      let runAll = true;
+      const runnerJob = new ScheduledJob(async () => {
+        try {
+          logger.info('runnerJob - start');
+
+          const result = await run(runAll, _connections, undefined);
+
+          runAll = false;
+
+          return result || true;
+        } catch (e) {
+          logger.error('runnerJob - error: ', e);
+          return false;
+        }
+      }, ACTION_INTERVAL);
+
+      const slowQueryLogJob = new ScheduledJob(async () => {
+        try {
+          logger.info('planCollectionJob - start');
+          const results = await slowQueryLogPlanCollector(_connections);
+          return results || true;
+        } catch (e) {
+          logger.error('planCollectionJob - error: ', e);
+          return false;
+        }
+      }, SQL_PLAN_COLLECTOR_INTERVAL);
+
+      
+    await Promise.allSettled([slowQueryLogJob.start(), runnerJob.start()]);
     })
     .then(() => {
       if (isDebug()) {
@@ -30,47 +51,7 @@ async function app(hostedOnAws?: any) {
         process.exit(0);
       }
     })
-    .catch((e: any) => logger.error('app has failed', e));
+    .catch((e) => logger.error('error:', e));
 }
 
-export async function main() {
-  try {
-    const scheduledJob = new ScheduledJob(async () => {
-      try {
-        logger.info('scheduledJob - start');
-        const results = await app();
-        logger.info('scheduledJob - end');
-        return results || true;
-      }
-      catch (e) {
-        logger.error('scheduledJob - error: ', e);
-        return false;
-      }
-    }, 1);
-
-    const planCollectionJob = new ScheduledJob(async () => {
-      try {
-        logger.info('planCollectionJob - start');
-        if (!connections) {
-          connections = await setup();
-        }
-        const results = await slowQueryLogPlanCollector(0, connections);
-        logger.info('planCollectionJob - end');
-        return results || true;
-      }
-      catch (e) {
-        logger.error('planCollectionJob - error: ', e);
-        return false;
-      }
-    }, SQL_PLAN_COLLECTOR_INTERVAL);
-
-    await Promise.allSettled([scheduledJob.start(), planCollectionJob.start()]);
-
-  }
-  catch (e) {
-    logger.error('error: ', e);
-  }
-}
-
-
-
+module.exports = main;

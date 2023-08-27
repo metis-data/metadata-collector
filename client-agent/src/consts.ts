@@ -49,9 +49,10 @@ if (LOG_LEVEL) {
 
 const API_GATEWAY_PORT = parseInt((process as any).env.API_GATEWAY_PORT || 443, 10);
 const SQL_PLAN_COLLECTOR_INTERVAL = parseInt((process as any).env.SQL_PLAN_COLLECTOR_INTERVAL_IN_MIN || 1);
+const ACTION_INTERVAL = parseInt((process as any).env.ACTION_INTERVAL_IN_MIN || 1);
 const WEB_APP_PORT = parseInt((process as any).env.WEB_APP_PORT || 443, 10);
-const QUERIES_FILE = process.env.QUERIES_FILE || path.join(__dirname  + '/../', 'queries.yaml');
-const ACTIONS_FILE = process.env.ACTIONS || path.join(__dirname  + '/../', 'actions.yaml');
+const QUERIES_FILE = process.env.QUERIES_FILE || path.join(__dirname, 'queries.yaml');
+const ACTIONS_FILE = process.env.ACTIONS || path.join(__dirname, 'actions.yaml');
 
 const HTTPS_TIMEOUT = 30000;
 
@@ -128,6 +129,7 @@ export  {
   METIS_AWS_REGION,
   METIS_PROVIDER_METADATA,
   SQL_PLAN_COLLECTOR_INTERVAL,
+  ACTION_INTERVAL,
 };
 
 
