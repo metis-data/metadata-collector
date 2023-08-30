@@ -75,18 +75,6 @@ function makeInternalHttpRequest(payload: any, options: any, numRetries = 0, ign
   });
 }
 
-function makeHttpRequest(url: any, method: any, data: any, headers: any, timeout = DEFAULT_REQUEST_TIMEOUT_IN_SEC) {
-  return axios({
-    method,
-    url,
-    data,
-    headers,
-    timeout: timeout * 1000,
-    timeoutErrorMessage: 'REQUEST_TIMEOUT',
-  });
-}
-
 export  {
-  makeInternalHttpRequest,
-  makeHttpRequest
+  makeInternalHttpRequest
 };

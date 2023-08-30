@@ -1,3 +1,5 @@
+import { connectionsQuery } from "./raw-queries";
+
 const { makeInternalHttpRequest } = require('../http');
 const { createSubLogger } = require('../logging');
 const logger = createSubLogger('connections_metric');
@@ -8,11 +10,8 @@ const ConnectionState = {
 };
 
 async function fetchData(dbConfig: any, client: any) {
-  const qry = `SELECT state, count(*)::int FROM pg_stat_activity
-        where datid is not null
-        group by state;`;
-
-  const { rows } = await client.query(qry);
+ 
+  const { rows } = await client.query(connectionsQuery);
   return rows;
 }
 

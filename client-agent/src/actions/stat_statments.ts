@@ -4,23 +4,29 @@ const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
 const { makeInternalHttpRequest } = require('../http');
 const { isEmpty } = require('../utils');
+import axios from 'axios';
+import { pgstatstatmentsQuery } from './raw-queries';
 
 function extractTablesInvolved(ast: any) {
+  const stmt = ast?.RawStmt?.stmt;
+  const JoinExprFromSelect = ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr;
+  const ExplainStmtFromSelect = ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause;
+
   return [
-    ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause?.length > 0
-      ? ast?.RawStmt?.stmt?.ExplainStmt?.query?.SelectStmt?.fromClause?.map(
+    ExplainStmtFromSelect?.length > 0
+      ? ExplainStmtFromSelect?.map(
           (el: any) => el?.RangeVar?.relname,
         )
       : null,
-    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr?.larg?.JoinExpr?.larg?.RangeVar
+      JoinExprFromSelect?.larg?.RangeVar
       ?.relname,
-    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr?.larg?.JoinExpr?.rarg?.RangeVar
+      JoinExprFromSelect?.rarg?.RangeVar
       ?.relname,
-    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr?.rarg?.RangeVar?.relname,
-    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.RangeVar?.relname,
-    ast?.RawStmt?.stmt?.InsertStmt?.relation?.relname,
-    ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.length > 0
-      ? ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.map((el: any) => el?.RangeVar?.relname)
+      JoinExprFromSelect?.rarg?.RangeVar?.relname,
+      stmt?.SelectStmt?.fromClause?.[0]?.RangeVar?.relname,
+      stmt?.InsertStmt?.relation?.relname,
+      stmt?.SelectStmt?.fromClause?.length > 0
+      ? stmt?.SelectStmt?.fromClause?.map((el: any) => el?.RangeVar?.relname)
       : null,
   ]
     .flat(Infinity)
@@ -28,32 +34,8 @@ function extractTablesInvolved(ast: any) {
 }
 
 const action = async ({ dbConfig, client }: any) => {
-  const query = `
-        SELECT table_catalog, table_schema, table_name from information_schema.tables WHERE table_schema NOT IN('pg_catalog', 'information_schema');
-        
-        select 
-        queryid as query_id,
-        pgss.calls as calls,
-        query,
-        pgss.rows,
-        pgss.total_exec_time,
-        pgss.mean_exec_time,
-        pgss.dbid as db_id,
-        pgd.datname as database_name,
-        blk_read_time + blk_write_time as disk_io_time,
-        to_jsonb(pgss) - 'userId' - 'dbid' - 'mean_exec_time' - 'total_exec_time' - 'rows' - 'query' - 'queryid' - 'calls' as metadata
-        from pg_stat_statements as pgss
-        join pg_database pgd on pgd.oid = pgss.dbid
-        where 
-        1=1
-        and rows > 0 
-        and total_exec_time > 0
-        and pgd.datname = '${dbConfig.database}'
-        order by total_exec_time desc, calls desc 
-        limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};
-        `;
-
-  const [{ rows: userTablesArr }, { rows: data }] = await client.query(query);
+  
+  const [{ rows: userTablesArr }, { rows: data }] = await client.query(pgstatstatmentsQuery(dbConfig.database, PG_STAT_STATEMENTS_ROWS_LIMIT ));
 
   const userTables = userTablesArr.map((el: any) => el.table_name);
 
@@ -71,6 +53,64 @@ const action = async ({ dbConfig, client }: any) => {
   return sanitizedData;
 };
 
+/*
+
+export class PmcStatisticsDto {
+  @IsString()
+  readonly query_id: string;
+
+  @IsString()
+  readonly query: string;
+
+  @Transform(({ value }) => +value)
+  readonly calls: number;
+
+  @Transform(({ value }) => +value)
+  readonly rows: number;
+
+  @IsNumber()
+  readonly mean_exec_time: number;
+
+  @IsNumber()
+  readonly total_exec_time: number;
+
+  @IsNumber()
+  readonly disk_io_time: number;
+
+  @IsNumber()
+  readonly db_id: number;
+
+  @IsString()
+  readonly database_name: string;
+
+  @IsObject()
+  @ValidateNested({ each: true })
+  @Type(() => Object)
+  readonly metadata: object;
+}
+
+
+
+*/
+
+function shapeData(data: any, dbConfig: any) {
+  const results: any = [];
+  const { database: db, host, port } = dbConfig;
+  const timestamp = new Date().getTime() * 1000000;
+
+  data.forEach((row: any) => {
+      const { query_id,  } = row;
+      results.push({
+          value: database_size,
+          metricName: 'PG_STAT_STATMENT',
+          timestamp,
+          tags: { db, host, port,   }
+      });
+  });
+  logger.debug('shapeData has finished');
+  return results;
+}
+
 const sendResults = async ({ payload, options, error }: any) => {
   if (error) {
     logger.warn('Stats statements sending data when there is an error for action');
@@ -81,7 +121,15 @@ const sendResults = async ({ payload, options, error }: any) => {
     logger.warn('Stats statments has empty result');
     return;
   }
-
+  axios.post('http://localhost:3000/api/pmc/statistics/query',{
+    "pmcDevice": {
+      "rdbms": "postgres",
+      "dbName": "platform-v2",
+      "dbHost": "database-2.cofhrj7zmyn4.eu-central-1.rds.amazonaws.com",
+      "dbPort": "5432"
+  },
+  "data": payload
+  })
   return makeInternalHttpRequest(payload, options, 0);
 };
 

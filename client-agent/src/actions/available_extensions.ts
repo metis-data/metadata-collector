@@ -1,11 +1,11 @@
 
 
 import { makeInternalHttpRequest } from '../http';
+import { availableExtensionsQuery } from './raw-queries';
+
 const action = async ({ dbConfig, client }: any) => {
-  const query = `SELECT name, default_version, installed_version, comment 
-FROM pg_available_extensions 
-ORDER BY name`;
-  const { rows } = await client.query(query);
+
+  const { rows } = await client.query(availableExtensionsQuery);
   return rows;
 };
 
