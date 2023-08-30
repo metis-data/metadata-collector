@@ -29,7 +29,8 @@ and rows > 0
 and total_exec_time > 0
 and pgd.datname = '${databaseName}'
 order by total_exec_time desc, calls desc 
-limit ${limit};`
+limit ${limit};
+`
 
 
 

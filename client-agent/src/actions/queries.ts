@@ -67,4 +67,4 @@ const actions = Object.keys(QUERIES).reduce((actions: any, queryName: any) =>{
   return actions;
 }, {});
 
-module.exports = actions;
+export default actions;

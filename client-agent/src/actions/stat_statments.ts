@@ -33,9 +33,11 @@ function extractTablesInvolved(ast: any) {
     .filter(Boolean);
 }
 
-const action = async ({ dbConfig, client }: any) => {
+async function run({ dbConfig, client }: any)  {
   
-  const [{ rows: userTablesArr }, { rows: data }] = await client.query(pgstatstatmentsQuery(dbConfig.database, PG_STAT_STATEMENTS_ROWS_LIMIT ));
+  const query = pgstatstatmentsQuery(dbConfig.database, PG_STAT_STATEMENTS_ROWS_LIMIT );
+
+  const [{ rows: userTablesArr }, { rows: data }] = await client.query(query);
 
   const userTables = userTablesArr.map((el: any) => el.table_name);
 
@@ -49,92 +51,59 @@ const action = async ({ dbConfig, client }: any) => {
       return isUserTablesQry ? { ...data[ind], metadata: {} } : null;
     })
     .filter(Boolean);
-
-  return sanitizedData;
+   const res = shapeData(sanitizedData, dbConfig);
+  
+   return res;
 };
 
-/*
-
-export class PmcStatisticsDto {
-  @IsString()
-  readonly query_id: string;
-
-  @IsString()
-  readonly query: string;
-
-  @Transform(({ value }) => +value)
-  readonly calls: number;
-
-  @Transform(({ value }) => +value)
-  readonly rows: number;
-
-  @IsNumber()
-  readonly mean_exec_time: number;
-
-  @IsNumber()
-  readonly total_exec_time: number;
-
-  @IsNumber()
-  readonly disk_io_time: number;
-
-  @IsNumber()
-  readonly db_id: number;
-
-  @IsString()
-  readonly database_name: string;
-
-  @IsObject()
-  @ValidateNested({ each: true })
-  @Type(() => Object)
-  readonly metadata: object;
-}
-
-
-
-*/
 
 function shapeData(data: any, dbConfig: any) {
   const results: any = [];
   const { database: db, host, port } = dbConfig;
   const timestamp = new Date().getTime() * 1000000;
-
   data.forEach((row: any) => {
-      const { query_id,  } = row;
+      const { calls, rows, total_exec_time, query_id  } = row;
       results.push({
-          value: database_size,
+          value: query_id,
+          calls: calls,
+          total_exec_time: total_exec_time, 
+          rows: rows,
           metricName: 'PG_STAT_STATMENT',
           timestamp,
-          tags: { db, host, port,   }
+          tags: { db, host, port  }
       });
   });
   logger.debug('shapeData has finished');
   return results;
 }
 
-const sendResults = async ({ payload, options, error }: any) => {
-  if (error) {
-    logger.warn('Stats statements sending data when there is an error for action');
-    return;
-  }
+// const sendResults = async ({ payload, options, error }: any) => {
+//   console.log('send result from pg_stat')
+//   console.log(JSON.stringify(payload))
 
-  if (isEmpty(payload)) {
-    logger.warn('Stats statments has empty result');
-    return;
-  }
-  axios.post('http://localhost:3000/api/pmc/statistics/query',{
-    "pmcDevice": {
-      "rdbms": "postgres",
-      "dbName": "platform-v2",
-      "dbHost": "database-2.cofhrj7zmyn4.eu-central-1.rds.amazonaws.com",
-      "dbPort": "5432"
-  },
-  "data": payload
-  })
-  return makeInternalHttpRequest(payload, options, 0);
-};
+//   console.log('send result from pg_stat')
+//   if (error) {
+//     logger.warn('Stats statements sending data when there is an error for action');
+//     return;
+//   }
+
+//   if (isEmpty(payload)) {
+//     logger.warn('Stats statments has empty result');
+//     return;
+//   }
+
+//   return makeInternalHttpRequest(payload, options, 0);
+// };
+
+async function sendResults({ payload, options }: any) {
+  const { data: _data } = payload;
+  const data = _data.flat(Infinity);
+  logger.debug('sendResults - calling makeInternalHttpRequest: ', data, options);
+  return makeInternalHttpRequest(data, options);
+}
 
 export default {
-    fn: action,
+    fn: run,
     exporter: {
       sendResults,
     }

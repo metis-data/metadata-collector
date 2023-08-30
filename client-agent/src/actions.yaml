@@ -7,8 +7,8 @@ schemas:
 stat_statements:
   name: stat_statements
   exporter:
-    provider: app
-    url: '/api/pmc/statistics/query'
+    provider: collector
+    url: /md-collector
   times_a_day: 24
 available_extensions:
   name: available_extensions
