@@ -27,7 +27,7 @@ exports.handler = Sentry.AWSLambda.wrapHandler(async (event, context, callback) 
   if (apiVersion === 'v2') {
     const body = JSON.parse(event.body);
     points = body.reduce((acc, cur) => {
-      const { metricName = '', value = 0, tags = {}, timestamp = reqTimestamp } = cur;
+      const { metricName = '', value = 0, tags = {}, timestamp = reqTimestamp, values } = cur;
       tags['apiKey'] = apiKey;
       const point = new Influx.Point(metricName).timestamp(timestamp);
 
@@ -36,6 +36,13 @@ exports.handler = Sentry.AWSLambda.wrapHandler(async (event, context, callback) 
       for ([key, val] of Object.entries(tags)) {
         point.tag(key, val);
       }
+
+      if(values) {
+        for ([key, val] of Object.entries(values)) {
+        point.tag(key, val);
+        point.floatField(key, val);
+      }
+    }
 
       acc.push(point);
       return acc;
@@ -48,6 +55,7 @@ exports.handler = Sentry.AWSLambda.wrapHandler(async (event, context, callback) 
       const {
         metricName,
         value,
+        values,
         timestamp,
         ...rest
       } = data;
@@ -63,6 +71,8 @@ exports.handler = Sentry.AWSLambda.wrapHandler(async (event, context, callback) 
       let point = new Influx.Point(metricName)
         .floatField('value', value)
         .timestamp(pointTs);
+
+      
       point = Object.entries(rest).reduce(
         (pnt, [k, v]) => {
           if (typeof v !== 'string') {
@@ -72,6 +82,7 @@ exports.handler = Sentry.AWSLambda.wrapHandler(async (event, context, callback) 
           if (tagKeys.has(k)) {
             return pnt.tag(k, v);
           }
+
           return pnt.stringField(k, v);
         },
         point,
