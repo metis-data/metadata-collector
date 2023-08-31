@@ -1,5 +1,6 @@
 name: Deploy to Lambda
 on:
+  workflow_dispatch:
   push:
     branches: [ "main" ]
     paths:
