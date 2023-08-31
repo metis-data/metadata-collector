@@ -55,7 +55,6 @@ exports.handler = Sentry.AWSLambda.wrapHandler(async (event, context, callback) 
       const {
         metricName,
         value,
-        values,
         timestamp,
         ...rest
       } = data;
@@ -71,8 +70,7 @@ exports.handler = Sentry.AWSLambda.wrapHandler(async (event, context, callback) 
       let point = new Influx.Point(metricName)
         .floatField('value', value)
         .timestamp(pointTs);
-
-      
+   
       point = Object.entries(rest).reduce(
         (pnt, [k, v]) => {
           if (typeof v !== 'string') {
