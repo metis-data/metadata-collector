@@ -39,7 +39,6 @@ exports.handler = Sentry.AWSLambda.wrapHandler(async (event, context, callback) 
 
       if(values) {
         for ([key, val] of Object.entries(values)) {
-        point.tag(key, val);
         point.floatField(key, val);
       }
     }
