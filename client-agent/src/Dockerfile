@@ -15,10 +15,8 @@ RUN ["/bin/sh", "-c", ": ${SENTRY_DSN:?Build argument needs to be set and not nu
 ENV DATADOG_API_KEY=$DATADOG_API_KEY
 ENV SENTRY_DSN=$SENTRY_DSN
 
-COPY ["package.json", "package-lock.json*", ".npmrc", "./"]
+COPY ["package.json", "package-lock.json*", "./"]
 RUN npm ci --production --loglevel verbose 
-RUN rm .npmrc && unset NPM_TOKEN
-RUN npm i --save @metis-data/slow-query-log@0.1.13
 COPY . .
 
 ENTRYPOINT [ "dumb-init" ]
