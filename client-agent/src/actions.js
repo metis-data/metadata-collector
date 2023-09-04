@@ -14,6 +14,7 @@ const { planCollector } = require('./actions/plan_collector');
 const { dbHostDetails } = require('./actions/db_host_details');
 const { databaseSize } = require('./actions/database_size');
 const { pgDatabaseMetrics } = require('./actions/pg_database_metrics');
+const { statStatmentsMetric } = require('./actions/stat-statements-to-influx');
 const { pgConfig } = require('./actions/pg_config');
 const queries = require('./actions/queries');
 const ExportersProviderConfig = require('./models').ExportersProviderConfig;
@@ -33,6 +34,7 @@ const ACTIONS_FUNCS = {
   db_host_details: dbHostDetails,
   database_size: databaseSize,
   pg_database_metrics: pgDatabaseMetrics,
+  stat_statements_metric: statStatmentsMetric,
   ...queries,
 };
 
