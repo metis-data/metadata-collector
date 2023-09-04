@@ -92,9 +92,6 @@ function shapeData(data, dbConfig) {
     data.forEach((row) => {
         const { calls, rows, total_exec_time, query_id, db_id, database_name } = row;
         results.push({
-            calls: calls,
-            total_exec_time: total_exec_time, 
-            rows: rows,
             metricName: 'PG_STAT_STATEMENTS',
             timestamp: updatedTimeStamp,
             values: { calls, rows, total_exec_time },
