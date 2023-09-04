@@ -90,7 +90,7 @@ function shapeData(data, dbConfig) {
     const updatedTimeStamp = timestamp.getTime() * 1000000;
    
     data.forEach((row) => {
-        const { calls, rows, total_exec_time, query_id  } = row;
+        const { calls, rows, total_exec_time, query_id, db_id, database_name } = row;
         results.push({
             calls: calls,
             total_exec_time: total_exec_time, 
@@ -98,7 +98,7 @@ function shapeData(data, dbConfig) {
             metricName: 'PG_STAT_STATEMENTS',
             timestamp: updatedTimeStamp,
             values: { calls, rows, total_exec_time },
-            tags: { db, host, port, query_id  }
+            tags: { db, host, port, query_id, db_id, database_name  }
         });
     });
     logger.info('PG_STAT_STATEMENTS has finished');
