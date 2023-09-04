@@ -30,7 +30,7 @@ function extractTablesInvolved(ast) {
   }
   
   async function action({ dbConfig, client })  {
-    try {
+    
       const query = `
       SELECT table_catalog, table_schema, table_name from information_schema.tables WHERE table_schema NOT IN('pg_catalog', 'information_schema');
       
@@ -75,15 +75,12 @@ function extractTablesInvolved(ast) {
      const res = shapeData(sanitizedData, dbConfig);
     
      return res;
-  }
-  catch (error) {
-     console.error(error)
-  }
+ 
 };
 
 
 function shapeData(data, dbConfig) {
-  try {
+  
     const results = [];
     const { database: db, host, port } = dbConfig;
     const timestamp = new Date();
@@ -98,14 +95,10 @@ function shapeData(data, dbConfig) {
             tags: { db, host, port, query_id, db_id, database_name  }
         });
     });
-    logger.info('PG_STAT_STATEMENTS has finished');
+ 
     
     return results;
-  }
-  catch (error) {
-    console.log(error)
-    logger.info(error);
-  }
+ 
 }
 
 async function sendResults({ payload, options }) {
