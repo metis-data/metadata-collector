@@ -9,7 +9,7 @@ Parameters:
     MinLength: '1'
     ConstraintDescription: The name must contain only lowercase letters, numbers, underscores and hyphens.
     Default: metis-collector
-  SubnetId:
+  SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
     Description: Subnet(s) where ECS task will run
     MinLength: '1'
@@ -52,7 +52,18 @@ Resources:
       Description: "This secret contains the connection string for Metis Production Metadata Collector (including usernames and passwords)."
       SecretString: !Ref ConnectionStrings
     DeletionPolicy: Delete # Add the DeletionPolicy to delete this resource on stack deletion
-
+  ConnectionStringSecretPolicy:  # Based on https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_examples.html
+    Type: AWS::SecretsManager::ResourcePolicy
+    Properties:
+      SecretId: !Ref ConnectionStringSecret
+      ResourcePolicy:
+        Version: '2012-10-17'
+        Statement:
+        - Resource: !Ref ConnectionStringSecret
+          Action: secretsmanager:GetSecretValue
+          Effect: Allow
+          Principal:
+            AWS: !GetAtt MetisMDCollectorRole.Arn
   MetisMDCollectorRole:
     Type: AWS::IAM::Role
     Properties:
@@ -82,8 +93,22 @@ Resources:
                   - "logs:PutLogEvents"
                   - "ec2:DescribeSubnets"
                 Resource: "*"
+        - PolicyName: MetisECSTaskExecutionRolePolicy2
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:GetSecretValue"
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:BatchGetImage"
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                  - "ec2:DescribeSubnets"
+                Resource: "*"
     DeletionPolicy: Delete # Add the DeletionPolicy to delete this resource on stack deletion
-
   MetisMDCollectorCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -92,7 +117,6 @@ Resources:
         - FARGATE_SPOT
       ClusterName: !Ref ClusterName
     DeletionPolicy: Delete # Add the DeletionPolicy to delete this resource on stack deletion
-
   MetisMDCollector:
     DeletionPolicy: Delete # Add the DeletionPolicy to delete this resource on stack deletion
     Type: AWS::ECS::TaskDefinition
@@ -155,7 +179,5 @@ Resources:
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
-          SecurityGroups:
-            - !Select [0, !Ref SecurityGroupIds]
-          Subnets:
-            - !Select [0, !Ref SubnetId]
+          SecurityGroups: !Ref SecurityGroupIds
+          Subnets: !Ref SubnetIds
