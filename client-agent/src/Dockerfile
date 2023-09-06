@@ -15,6 +15,7 @@ RUN ["/bin/sh", "-c", ": ${SENTRY_DSN:?Build argument needs to be set and not nu
 ENV DATADOG_API_KEY=$DATADOG_API_KEY
 ENV SENTRY_DSN=$SENTRY_DSN
 
+COPY ["package.json", "package-lock.json*", "./"]
 RUN npm ci --production --loglevel verbose 
 COPY . .
 
