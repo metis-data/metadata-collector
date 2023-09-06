@@ -80,25 +80,30 @@ function extractTablesInvolved(ast) {
 
 
 function shapeData(data, dbConfig) {
-  
+  try {
     const results = [];
     const { database: db, host, port } = dbConfig;
     const timestamp = new Date();
     const updatedTimeStamp = timestamp.getTime() * 1000000;
    
     data.forEach((row) => {
-        const { calls, rows, total_exec_time, query_id, db_id, database_name } = row;
-        results.push({
+        const { calls, rows, total_exec_time, query_id, db_id, query, database_name } = row;
+        if(!query.includes('/* metis */')) {
+          results.push({
             metricName: 'PG_STAT_STATEMENTS',
             timestamp: updatedTimeStamp,
             values: { calls, rows, total_exec_time },
             tags: { db, host, port, query_id, db_id, database_name  }
         });
+        }
     });
  
-    
+    console.log(results)
     return results;
- 
+  }
+  catch (error) {
+    console.log(error)
+  }
 }
 
 async function sendResults({ payload, options }) {
