@@ -58,6 +58,10 @@ const httpTransport = new transports.Http(httpTransportOptions);
 const logFormat = [
   format.errors({ stack: true }),
   format.timestamp(),
+  format(info => {	
+    info.environment = ENVIRONMENT;	
+    return info;	
+  })(),
 ];
 
 if (ENVIRONMENT && 
@@ -69,8 +73,17 @@ if (ENVIRONMENT &&
   logFormat.push(format.json());
 }
 
-const consoleTransporter = new transports.Console({ level: LogLevelEnum[LOG_LEVEL] });
-const winstonConsoleTransporter = IGNORE_WINSTON_CONSOLE === 'true' ? [] : [consoleTransporter];
+let winstonTransporter = [];
+
+if(ENVIRONMENT !== EnvironmentsEnum.DEVELOPMENT) {
+  winstonTransporter.push(httpTransport)
+}
+
+if(IGNORE_WINSTON_CONSOLE !== 'true') {
+  const consoleTransporter = new transports.Console({ level: LogLevelEnum[LOG_LEVEL] });
+  winstonTransporter.unshift(consoleTransporter); 
+}
+
 
 const loggers = [];
 const createSubLogger = (componentName, logLevel=LogLevelEnum.INFO) => { 
@@ -81,7 +94,7 @@ const createSubLogger = (componentName, logLevel=LogLevelEnum.INFO) => {
     format: format.combine(...logFormat),
     transports: [
       httpTransport,
-      ...winstonConsoleTransporter,
+      ...winstonTransporter,
     ],
     exceptionHandlers: [
       httpTransport,

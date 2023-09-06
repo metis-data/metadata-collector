@@ -4,9 +4,8 @@
   "description": "",
   "main": "collect-runner.js",
   "scripts": {
-    "debug": "npx nodemon --inspect=0.0.0.0:9229 --max-old-space-size=2048 collect-runner.js",
+    "debug": "npx nodemon --inspect=0.0.0.0:9229 --max-old-space-size=2048 app.js",
     "start": "node --max-old-space-size=2048 app.js",
-    "simulator": "node simulator.js 30 aBJYk0W2ZH5YTBW0smxrz41WLam2rfbw7lNVNmKW",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
