@@ -98,7 +98,6 @@ function shapeData(data, dbConfig) {
         }
     });
  
-    console.log(results)
     return results;
   }
   catch (error) {
