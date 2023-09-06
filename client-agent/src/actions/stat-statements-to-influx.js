@@ -101,7 +101,7 @@ function shapeData(data, dbConfig) {
     return results;
   }
   catch (error) {
-    console.log(error)
+    logger.error(error)
   }
 }
 
