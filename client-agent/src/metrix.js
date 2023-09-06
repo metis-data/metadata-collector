@@ -9,24 +9,29 @@ const { collectMetrics } = require('./metrics');
 const { SilentError } = require('./config/error');
 
 // eslint-disable-next-line max-len
-const collectRunnerAsync = async (runAll, connections, additionalCollectors) => {
+const collectRunnerAsync = async (runAll, connections) => {
   // eslint-disable-next-line max-len
   const collectingActionPromises = [
-    collectActions,
-    collectMetrics,
-    ...(additionalCollectors || []),
-  ].map(async (collectFn) => {
-    const collectorName = collectFn.name;
-    logger.info(`Collector ${collectorName} has been started.`);
+    {
+      name: "Action",
+      fn: collectActions,
+    },
+    {
+      name: "Metric",
+      fn: collectMetrics,
+    }
+  ].map(async (collector) => {
+    const collectorName = collector.name;
+    logger.info(`${collectorName}'s collector has been started.`);
     let collectorResult = {};
     try {
-      collectorResult = await collectFn(runAll, connections);
+      collectorResult = await collector.fn(runAll, connections);
     } catch (error) {
       if (error && !(error instanceof SilentError)) {
-        logger.error(`Collector ${collectorName} has failed.`, { error });
+        logger.error(`${collectorName}'s collector has failed.`, { error });
       }
     } finally {
-      logger.info(`Collector ${collectorName} has just finished.`);
+      logger.info(`${collectorName}'s collector has finished.`);
     }
 
     return collectorResult;
@@ -35,7 +40,7 @@ const collectRunnerAsync = async (runAll, connections, additionalCollectors) => 
   return await Promise.allSettled(collectingActionPromises);
 };
 
-async function run(runAll, connections, additionalCollectors) {
+async function run(runAll, connections) {
   const dbConfigs = await getConnectionConfigs();
 
   const pmcPingResult = await Promise.allSettled(
@@ -54,7 +59,7 @@ async function run(runAll, connections, additionalCollectors) {
 
   logger.debug('MMC Ping result', { pmcPingResult });
 
-  return await collectRunnerAsync(runAll, connections, additionalCollectors);
+  return await collectRunnerAsync(runAll, connections);
 }
 
 module.exports = {
