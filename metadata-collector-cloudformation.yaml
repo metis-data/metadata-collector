@@ -150,6 +150,20 @@ Resources:
         OperatingSystemFamily: LINUX
       TaskRoleArn: !GetAtt MetisMDCollectorRole.Arn
       ExecutionRoleArn: !GetAtt MetisMDCollectorRole.Arn
+  
+  MetisMDCollectorService:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      ServiceName: mmc-service
+      Cluster: !Ref MetisMDCollectorCluster
+      TaskDefinition: !Ref ECSTaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsVpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups: !Ref SecurityGroupId
+          Subnets: !Ref SubnetId
   MetisMDCollectorTriggerRole: # IAM role for the event triggering the Fargate task every hour, allowing it to trigger tasks
     Type: AWS::IAM::Role
     Properties:
