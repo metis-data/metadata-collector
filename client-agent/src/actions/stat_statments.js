@@ -69,7 +69,8 @@ const action = async ({ dbConfig, client }) => {
     })
     .filter(Boolean);
 
-  return sanitizedData;
+  const res = sanitizedData.filter(item => !item.query.includes('/* metis */'));
+  return res;
 };
 
 const sendResults = async ({ payload, options, error }) => {
