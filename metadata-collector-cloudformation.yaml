@@ -13,7 +13,7 @@ Parameters:
     Type: List<AWS::EC2::Subnet::Id>
     Description: Subnet(s) where ECS task will run
     MinLength: '1'
-  SecurityGroupId:
+  SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
     Description: The security group(s) of the ECS task
     MinLength: '1'
@@ -23,27 +23,27 @@ Parameters:
     MinLength: '1'
   ConnectionStrings:
     Type: String
-    Description: Connection string(s) to your production DB, separated by semicolon (;)
+    Description: Connection string(s) to your production DB, separated by a semicolon (;)
     AllowedPattern: "[^ ]+"
     ConstraintDescription: Connection strings cannot contain spaces.
     MinLength: '1'
     NoEcho: true
   MetisEnvironment:
-    Type : "String"
+    Type: "String"
     Description: environment in which the MMC is running
-    AllowedValues : ["cloud", "prem"]
+    AllowedValues: ["cloud", "prem"]
   AwsAccessKeyId:
-    Type : "String"
+    Type: "String"
     Description: aws access key id
   AwsSecretAccessKey:
-    Type : "String"
+    Type: "String"
     Description: aws secret access key
   AwsRegion:
-    Type : "String"
+    Type: "String"
     Description: aws region
   ProviderMetadata:
-    Type : "String"
-    Description: json string format of array of objects in the following convention '[{"resource":"","instance_id":"","provider":""}]'
+    Type: "String"
+    Description: json string format of an array of objects in the following convention '[{"resource":"","instance_id":"","provider":""}]'
 Resources:
   ConnectionStringSecret:
     Type: AWS::SecretsManager::Secret
@@ -51,7 +51,9 @@ Resources:
       Name: !Join ['-', [metis-connection-strings, !Ref ClusterName]]
       Description: "This secret contains the connection string for Metis Production Metadata Collector (including usernames and passwords)."
       SecretString: !Ref ConnectionStrings
-  MetisMDCollectorRole: # IAM role for the Fargate task, allowing it to get the docker image and write logs
+    DeletionPolicy: Delete # Add the DeletionPolicy to delete this resource on stack deletion
+
+  MetisMDCollectorRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -80,18 +82,8 @@ Resources:
                   - "logs:PutLogEvents"
                   - "ec2:DescribeSubnets"
                 Resource: "*"
-  ConnectionStringSecretPolicy:  # Based on https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_examples.html
-    Type: AWS::SecretsManager::ResourcePolicy
-    Properties:
-      SecretId: !Ref ConnectionStringSecret
-      ResourcePolicy:
-        Version: '2012-10-17'
-        Statement:
-        - Resource: "*"
-          Action: secretsmanager:GetSecretValue
-          Effect: Allow
-          Principal:
-            AWS: !GetAtt MetisMDCollectorRole.Arn
+    DeletionPolicy: Delete # Add the DeletionPolicy to delete this resource on stack deletion
+
   MetisMDCollectorCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -99,7 +91,10 @@ Resources:
         - FARGATE
         - FARGATE_SPOT
       ClusterName: !Ref ClusterName
+    DeletionPolicy: Delete # Add the DeletionPolicy to delete this resource on stack deletion
+
   MetisMDCollector:
+    DeletionPolicy: Delete # Add the DeletionPolicy to delete this resource on stack deletion
     Type: AWS::ECS::TaskDefinition
     Properties:
       ContainerDefinitions:
@@ -150,17 +145,17 @@ Resources:
         OperatingSystemFamily: LINUX
       TaskRoleArn: !GetAtt MetisMDCollectorRole.Arn
       ExecutionRoleArn: !GetAtt MetisMDCollectorRole.Arn
-  
   MetisMDCollectorService:
-    Type: 'AWS::ECS::Service'
+    Type: AWS::ECS::Service
     Properties:
-      ServiceName: mmc-service
       Cluster: !Ref MetisMDCollectorCluster
-      TaskDefinition: !Ref ECSTaskDefinition
-      DesiredCount: 1
       LaunchType: FARGATE
+      DesiredCount: 1  # You can adjust the desired number of tasks as needed
+      TaskDefinition: !Ref MetisMDCollector
       NetworkConfiguration:
-        AwsVpcConfiguration:
+        AwsvpcConfiguration:
           AssignPublicIp: ENABLED
-          SecurityGroups: !Ref SecurityGroupId
-          Subnets: !Ref SubnetId
+          SecurityGroups:
+            - !Select [0, !Ref SecurityGroupIds]
+          Subnets:
+            - !Select [0, !Ref SubnetId]
