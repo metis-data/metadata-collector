@@ -4,6 +4,7 @@ on:
     inputs:
       lambda-name:
         type: choice
+        required: false
         description: lambda to deploy
         options: 
         - production-md-collector-test
