@@ -29,7 +29,15 @@ exports.handler = Sentry.AWSLambda.wrapHandler(async (event, context, callback) 
     points = body.reduce((acc, cur) => {
       const { metricName = '', value = 0, tags = {}, timestamp = reqTimestamp, values } = cur;
       tags['apiKey'] = apiKey;
-      const point = new Influx.Point(metricName).timestamp(timestamp);
+
+ 
+    // Calculate the number of milliseconds to round off
+    const millisecondsToRound = timestamp % (60 * 1000);
+
+    // Round the timestamp by subtracting the milliseconds to round off
+    const roundedTimestamp = timestamp - millisecondsToRound;
+
+      const point = new Influx.Point(metricName).timestamp(roundedTimestamp);
 
       point.floatField('value', value);
 
