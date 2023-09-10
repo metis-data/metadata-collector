@@ -8,7 +8,7 @@ on:
         description: lambda to deploy
         options: 
         - production-md-collector-test
-        - mmc-debug
+        - production-md-collector-debug
   push:
     branches: [ "main" ]
     paths:
