@@ -2,6 +2,7 @@ const { parseAsync } = require('pgsql-parser');
 const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
 const { makeInternalHttpRequest } = require('../http');
+const roundTimestampToMinute = require('../utils/round-date-to-minutes');
 
 function extractTablesInvolved(ast) {
     const stmt = ast?.RawStmt?.stmt;
@@ -84,7 +85,7 @@ function shapeData(data, dbConfig) {
     const results = [];
     const { database: db, host, port } = dbConfig;
     const timestamp = new Date();
-    const updatedTimeStamp = timestamp.getTime() * 1000000;
+    const updatedTimeStamp = roundTimestampToMinute(timestamp.getTime());
    
     data.forEach((row) => {
         const { calls, rows, total_exec_time, query_id, db_id, query, database_name } = row;

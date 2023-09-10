@@ -1,6 +1,7 @@
 const { makeInternalHttpRequest } = require('../http');
 const { createSubLogger } = require('../logging');
 const logger = createSubLogger('connections_metric');
+const roundTimestampToMinute = require('../utils/round-date-to-minutes');
 
 const ConnectionState = {
   IDLE: 'idle',
@@ -28,14 +29,16 @@ function shapeData(data, dbConfig) {
     if (row?.state === ConnectionState.ACTIVE) {
       activeConnections.push({
         value: count,
+        timestamp,
         metricName: 'active_connections',
-        tags: { timestamp, db, host, ...rest },
+        tags: { db, host, ...rest },
       });
     } else if (row?.state === ConnectionState.IDLE) {
       idleConnections.push({
         value: count,
+        timestamp,
         metricName: 'idle_connections',
-        tags: { timestamp, db, host, ...rest },
+        tags: { db, host, ...rest },
       });
     }
   });

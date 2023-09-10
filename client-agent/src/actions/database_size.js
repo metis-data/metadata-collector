@@ -1,7 +1,7 @@
 const { makeInternalHttpRequest } = require('../http');
 const { createSubLogger } = require('../logging');
 const logger = createSubLogger('database_size');
-
+const roundTimestampToMinute = require('../utils/round-date-to-minutes');
 
 async function fetchData(dbConfig, client) {
         const qry = `
@@ -21,7 +21,8 @@ WHERE datistemplate = false;
 function shapeData(data, dbConfig) {
     const results = [];
     const { database: db, host, port } = dbConfig;
-    const timestamp = new Date().getTime() * 1000000;
+    const timestamp = roundTimestampToMinute(new Date().getTime());
+    
 
     data.forEach((row) => {
         const { oid, database_name, database_size, database_size_pretty } = row;
