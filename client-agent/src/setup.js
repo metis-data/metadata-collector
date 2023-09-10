@@ -55,7 +55,7 @@ async function setup() {
       } catch (err) {
         /* If logger is failing too, there is nothing we would like to do */
       }
-      gracefulShutdown(uncaughtException, 1)
+      gracefulShutdown('UNCAUGHT_EXCEPTION', 1)
     });
 
     process.on('SIGINT', () => {

@@ -9,11 +9,11 @@ Parameters:
     MinLength: '1'
     ConstraintDescription: The name must contain only lowercase letters, numbers, underscores and hyphens.
     Default: metis-collector
-  SubnetIds:
+  SubnetId:
     Type: List<AWS::EC2::Subnet::Id>
     Description: Subnet(s) where ECS task will run
     MinLength: '1'
-  SecurityGroupIds:
+  SecurityGroupId:
     Type: List<AWS::EC2::SecurityGroup::Id>
     Description: The security group(s) of the ECS task
     MinLength: '1'
@@ -23,27 +23,27 @@ Parameters:
     MinLength: '1'
   ConnectionStrings:
     Type: String
-    Description: Connection string(s) to your production DB, separated by a semicolon (;)
+    Description: Connection string(s) to your production DB, separated by semicolon (;)
     AllowedPattern: "[^ ]+"
     ConstraintDescription: Connection strings cannot contain spaces.
     MinLength: '1'
     NoEcho: true
   MetisEnvironment:
-    Type: "String"
+    Type : "String"
     Description: environment in which the MMC is running
-    AllowedValues: ["cloud", "prem"]
+    AllowedValues : ["cloud", "prem"]
   AwsAccessKeyId:
-    Type: "String"
+    Type : "String"
     Description: aws access key id
   AwsSecretAccessKey:
-    Type: "String"
+    Type : "String"
     Description: aws secret access key
   AwsRegion:
-    Type: "String"
+    Type : "String"
     Description: aws region
   ProviderMetadata:
-    Type: "String"
-    Description: json string format of an array of objects in the following convention '[{"resource":"","instance_id":"","provider":""}]'
+    Type : "String"
+    Description: json string format of array of objects in the following convention '[{"resource":"","instance_id":"","provider":""}]'
 Resources:
   ConnectionStringSecret:
     Type: AWS::SecretsManager::Secret
@@ -51,20 +51,7 @@ Resources:
       Name: !Join ['-', [metis-connection-strings, !Ref ClusterName]]
       Description: "This secret contains the connection string for Metis Production Metadata Collector (including usernames and passwords)."
       SecretString: !Ref ConnectionStrings
-    DeletionPolicy: Delete # Add the DeletionPolicy to delete this resource on stack deletion
-  ConnectionStringSecretPolicy:  # Based on https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_examples.html
-    Type: AWS::SecretsManager::ResourcePolicy
-    Properties:
-      SecretId: !Ref ConnectionStringSecret
-      ResourcePolicy:
-        Version: '2012-10-17'
-        Statement:
-        - Resource: !Ref ConnectionStringSecret
-          Action: secretsmanager:GetSecretValue
-          Effect: Allow
-          Principal:
-            AWS: !GetAtt MetisMDCollectorRole.Arn
-  MetisMDCollectorRole:
+  MetisMDCollectorRole: # IAM role for the Fargate task, allowing it to get the docker image and write logs
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -93,22 +80,18 @@ Resources:
                   - "logs:PutLogEvents"
                   - "ec2:DescribeSubnets"
                 Resource: "*"
-        - PolicyName: MetisECSTaskExecutionRolePolicy2
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "secretsmanager:GetSecretValue"
-                  - "ecr:BatchCheckLayerAvailability"
-                  - "ecr:GetDownloadUrlForLayer"
-                  - "ecr:BatchGetImage"
-                  - "logs:CreateLogGroup"
-                  - "logs:CreateLogStream"
-                  - "logs:PutLogEvents"
-                  - "ec2:DescribeSubnets"
-                Resource: "*"
-    DeletionPolicy: Delete # Add the DeletionPolicy to delete this resource on stack deletion
+  ConnectionStringSecretPolicy:  # Based on https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_examples.html
+    Type: AWS::SecretsManager::ResourcePolicy
+    Properties:
+      SecretId: !Ref ConnectionStringSecret
+      ResourcePolicy:
+        Version: '2012-10-17'
+        Statement:
+        - Resource: "*"
+          Action: secretsmanager:GetSecretValue
+          Effect: Allow
+          Principal:
+            AWS: !GetAtt MetisMDCollectorRole.Arn
   MetisMDCollectorCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -116,9 +99,7 @@ Resources:
         - FARGATE
         - FARGATE_SPOT
       ClusterName: !Ref ClusterName
-    DeletionPolicy: Delete # Add the DeletionPolicy to delete this resource on stack deletion
   MetisMDCollector:
-    DeletionPolicy: Delete # Add the DeletionPolicy to delete this resource on stack deletion
     Type: AWS::ECS::TaskDefinition
     Properties:
       ContainerDefinitions:
@@ -169,15 +150,55 @@ Resources:
         OperatingSystemFamily: LINUX
       TaskRoleArn: !GetAtt MetisMDCollectorRole.Arn
       ExecutionRoleArn: !GetAtt MetisMDCollectorRole.Arn
-  MetisMDCollectorService:
-    Type: AWS::ECS::Service
+  MetisMDCollectorTriggerRole: # IAM role for the event triggering the Fargate task every hour, allowing it to trigger tasks
+    Type: AWS::IAM::Role
     Properties:
-      Cluster: !Ref MetisMDCollectorCluster
-      LaunchType: FARGATE
-      DesiredCount: 1  # You can adjust the desired number of tasks as needed
-      TaskDefinition: !Ref MetisMDCollector
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: ENABLED
-          SecurityGroups: !Ref SecurityGroupIds
-          Subnets: !Ref SubnetIds
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+                - ecs-tasks.amazonaws.com
+                - events.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: MetisEventBridgeInvokeECSPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ecs:RunTask"
+                Resource:
+                  - "*"
+              - Effect: Allow
+                Action: "iam:PassRole"
+                Resource:
+                  - "*"
+                Condition:
+                  StringLike:
+                    "iam:PassedToService": "ecs-tasks.amazonaws.com"
+  MetisMDCollectorTrigger:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Triggers Metis metadata collector
+      # The event's name is suffixed with the cluster name, to allow multiple tasks with different parameters (e.g. different VPCs)
+      Name: !Join ['-', [MetisMDTrigger, !Ref ClusterName]]
+      ScheduleExpression: 'rate(1 hour)'
+      State: ENABLED
+      Targets:
+        - Id: '1'
+          Arn: !GetAtt MetisMDCollectorCluster.Arn
+          RoleArn: !GetAtt MetisMDCollectorTriggerRole.Arn
+          EcsParameters:
+            LaunchType: FARGATE
+            TaskDefinitionArn: !Ref MetisMDCollector
+            NetworkConfiguration:
+              AwsVpcConfiguration:
+                AssignPublicIp: ENABLED
+                SecurityGroups: !Ref SecurityGroupId
+                Subnets: !Ref SubnetId

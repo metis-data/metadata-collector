@@ -50,11 +50,10 @@ function makeInternalHttpRequest(payload, options, numRetries = 0, ignoreStatusC
         if (res.statusCode < 400) {
           resolve({ statusCode: res.statusCode, context, data });
         } else {
-          const error = new Error(`Problem with HTTPS request, status code is ${JSON.stringify(context, null, 2)
-            }`);
+          const error = new Error(`Problem with HTTPS request, status code is ${JSON.stringify({ ...context, data}, null, 2)}`);
 
           error.context = context;
-          reject({ error, statusCode: res.statusCode, data });
+          reject(error);
         }
       });
     });
