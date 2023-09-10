@@ -34,7 +34,7 @@ const ACTIONS_FUNCS = {
   db_host_details: dbHostDetails,
   database_size: databaseSize,
   pg_database_metrics: pgDatabaseMetrics,
-  stat_statements_metric: statStatmentsMetric,
+  // stat_statements_metric: statStatmentsMetric,
   ...queries,
 };
 
