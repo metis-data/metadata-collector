@@ -12,7 +12,7 @@ function roundTimestampToMinute(timestamp) {
   // Create a new Date object with the rounded timestamp
   const roundedDate = new Date(roundedTimestamp);
 
-  return roundedDate;
+  return roundedDate.getTime();
 }
 
 

@@ -21,7 +21,7 @@ WHERE datistemplate = false;
 function shapeData(data, dbConfig) {
     const results = [];
     const { database: db, host, port } = dbConfig;
-    const timestamp = roundTimestampToMinute(new Date().getTime());
+    const timestamp = new Date().getTime() * 1000000;
     
 
     data.forEach((row) => {

@@ -2,7 +2,6 @@ const { parseAsync } = require('pgsql-parser');
 const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
 const { makeInternalHttpRequest } = require('../http');
-const roundTimestampToMinute = require('../utils/round-date-to-minutes');
 
 function extractTablesInvolved(ast) {
     const stmt = ast?.RawStmt?.stmt;
@@ -85,21 +84,22 @@ function shapeData(data, dbConfig) {
     const results = [];
     const { database: db, host, port } = dbConfig;
     const timestamp = new Date();
-    const updatedTimeStamp = roundTimestampToMinute(timestamp.getTime());
+    const updatedTimeStamp = timestamp.getTime() * 1000000;
    
     data.forEach((row) => {
         const { calls, rows, total_exec_time, query_id, db_id, query, database_name } = row;
         if(!query.includes('/* metis */')) {
           results.push({
-            metricName: 'QUERY_DETAILS',
+            metricName: 'PG_STAT_STATEMENT',
             timestamp: updatedTimeStamp,
             values: { calls, rows, total_exec_time, query_id },
             tags: { db, host, port, db_id, database_name  }
         });
         }
     });
+    const res = results.slice(0,200);
  
-    return results[0];
+    return res;
   }
   catch (error) {
     logger.error(error)
@@ -124,4 +124,3 @@ module.exports = {
     },
   },
 };
-

@@ -23,7 +23,7 @@ function shapeData(data, dbConfig) {
   const { database: db, host } = dbConfig;
 
   data.forEach((row) => {
-    const timestamp = Date.now();
+    const timestamp = new Date().getTime() * 1000000;
     const { state, count, ...rest } = row;
 
     if (row?.state === ConnectionState.ACTIVE) {
