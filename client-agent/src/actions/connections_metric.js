@@ -29,13 +29,13 @@ function shapeData(data, dbConfig) {
       activeConnections.push({
         value: count,
         metricName: 'active_connections',
-        tags: { timestamp, db, host, ...rest },
+        tags: { db, host, ...rest },
       });
     } else if (row?.state === ConnectionState.IDLE) {
       idleConnections.push({
         value: count,
         metricName: 'idle_connections',
-        tags: { timestamp, db, host, ...rest },
+        tags: { db, host, ...rest },
       });
     }
   });
