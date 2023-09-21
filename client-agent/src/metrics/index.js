@@ -10,6 +10,7 @@ const { MetisEnvironment, CloudProvider, CloudResource } = require('../models');
 const AwsRdsResource = require('./aws/rds');
 const METRIC_PROVIDER_MAPPER = require('./models');
 
+
 const logger = createSubLogger('MetricController');
 
 class MetricController {

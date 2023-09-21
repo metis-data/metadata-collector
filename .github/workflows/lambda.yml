@@ -1,6 +1,14 @@
 name: Deploy to Lambda
 on:
   workflow_dispatch:
+    inputs:
+      lambda-name:
+        type: choice
+        required: false
+        description: lambda to deploy
+        options: 
+        - production-md-collector-test
+        - production-md-collector-debug
   push:
     branches: [ "main" ]
     paths:
@@ -32,4 +40,4 @@ jobs:
       - name: zip
         run: npm ci && zip -r deployment.zip .
       - name: deploy
-        run: aws lambda update-function-code --function-name production-md-collector-test --zip-file fileb://deployment.zip
+        run: aws lambda update-function-code --function-name ${{ github.event.inputs.lambda-name }} --zip-file fileb://deployment.zip

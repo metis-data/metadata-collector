@@ -29,6 +29,7 @@ exports.handler = Sentry.AWSLambda.wrapHandler(async (event, context, callback) 
     points = body.reduce((acc, cur) => {
       const { metricName = '', value = 0, tags = {}, timestamp = reqTimestamp, values } = cur;
       tags['apiKey'] = apiKey;
+
       const point = new Influx.Point(metricName).timestamp(timestamp);
 
       point.floatField('value', value);
