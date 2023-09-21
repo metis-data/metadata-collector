@@ -29,7 +29,7 @@ FROM pg_stat_database;
 function shapeData(data, dbConfig) {
     const results = [];
     const { database: db, host } = dbConfig;
-    const timestamp = new Date().getTime();
+    const timestamp = new Date().getTime() * 1000000 ;
 
     data.forEach((row) => {
         const {

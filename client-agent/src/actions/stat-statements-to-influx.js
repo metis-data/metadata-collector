@@ -83,23 +83,45 @@ function shapeData(data, dbConfig) {
   try {
     const results = [];
     const { database: db, host, port } = dbConfig;
-    const timestamp = new Date();
-    const updatedTimeStamp = timestamp.getTime() * 1000000;
-   
-    data.forEach((row) => {
+    const NANO_SECOND = 0.000001;
+    let timestamp = new Date();
+    let updatedDate = timestamp.getTime() * 1000000
+    
+    data.forEach((row, idx) => {
+      
         const { calls, rows, total_exec_time, query_id, db_id, query, database_name } = row;
         if(!query.includes('/* metis */')) {
           results.push({
             metricName: 'PG_STAT_STATEMENT',
-            timestamp: updatedTimeStamp,
-            values: { calls, rows, total_exec_time, query_id },
-            tags: { db, host, port, db_id, database_name  }
+            timestamp: updatedDate,
+            values: { calls, rows, total_exec_time },
+            tags: { host, port, db_id, database_name, query_id : query_id + idx }
         });
         }
     });
-    const res = results.slice(0,200);
- 
-    return res;
+    
+    // let rr = []
+
+    // for(let i=0; i < 20_000; i++) {
+    //   rr.push({
+    //          metricName: 'PG_STAT_STATEMENT',
+    //         timestamp: 1694616598576000000 ,
+    //         values: {
+    //           calls: "2441",
+    //           rows: "2441",
+    //           total_exec_time: 8437888.447111003,
+    //         },
+    //         tags: {
+    //           host: "database-2.cofhrj7zmyn4.eu-central-1.rds.amazonaws.com",
+    //           port: 5432,
+    //           db_id: 620733,
+    //           database_name: "platform-v2",
+    //           query_id: "3637677908851465130" + i,
+    //         }
+    //   })
+    // }
+
+    return results;
   }
   catch (error) {
     logger.error(error)
