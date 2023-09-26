@@ -98,11 +98,11 @@ const createSubLogger = (componentName, logLevel=LogLevelEnum.INFO) => {
     ],
     exceptionHandlers: [
       httpTransport,
-      consoleTransporter,
+      // consoleTransporter,
     ],
     rejectionHandlers: [
       httpTransport,
-      consoleTransporter,
+      // consoleTransporter,
     ],
   });
 
