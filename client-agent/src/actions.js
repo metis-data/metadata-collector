@@ -25,7 +25,7 @@ const actionsFileContents = fs.readFileSync(ACTIONS_FILE, 'utf8');
 const ACTIONS_YAML = yaml.load(actionsFileContents);
 
 const ACTIONS_FUNCS = {
-  schemas: schemaAction,
+  //schemas: schemaAction,
   stat_statements: statStatmentsAction,
   available_extensions: availableExtensions,
   pg_config: pgConfig,
