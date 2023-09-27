@@ -130,15 +130,15 @@ Resources:
           Name: metis-md-collector
           Environment:
             - Name: APP_ENV
-              Value: production
+              Value: staging
             - Name: API_GATEWAY_HOST
-              Value: ingest.metisdata.io
+              Value: ingest-stg.metisdata.io
             - Name: API_GATEWAY_PATH
               Value: /md-collector
             - Name: API_GATEWAY_PORT
               Value: 443
             - Name: WEB_APP_HOST
-              Value: app.metisdata.io
+              Value: dev.metisdata.io
             - Name: WEB_APP_PORT
               Value: 443
             - Name: API_KEY
