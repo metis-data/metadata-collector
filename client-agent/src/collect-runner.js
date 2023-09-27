@@ -41,8 +41,9 @@ async function main(hostedOnAws = false) {
           }, SQL_PLAN_COLLECTOR_INTERVAL)
         : undefined;
 
-      
-    await Promise.allSettled([slowQueryLogJob && slowQueryLogJob.start(), runnerJob.start()]);
+    slowQueryLogJob
+      ? await Promise.allSettled([slowQueryLogJob.start(), runnerJob.start()])
+      : await Promise.allSettled([runnerJob.start()]);
     })
     .then(() => {
       if (isDebug()) {
