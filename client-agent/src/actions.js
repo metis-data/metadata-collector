@@ -34,7 +34,7 @@ const ACTIONS_FUNCS = {
   db_host_details: dbHostDetails,
   database_size: databaseSize,
   pg_database_metrics: pgDatabaseMetrics,
-  // stat_statements_metric: statStatmentsMetric,
+  stat_statements_metric: statStatmentsMetric,
   ...queries,
 };
 
@@ -48,7 +48,7 @@ function getActions(runAll = false) {
     return Object.values(ACTIONS_DEF);
   }
   return Object.keys(ACTIONS_DEF)
-    .filter((key) => relevant(ACTIONS_DEF[key].times_a_day, currentMinutes))
+     .filter((key) => relevant(ACTIONS_DEF[key].times_a_day, currentMinutes))
     .map((key) => ACTIONS_DEF[key]);
 }
 
