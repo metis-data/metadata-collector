@@ -83,22 +83,24 @@ function shapeData(data, dbConfig) {
   try {
     const results = [];
     const { database: db, host, port } = dbConfig;
-    const timestamp = new Date();
-    const updatedTimeStamp = timestamp.getTime() * 1000000;
    
-    data.forEach((row) => {
+    data.forEach((row, idx) => {
         const { calls, rows, total_exec_time, query_id, db_id, query, database_name } = row;
+
+        let timestamp = new Date();
+        let updatedTimeStamp = (timestamp.getTime() + idx) * 1000000;
+
         if(!query.includes('/* metis */')) {
           results.push({
             metricName: 'QUERY_DETAILS',
             timestamp: updatedTimeStamp,
-            values: { calls, rows, total_exec_time, query_id },
-            tags: { db, host, port, db_id, database_name  }
+            values: { calls, rows, total_exec_time },
+            tags: { db, host, port, db_id, database_name, query_id }
         });
         }
     });
- 
-    return results[0];
+
+    return results;
   }
   catch (error) {
     logger.error(error)
