@@ -22,6 +22,7 @@ const {
   DEFAULT_REQUEST_TIMEOUT_IN_SEC = 360,
   CRON_LOCAL_RUNNING_EXP = '0 * * * *',
   CRON_LOGS_SERVICE_EXP = '* * * * *',
+  AGENT_ENVIRONMENT = '',
   METIS_ENVIRONMENT = '',
   METIS_AWS_ACCESS_KEY_ID = '',
   METIS_AWS_SECRET_ACCESS_KEY = '',
@@ -37,6 +38,11 @@ const LogLevelEnum = {
   INFO: 'info',
   WARN: 'warn',
 };
+
+const AgentEnvsEnum = {
+  PROD: 'production',
+  NON_PROD: 'non-production',
+}
 
 if (LOG_LEVEL) {
   LOG_LEVEL = LOG_LEVEL.toUpperCase();
@@ -114,6 +120,7 @@ module.exports = {
   WEB_APP_PORT,
   LOG_LEVEL,
   LogLevelEnum,
+  AgentEnvsEnum,
   ENVIRONMENT,
   EnvironmentsEnum,
   PG_STAT_STATEMENTS_ROWS_LIMIT,
@@ -122,6 +129,7 @@ module.exports = {
   CRON_LOCAL_RUNNING_EXP,
   CRON_LOGS_SERVICE_EXP,
   COLLECTOR_REQUEST_OPTIONS,
+  AGENT_ENVIRONMENT,
   METIS_ENVIRONMENT: METIS_ENVIRONMENT?.toLowerCase(),
   METIS_AWS_ACCESS_KEY_ID,
   METIS_AWS_SECRET_ACCESS_KEY,

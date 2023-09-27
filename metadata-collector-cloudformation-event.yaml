@@ -28,6 +28,10 @@ Parameters:
     ConstraintDescription: Connection strings cannot contain spaces.
     MinLength: '1'
     NoEcho: true
+  AgentEnvironment:
+    Type: "String"
+    Description: Choose non-production to enable [slow-query-log](https://github.com/metis-data/slow-query-log), refer the database setup here
+    AllowedValues: [ "production", "non-production" ]
   MetisEnvironment:
     Type : "String"
     Description: environment in which the MMC is running
@@ -124,6 +128,8 @@ Resources:
               Value: !Ref ConnectionStringSecret
             - Name: METIS_ENVIRONMENT
               Value: !Ref MetisEnvironment
+            - Name: AGENT_ENVIRONMENT
+              Value: !Ref AgentEnvironment
             - Name: METIS_AWS_ACCESS_KEY_ID
               Value: !Ref AwsAccessKeyId
             - Name: METIS_AWS_SECRET_ACCESS_KEY

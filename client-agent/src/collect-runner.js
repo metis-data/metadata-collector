@@ -1,7 +1,7 @@
 require('events').EventEmitter.prototype._maxListeners = 70;
 require('events').defaultMaxListeners = 70;
 const wtf = require('wtfnode');
-const { isDebug, SQL_PLAN_COLLECTOR_INTERVAL, ACTION_INTERVAL } = require('./consts');
+const { isDebug, SQL_PLAN_COLLECTOR_INTERVAL, ACTION_INTERVAL, AGENT_ENVIRONMENT, AgentEnvsEnum} = require('./consts');
 const { logger } = require('./logging');
 const { run } = require('./metrix');
 const { setup } = require('./setup');
@@ -28,19 +28,21 @@ async function main(hostedOnAws = false) {
         }
       }, ACTION_INTERVAL);
 
-      const slowQueryLogJob = new ScheduledJob(async () => {
-        try {
-          logger.info('planCollectionJob - start');
-          const results = await slowQueryLogPlanCollector(_connections);
-          return results || true;
-        } catch (e) {
-          logger.error('planCollectionJob - error: ', e);
-          return false;
-        }
-      }, SQL_PLAN_COLLECTOR_INTERVAL);
+      const slowQueryLogJob = AGENT_ENVIRONMENT === AgentEnvsEnum.NON_PROD
+        ? new ScheduledJob(async () => {
+            try {
+              logger.info('planCollectionJob - start');
+              const results = await slowQueryLogPlanCollector(_connections);
+              return results || true;
+            } catch (e) {
+              logger.error('planCollectionJob - error: ', e);
+              return false;
+            }
+          }, SQL_PLAN_COLLECTOR_INTERVAL)
+        : undefined;
 
       
-    await Promise.allSettled([slowQueryLogJob.start(), runnerJob.start()]);
+    await Promise.allSettled([slowQueryLogJob && slowQueryLogJob.start(), runnerJob.start()]);
     })
     .then(() => {
       if (isDebug()) {

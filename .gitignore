@@ -149,3 +149,6 @@ client-agent/src/.env.prod
 .vscode/launch.json
 .vscode/settings.json
 .vscode/tasks.json
+
+metadata-collector.iml
+client-agent/.DS_Store
