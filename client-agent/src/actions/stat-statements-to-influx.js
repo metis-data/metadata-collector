@@ -3,6 +3,15 @@ const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
 const { makeInternalHttpRequest } = require('../http');
 
+async function getVersion(client) {
+  try {
+    const pgVersionRes = (await client.query('SELECT version();')).rows;
+    return parseFloat(pgVersionRes[0].version.split(' ')?.[1] || '');
+  } catch (e) {
+    return '';
+  }
+}
+
 function extractTablesInvolved(ast) {
     const stmt = ast?.RawStmt?.stmt;
     const JoinExprFromSelect = ast?.RawStmt?.stmt?.SelectStmt?.fromClause?.[0]?.JoinExpr;
@@ -30,7 +39,9 @@ function extractTablesInvolved(ast) {
   }
   
   async function action({ dbConfig, client })  {
-    
+      const pgVersion = await getVersion(client);
+      const hasTopLevel = pgVersion && pgVersion >= 14;
+
       const query = `
       SELECT table_catalog, table_schema, table_name from information_schema.tables WHERE table_schema NOT IN('pg_catalog', 'information_schema');
       
@@ -52,7 +63,7 @@ function extractTablesInvolved(ast) {
       and rows > 0 
       and total_exec_time > 0
       and pgd.datname = '${dbConfig.database}'
-      and toplevel=true
+      ${hasTopLevel ? 'and toplevel=true' : ''}
       order by total_exec_time desc, calls desc 
       limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};
       `;
