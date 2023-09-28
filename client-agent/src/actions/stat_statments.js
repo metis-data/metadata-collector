@@ -1,9 +1,17 @@
-const pg = require('pg');
 const { parseAsync } = require('pgsql-parser');
 const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
 const { makeInternalHttpRequest } = require('../http');
 const { isEmpty } = require('../utils');
+
+async function getVersion(client) {
+  try {
+    const pgVersionRes = (await client.query('SELECT version();')).rows;
+    return parseFloat(pgVersionRes[0].version.split(' ')?.[1] || '');
+  } catch (e) {
+    return '';
+  }
+}
 
 function extractTablesInvolved(ast) {
   return [
@@ -28,6 +36,9 @@ function extractTablesInvolved(ast) {
 }
 
 const action = async ({ dbConfig, client }) => {
+  const pgVersion = await getVersion(client);
+  const hasTopLevel = pgVersion && pgVersion >= 14;
+
   const query = `
         SELECT table_catalog, table_schema, table_name from information_schema.tables WHERE table_schema NOT IN('pg_catalog', 'information_schema');
         
@@ -49,7 +60,7 @@ const action = async ({ dbConfig, client }) => {
         and rows > 0 
         and total_exec_time > 0
         and pgd.datname = '${dbConfig.database}'
-        and toplevel=true
+        ${hasTopLevel ? 'and toplevel=true' : ''}
         order by total_exec_time desc, calls desc 
         limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};
         `;
