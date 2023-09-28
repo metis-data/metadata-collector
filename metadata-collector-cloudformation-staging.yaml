@@ -30,7 +30,7 @@ Parameters:
     NoEcho: true
   AgentEnvironment:
     Type: "String"
-    Description: Choose non-production to enable [slow-query-log](https://github.com/metis-data/slow-query-log), refer the database setup here
+    Description: Choose non-production to enable slow-query-log, refer the database setup here https://github.com/metis-data/slow-query-log
     AllowedValues: [ "production", "non-production" ]
   MetisEnvironment:
     Type: "String"
