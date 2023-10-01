@@ -51,7 +51,7 @@ stat_statements_metric:
   exporter:
     provider: collector
     url: /md-collector
-  times_a_day: 288
+  times_a_day: 144
 pg_database_metrics:
   name: pg_database_metrics
   exporter:
