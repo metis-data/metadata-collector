@@ -7,7 +7,7 @@ const { run } = require('./metrix');
 const { setup } = require('./setup');
 const ScheduledJob = require('./utils/scheduled-job');
 const slowQueryLogPlanCollector = require('./slow-query-log');
-
+//
 async function main(hostedOnAws = false) {
   logger.info('app is staring');
   return setup()
