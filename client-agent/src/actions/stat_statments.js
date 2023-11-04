@@ -56,11 +56,9 @@ const action = async ({ dbConfig, client }) => {
         from pg_stat_statements as pgss
         join pg_database pgd on pgd.oid = pgss.dbid
         where 
-        1=1
-        and rows > 0 
-        and total_exec_time > 0
+        pgss.rows > 0 
+        and pgss.total_exec_time > 0
         and pgd.datname = '${dbConfig.database}'
-        ${hasTopLevel ? 'and toplevel=true' : ''}
         order by total_exec_time desc, calls desc 
         limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};
         `;

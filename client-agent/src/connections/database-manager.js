@@ -44,7 +44,9 @@ class PostgresDatabase extends Database {
       _isSlowQueryLogReady: false,
     };
 
-    this.pool = new Pool({ connectionString: this.connectionString });
+    this.pool = new Pool({ connectionString: this.connectionString,  ssl: {
+      rejectUnauthorized: false
+  } });
 
     const { password, ...sanitizedConfig } = parsePostgresConnection(connectionString);
     this.dbConfig = sanitizedConfig;
@@ -66,7 +68,8 @@ class PostgresDatabase extends Database {
     logger.debug('takeAction - calling new MetisSqlCollector');
     const _logger = createSubLogger('MetisSqlCollector');
     this._metisSqlCollector = new MetisSqlCollector({
-      connectionString,
+      // connectionStrings: connectionString,
+       connectionString,
       metisApiKey,
       metisExportUrl,
       serviceName,
