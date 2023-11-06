@@ -62,6 +62,7 @@ function extractTablesInvolved(ast) {
       1=1
       and rows > 0 
       and total_exec_time > 0
+      ${hasTopLevel ? 'and toplevel=true' : ''}
       and pgd.datname = '${dbConfig.database}'
       order by total_exec_time desc, calls desc 
       limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};
