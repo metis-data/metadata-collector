@@ -3,14 +3,7 @@ const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
 const { makeInternalHttpRequest } = require('../http');
 
-async function getVersion(client) {
-  try {
-    const pgVersionRes = (await client.query('SELECT version();')).rows;
-    return parseFloat(pgVersionRes[0].version.split(' ')?.[1] || '');
-  } catch (e) {
-    return '';
-  }
-}
+var isTopLevelSupported = undefined;
 
 function extractTablesInvolved(ast) {
     const stmt = ast?.RawStmt?.stmt;
@@ -39,8 +32,18 @@ function extractTablesInvolved(ast) {
   }
   
   async function action({ dbConfig, client })  {
-      const pgVersion = await getVersion(client);
-      const hasTopLevel = pgVersion && pgVersion >= 14;
+    const isTopLevelSupportedQuery = `select toplevel from pg_stat_statements limit 1;`;
+
+    if(isTopLevelSupported === undefined) {
+      try {
+        if(isTopLevelSupported === undefined) {
+          await client.query(isTopLevelSupportedQuery);
+          isTopLevelSupported = true;
+        }
+      } catch(error) {
+        isTopLevelSupported = false
+      }
+    }
 
       const query = `
       SELECT table_catalog, table_schema, table_name from information_schema.tables WHERE table_schema NOT IN('pg_catalog', 'information_schema');
