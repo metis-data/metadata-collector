@@ -3,7 +3,23 @@ const { PG_STAT_STATEMENTS_ROWS_LIMIT } = require('../consts');
 const { logger } = require('../logging');
 const { makeInternalHttpRequest } = require('../http');
 
-var isTopLevelSupported = undefined;
+async function getVersion(client) {
+  try {
+    const { rows } = await client.query('SELECT version();');
+    return parseFloat(rows[0].version.split(' ')?.[1] || '');
+  } catch (e) {
+    return '';
+  }
+}
+
+async function getExtensionVersion(client, extname) {
+  try {
+    const { rows } = await client.query(`SELECT extversion FROM pg_extension where extname = '${extname}';`);
+    return parseFloat(rows[0].extversion || '');
+  } catch (e) {
+    return '';
+  }
+}
 
 function extractTablesInvolved(ast) {
     const stmt = ast?.RawStmt?.stmt;
@@ -32,18 +48,9 @@ function extractTablesInvolved(ast) {
   }
   
   async function action({ dbConfig, client })  {
-    const isTopLevelSupportedQuery = `select toplevel from pg_stat_statements limit 1;`;
-
-    if(isTopLevelSupported === undefined) {
-      try {
-        if(isTopLevelSupported === undefined) {
-          await client.query(isTopLevelSupportedQuery);
-          isTopLevelSupported = true;
-        }
-      } catch(error) {
-        isTopLevelSupported = false
-      }
-    }
+    const pgVersion = await getVersion(client);
+    const extVersion = await getExtensionVersion(client, 'pg_stat_statements');
+    const hasTopLevel = pgVersion && pgVersion >= 14 && extVersion && extVersion >= 1.9;
 
       const query = `
       SELECT table_catalog, table_schema, table_name from information_schema.tables WHERE table_schema NOT IN('pg_catalog', 'information_schema');
@@ -65,7 +72,7 @@ function extractTablesInvolved(ast) {
       1=1
       and rows > 0 
       and total_exec_time > 0
-      ${isTopLevelSupported ? 'and toplevel=true' : ''}
+      ${hasTopLevel ? 'and toplevel=true' : ''}
       and pgd.datname = '${dbConfig.database}'
       order by total_exec_time desc, calls desc 
       limit ${PG_STAT_STATEMENTS_ROWS_LIMIT};
