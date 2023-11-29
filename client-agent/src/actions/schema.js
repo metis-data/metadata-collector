@@ -3,7 +3,8 @@ const { makeInternalHttpRequest } = require('../http');
 
 const action = async ({dbConfig: _, client}) => {
   const schemaDetailsObject = dbDetailsFactory('postgres');
-  return schemaDetailsObject.getDbDetails(client);
+  const res =  await schemaDetailsObject.getDbDetails(client);
+  return res;
 };
 
 const sendResults = async ({ payload, options }) => makeInternalHttpRequest(payload, options, 0);
